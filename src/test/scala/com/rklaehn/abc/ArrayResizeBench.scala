@@ -7,6 +7,9 @@ import spire.math.Rational
 
 import scala.reflect.ClassTag
 
+/**
+ * The purpose of this benchmark is to make sure that allocating using j.l.r.Array.newInstance is fast enough
+ */
 object ArrayResizeBench extends App {
 
   val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)

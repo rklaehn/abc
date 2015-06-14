@@ -20,7 +20,7 @@ final class Map[@sp K, @sp V](private val _keys: Array[K], private val _values:A
   def values: Seq[V] = new Seq[V](_values)
 
   def apply(k: K)(implicit o:Order[K]): V = {
-    val i = SetOps.binarySearch(_keys, k, 0, _keys.length)
+    val i = SetUtils.binarySearch(_keys, k, 0, _keys.length)
     if(i >= 0)
       _values(i)
     else
@@ -28,7 +28,7 @@ final class Map[@sp K, @sp V](private val _keys: Array[K], private val _values:A
   }
 
   def get(k: K)(implicit o:Order[K]): Option[V] = {
-    val i = SetOps.binarySearch(_keys, k, 0, _keys.length)
+    val i = SetUtils.binarySearch(_keys, k, 0, _keys.length)
     if(i < 0) None else Some(_values(i))
   }
 

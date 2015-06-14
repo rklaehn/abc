@@ -8,7 +8,7 @@ import spire.algebra.Order
 /**
  * Set operations. Some of them can be used for both sets and ordered sequences, as well as from inside the radix tree
  */
-private[abc] object SetOps {
+private[abc] object SetUtils {
 
   private class AbortControl extends ControlThrowable
 

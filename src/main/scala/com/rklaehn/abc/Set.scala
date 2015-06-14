@@ -11,39 +11,39 @@ final class Set[@sp T] private[abc] (private[abc] val elements: Array[T], privat
   import Set._
 
   def apply(e: T)(implicit o:Order[T]): Boolean =
-    SetOps.contains(elements, e) ^ negated
+    SetUtils.contains(elements, e) ^ negated
 
   def negate: Set[T] = new Set[T](elements, !negated)
 
   def subsetOf(that: Set[T])(implicit o:Order[T]): Boolean = {
     if(this.negated) {
       if(that.negated)
-        SetOps.subsetOf(that.elements, this.elements)
+        SetUtils.subsetOf(that.elements, this.elements)
       else
-        SetOps.intersects(that.elements, this.elements)
+        SetUtils.intersects(that.elements, this.elements)
     } else {
       if(that.negated)
-        !SetOps.intersects(that.elements, this.elements)
+        !SetUtils.intersects(that.elements, this.elements)
       else
-        SetOps.subsetOf(this.elements, that.elements)
+        SetUtils.subsetOf(this.elements, that.elements)
     }
   }
 
   def intersects(that: Set[T])(implicit o:Order[T]): Boolean =
-    SetOps.intersects(this.elements, that.elements)
+    SetUtils.intersects(this.elements, that.elements)
 
   def union(that:Set[T])(implicit o:Order[T]): Set[T] = {    
-    unsafe[T](SetOps.union(this.elements, that.elements))
+    unsafe[T](SetUtils.union(this.elements, that.elements))
   }
 
   def intersection(that:Set[T])(implicit o:Order[T]): Set[T] =
-    unsafe[T](SetOps.intersection(this.elements, that.elements))
+    unsafe[T](SetUtils.intersection(this.elements, that.elements))
 
   def diff(that: Set[T])(implicit o:Order[T]): Set[T] =
-    unsafe[T](SetOps.diff(this.elements, that.elements))
+    unsafe[T](SetUtils.diff(this.elements, that.elements))
 
   def xor(that: Set[T])(implicit o:Order[T]): Set[T] =
-    unsafe[T](SetOps.xor(this.elements, that.elements))
+    unsafe[T](SetUtils.xor(this.elements, that.elements))
 
   override def toString: String = elements.mkString("Set(",",",")")
 }
