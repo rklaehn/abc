@@ -67,7 +67,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
   }
 
   def pairs: Traversable[(K, V)] = new AbstractTraversable[(K, V)] {
-    def foreach[U](f: ((K, V)) => U) = foreachPair(e.emptyTree[V].prefix, f)
+    def foreach[U](f: ((K, V)) => U) = foreachPair(e.empty, f)
   }
 
   def values: Traversable[V] = new AbstractTraversable[V] {
@@ -75,7 +75,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
   }
 
   def keys: Traversable[K] = new AbstractTraversable[K] {
-    def foreach[U](f: K => U) = foreachKey(e.emptyTree[V].prefix, f)
+    def foreach[U](f: K => U) = foreachKey(e.empty, f)
   }
 
   private def foreachChild[U](f:RadixTree[K, V]=>U) {
@@ -130,7 +130,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
   }
 
   def modifyOrRemove(f: (K, V, Int) => Opt[V]): RadixTree[K, V] =
-    modifyOrRemove0(f, e.emptyTree[V].prefix)
+    modifyOrRemove0(f, e.empty)
 
   private def modifyOrRemove0(f: (K, V, Int) => Opt[V], prefix: K): RadixTree[K, V] = {
     val newPrefix = e.concat(prefix, this.prefix)
@@ -150,7 +150,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
   }
 
   def filter(f: (K, V) => Boolean): RadixTree[K, V] =
-    filter0(f, e.emptyTree[V].prefix)
+    filter0(f, e.empty)
 
   private def filter0(f: (K, V) => Boolean, prefix: K): RadixTree[K, V] = {
     val newPrefix = e.concat(prefix, this.prefix)
@@ -275,7 +275,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
 object RadixTree {
 
   def empty[K: Element, V]: RadixTree[K, V] =
-    implicitly[Element[K]].emptyTree.asInstanceOf[RadixTree[K, V]]
+    implicitly[Element[K]].emptyTree[V]
 
   def singleton[K: Element, V](key: K, value: V): RadixTree[K, V] =
     new RadixTree[K, V](key, empty[K, V].children, Opt(value))
@@ -288,6 +288,8 @@ object RadixTree {
   }
 
   trait Element[K] extends Any with Eq[K] {
+
+    def empty: K
 
     def emptyTree[V]: RadixTree[K, V]
 
@@ -305,9 +307,9 @@ object RadixTree {
 
     def hash(e: K): Int
 
-    def startsWith(a: K, b: K, bi:Int): Boolean = {
+    def startsWith(a: K, b: K, ai:Int): Boolean = {
       val bs = size(b)
-      indexOfFirstDifference(a, 0, b, bi, bs) == bs
+      (bs == 0) || indexOfFirstDifference(a, ai, b, 0, bs) - ai == bs
     }
 
     final def mkNode[V](prefix: K, valueOpt: Opt[V], children: Array[RadixTree[K,V]]): RadixTree[K,V] =
@@ -361,6 +363,8 @@ object RadixTree {
   implicit object StringIsRadixTreeElement extends Element[String] {
 
     private val _emptyTree = new RadixTree[String, Nothing]("", Array.empty, Opt.empty)
+
+    override def empty: String = ""
 
     override def emptyTree[V]: RadixTree[String, V] = _emptyTree.asInstanceOf[RadixTree[String, V]]
 
