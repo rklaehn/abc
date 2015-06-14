@@ -11,16 +11,23 @@ class RadixTreeTest {
 
   val tree = RadixTree(kvs: _*)
 
+  val bkvs = (0 until 100).map(i => i.toString.getBytes("UTF-8") -> i.toString.getBytes("UTF-8"))
+
+  val btree = RadixTree(bkvs: _*)
+
   @Test
   def testEquals(): Unit = {
     assertEquals(tree, RadixTree(kvs: _*))
     assertEquals(tree, RadixTree(kvs.reverse: _*))
+    assertEquals(btree, RadixTree(bkvs: _*))
+    assertEquals(btree, RadixTree(bkvs.reverse: _*))
     assertFalse(tree == "fnord")
   }
 
   @Test
   def testHashCode(): Unit = {
     assertEquals(tree.##, RadixTree(kvs: _*).##)
+    assertEquals(btree.##, RadixTree(bkvs: _*).##)
   }
 
   @Test
@@ -40,6 +47,7 @@ class RadixTreeTest {
   @Test
   def testEmptyIsEmpty(): Unit = {
     assertTrue(RadixTree.empty[String, Int].isEmpty)
+    assertTrue(RadixTree.empty[Array[Byte], Array[Byte]].isEmpty)
   }
 
   @Test
@@ -64,6 +72,12 @@ class RadixTreeTest {
     assertEquals(
       kvs.toSet,
       tree.pairs.toSet)
+  }
+
+  @Test
+  def testPairsByteArray(): Unit = {
+    import spire.implicits._
+    assertTrue(btree.pairs.toArray === RadixTree(bkvs: _*).pairs.toArray)
   }
 
   @Test

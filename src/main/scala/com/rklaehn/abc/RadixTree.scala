@@ -69,6 +69,8 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
       e.emptyTree
   }
 
+  //    override protected[this] def newBuilder: mutable.Builder[(K, V), Traversable[(K, V)]] = new ArrayBuffer[(K, V)]()
+
   def pairs: Traversable[(K, V)] = new AbstractTraversable[(K, V)] {
     def foreach[U](f: ((K, V)) => U) = foreachPair(e.empty, f)
   }
@@ -367,9 +369,11 @@ object RadixTree {
     }
   }
 
-  implicit def stringIsKey[V: Eq]: Family[String, V] = new StringIsRadixTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
+  implicit def stringIsKey[V: Eq]: Family[String, V] =
+    new StringRadixTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
 
-  private final class StringIsRadixTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V]) extends Family[String, V] {
+  private final class StringRadixTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
+    extends Family[String, V] {
 
     private val _emptyTree = new RadixTree[String, V]("", Array.empty, Opt.empty)(this)
 
@@ -401,5 +405,43 @@ object RadixTree {
 
     override def hash(e: String): Int =
       scala.util.hashing.MurmurHash3.stringHash(e)
+  }
+
+  implicit def byteArrayIsKey[V: Eq]: Family[Array[Byte], V] =
+    new ByteArrayTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
+
+  private final class ByteArrayTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
+    extends Family[Array[Byte], V] {
+
+    private val _emptyTree = new RadixTree[Array[Byte], V](Array.empty, Array.empty, Opt.empty)(this)
+
+    override def empty: Array[Byte] = _emptyTree.prefix
+
+    override def emptyTree: RadixTree[Array[Byte], V] = _emptyTree.asInstanceOf[RadixTree[Array[Byte], V]]
+
+    override def size(c: Array[Byte]): Int =
+      c.length
+
+    override def substring(a: Array[Byte], from: Int, until: Int): Array[Byte] =
+      a.slice(from, until)
+
+    @tailrec
+    override def indexOfFirstDifference(a: Array[Byte], ai: Int, b: Array[Byte], bi: Int, count:Int): Int =
+      if (count == 0 || a(ai) != b(bi)) ai
+      else indexOfFirstDifference(a, ai + 1, b, bi + 1, count - 1)
+
+    override def concat(a: Array[Byte], b: Array[Byte]): Array[Byte] =
+      a ++ b
+
+    override def eqv(a: Array[Byte], b: Array[Byte]): Boolean =
+      java.util.Arrays.equals(a, b)
+
+    override def intern(s: Array[Byte]): Array[Byte] = s
+
+    override def compareAt(a: Array[Byte], ai: Int, b: Array[Byte], bi: Int): Int =
+      a(ai) compare b(bi)
+
+    override def hash(e: Array[Byte]): Int =
+      java.util.Arrays.hashCode(e)
   }
 }
