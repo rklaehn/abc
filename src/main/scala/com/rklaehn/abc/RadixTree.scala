@@ -5,8 +5,9 @@ import spire.util.Opt
 
 import scala.annotation.tailrec
 import scala.collection.AbstractTraversable
+import scala.util.hashing.Hashing
 
-final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(implicit e: RadixTree.Element[K]) {
+final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(implicit e: RadixTree.Family[K, V]) {
 
   private def childrenAsAnyRefArray = children.asInstanceOf[Array[AnyRef]]
   
@@ -22,9 +23,11 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
 
   override def equals(obj: Any) = obj match {
     case that: RadixTree[K, V] =>
+      import spire.implicits._
+      implicit def veq = e.valueEq
       this.hashCode == that.hashCode &&
-        e.eqv(this.prefix, that.prefix) &&
-        this.valueOpt == that.valueOpt &&
+        this.prefix === that.prefix &&
+        this.valueOpt === that.valueOpt &&
         java.util.Arrays.equals(this.childrenAsAnyRefArray, that.childrenAsAnyRefArray)
     case _ => false
   }
@@ -36,7 +39,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
       mix(
         e.hash(prefix),
         java.util.Arrays.hashCode(this.childrenAsAnyRefArray)),
-      valueOpt.##)
+      if(valueOpt.isDefined) e.valueHashing.hash(valueOpt.get) else 0)
   }
 
   override def toString: String = pairs
@@ -49,7 +52,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
 
   def isEmpty = e.size(prefix) == 0
 
-  def prepend(prefix: K)(implicit e:RadixTree.Element[K]): RadixTree[K, V] =
+  def prepend(prefix: K): RadixTree[K, V] =
     new RadixTree[K, V](e.concat(prefix, this.prefix), children, valueOpt)
 
   def startsWith(prefix:K) =
@@ -63,7 +66,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
     if (e.startsWith(tree1.prefix, prefix, 0))
       tree1.copy(prefix = e.substring(tree1.prefix, e.size(prefix), e.size(tree1.prefix)))
     else
-      e.emptyTree[V]
+      e.emptyTree
   }
 
   def pairs: Traversable[(K, V)] = new AbstractTraversable[(K, V)] {
@@ -119,14 +122,14 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
         if (index >= 0) {
           val child1 = children(index).filterPrefix0(pre, offset + ps)
           val children1 =
-            if (child1.isEmpty) e.emptyTree[V].children
+            if (child1.isEmpty) e.emptyTree.children
             else Array(child1)
           copy(valueOpt = Opt.empty[V], children = children1)
         } else
-          e.emptyTree[V]
+          e.emptyTree
       }
     } else
-      e.emptyTree[V]
+      e.emptyTree
   }
 
   def modifyOrRemove(f: (K, V, Int) => Opt[V]): RadixTree[K, V] =
@@ -135,7 +138,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
   private def modifyOrRemove0(f: (K, V, Int) => Opt[V], prefix: K): RadixTree[K, V] = {
     val newPrefix = e.concat(prefix, this.prefix)
     val builder = Array.newBuilder[RadixTree[K, V]]
-    builder.sizeHint(children.size)
+    builder.sizeHint(children.length)
     for (child <- children) {
       val newChild = child.modifyOrRemove0(f, newPrefix)
       if (!newChild.isEmpty)
@@ -155,7 +158,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
   private def filter0(f: (K, V) => Boolean, prefix: K): RadixTree[K, V] = {
     val newPrefix = e.concat(prefix, this.prefix)
     val builder = Array.newBuilder[RadixTree[K, V]]
-    builder.sizeHint(children.size)
+    builder.sizeHint(children.length)
     for (child <- children) {
       val newChild = child.filter0(f, newPrefix)
       if (!newChild.isEmpty)
@@ -178,7 +181,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
       this
     else if (valueOpt.isEmpty)
       children.length match {
-        case 0 => e.emptyTree[V]
+        case 0 => e.emptyTree
         case 1 => children(0).prepend(prefix)
         case _ => e.mkNode(e.intern(prefix), valueOpt, children)
       }
@@ -274,24 +277,28 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
 
 object RadixTree {
 
-  def empty[K: Element, V]: RadixTree[K, V] =
-    implicitly[Element[K]].emptyTree[V]
+  def empty[K, V](implicit family: Family[K, V]): RadixTree[K, V] =
+    family.emptyTree
 
-  def singleton[K: Element, V](key: K, value: V): RadixTree[K, V] =
-    new RadixTree[K, V](key, empty[K, V].children, Opt(value))
+  def singleton[K, V](key: K, value: V)(implicit family: Family[K, V]): RadixTree[K, V] =
+    new RadixTree[K, V](key, family.emptyTree.children, Opt(value))
 
-  def apply[K: Element, V](kvs: (K,V)*): RadixTree[K, V] = {
+  def apply[K, V](kvs: (K,V)*)(implicit family: Family[K, V]): RadixTree[K, V] = {
     val reducer = Reducer.create[RadixTree[K,V]](_ merge _)
     for((k, v) <- kvs)
       reducer.apply(singleton(k, v))
     reducer.result().getOrElse(empty[K,V])
   }
 
-  trait Element[K] extends Any with Eq[K] {
+  trait Family[K, V] extends Eq[K] with Hashing[K] {
+
+    def valueEq: Eq[V]
+
+    def valueHashing: Hashing[V]
 
     def empty: K
 
-    def emptyTree[V]: RadixTree[K, V]
+    def emptyTree: RadixTree[K, V]
 
     def size(c: K): Int
 
@@ -309,13 +316,13 @@ object RadixTree {
 
     def startsWith(a: K, b: K, ai:Int): Boolean = {
       val bs = size(b)
-      (bs == 0) || indexOfFirstDifference(a, ai, b, 0, bs) - ai == bs
+      (bs == 0) || (size(a) + ai >= bs) && (indexOfFirstDifference(a, ai, b, 0, bs) - ai == bs)
     }
 
-    final def mkNode[V](prefix: K, valueOpt: Opt[V], children: Array[RadixTree[K,V]]): RadixTree[K,V] =
+    final def mkNode(prefix: K, valueOpt: Opt[V], children: Array[RadixTree[K,V]]): RadixTree[K,V] =
       new RadixTree[K, V](prefix, children, valueOpt)(this)
 
-    final def binarySearch[V](elems: Array[RadixTree[K, V]], elem: K, offset: Int): Int = {
+    final def binarySearch(elems: Array[RadixTree[K, V]], elem: K, offset: Int): Int = {
 
       @tailrec
       def binarySearch0(low: Int, high: Int): Int =
@@ -332,7 +339,7 @@ object RadixTree {
       binarySearch0(0, elems.length - 1)
     }
 
-    final def mergeChildren[V](a: Array[RadixTree[K, V]], b: Array[RadixTree[K, V]], f: (V, V) => V): Array[RadixTree[K, V]] = {
+    final def mergeChildren(a: Array[RadixTree[K, V]], b: Array[RadixTree[K, V]], f: (V, V) => V): Array[RadixTree[K, V]] = {
       val r = a.newArray(a.length + b.length)
       var ri: Int = 0
       new spire.math.BinaryMerge {
@@ -360,13 +367,15 @@ object RadixTree {
     }
   }
 
-  implicit object StringIsRadixTreeElement extends Element[String] {
+  implicit def stringIsKey[V: Eq]: Family[String, V] = new StringIsRadixTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
 
-    private val _emptyTree = new RadixTree[String, Nothing]("", Array.empty, Opt.empty)
+  private final class StringIsRadixTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V]) extends Family[String, V] {
+
+    private val _emptyTree = new RadixTree[String, V]("", Array.empty, Opt.empty)(this)
 
     override def empty: String = ""
 
-    override def emptyTree[V]: RadixTree[String, V] = _emptyTree.asInstanceOf[RadixTree[String, V]]
+    override def emptyTree: RadixTree[String, V] = _emptyTree.asInstanceOf[RadixTree[String, V]]
 
     override def size(c: String): Int =
       c.length
