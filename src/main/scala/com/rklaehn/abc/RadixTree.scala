@@ -7,7 +7,7 @@ import scala.annotation.tailrec
 import scala.collection.AbstractTraversable
 import scala.util.hashing.Hashing
 
-final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(implicit e: RadixTree.Family[K, V]) {
+final class RadixTree[K,V](val prefix:K, private val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(implicit e: RadixTree.Family[K, V]) {
 
   private def childrenAsAnyRefArray = children.asInstanceOf[Array[AnyRef]]
   
@@ -142,36 +142,36 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
     val builder = Array.newBuilder[RadixTree[K, V]]
     builder.sizeHint(children.length)
     for (child <- children) {
-      val newChild = child.modifyOrRemove0(f, newPrefix)
-      if (!newChild.isEmpty)
-        builder += newChild
+      val child1 = child.modifyOrRemove0(f, newPrefix)
+      if (!child1.isEmpty)
+        builder += child1
     }
     val temp = builder.result()
-    val newChildArray =
+    val children1 =
       if (children.length == temp.length && children.corresponds(temp)(_ eq _)) children
       else temp
-    val newValueOpt = if (valueOpt.isDefined) f(newPrefix, valueOpt.get, newChildArray.length) else Opt.empty
-    copy(children = newChildArray, valueOpt = newValueOpt)
+    val valueOpt1 = if (valueOpt.isDefined) f(newPrefix, valueOpt.get, children1.length) else Opt.empty
+    copy(children = children1, valueOpt = valueOpt1)
   }
 
   def filter(f: (K, V) => Boolean): RadixTree[K, V] =
     filter0(f, e.empty)
 
   private def filter0(f: (K, V) => Boolean, prefix: K): RadixTree[K, V] = {
-    val newPrefix = e.concat(prefix, this.prefix)
+    val prefix1 = e.concat(prefix, this.prefix)
     val builder = Array.newBuilder[RadixTree[K, V]]
     builder.sizeHint(children.length)
     for (child <- children) {
-      val newChild = child.filter0(f, newPrefix)
-      if (!newChild.isEmpty)
-        builder += newChild
+      val child1 = child.filter0(f, prefix1)
+      if (!child1.isEmpty)
+        builder += child1
     }
     val temp = builder.result()
-    val newChildArray =
+    val children1 =
       if (children.length == temp.length && children.corresponds(temp)(_ eq _)) children
       else temp
-    val newValueOpt = if (valueOpt.isDefined && f(newPrefix, valueOpt.get)) valueOpt else Opt.empty
-    copy(children = newChildArray, valueOpt = newValueOpt)
+    val newValueOpt = if (valueOpt.isDefined && f(prefix1, valueOpt.get)) valueOpt else Opt.empty
+    copy(children = children1, valueOpt = newValueOpt)
   }
 
   private def copy(prefix: K = this.prefix, valueOpt: Opt[V] = this.valueOpt, children: Array[RadixTree[K, V]] = this.children): RadixTree[K, V] = {
@@ -228,8 +228,8 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
         val prefix0 = e.substring(prefix, 0, fd)
         val prefix1 = e.substring(prefix, fd, ps)
         val this1 = copy(prefix = prefix1)
-        val childArray1 = e.mergeChildren(Array(this1), that.children, collision)
-        copy(prefix = prefix0, valueOpt = that.valueOpt, children = childArray1)
+        val children1 = e.mergeChildren(Array(this1), that.children, collision)
+        copy(prefix = prefix0, valueOpt = that.valueOpt, children = children1)
       }
       else if (tps - offset == ps) {
         // this.prefix is the same as other.prefix when adjusted by offset
@@ -248,7 +248,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
       else {
         val childOffset = offset + e.size(prefix)
         val index = e.binarySearch(children, that.prefix, childOffset)
-        val childArray1 = if (index >= 0) {
+        val children1 = if (index >= 0) {
           val child1 = children(index).merge0(that, childOffset, collision)
           ArrayOps(children).updated(index, child1)
         }
@@ -257,7 +257,7 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
           val child1 = that.copy(prefix = tp1)
           ArrayOps(children).patched(-index - 1, child1)
         }
-        copy(children = childArray1)
+        copy(children = children1)
       }
     } else {
       // both trees have a common prefix (might be "")
@@ -275,6 +275,34 @@ final class RadixTree[K,V](val prefix:K, val children:Array[RadixTree[K,V]], val
     }
   }
 
+  def filterKeysContaining(fragment: K) = {
+    val memo = new scala.collection.mutable.AnyRefMap[RadixTree[K, V], RadixTree[K, V]]
+
+    def filter(tree:RadixTree[K, V]) =
+      memo.getOrElseUpdate(tree, filter0(e.empty, tree))
+
+    def filter0(prefix: K, tree: RadixTree[K, V]): RadixTree[K, V] = {
+      val prefix1 = e.concat(prefix, tree.prefix)
+      if (e.indexOf(prefix1, fragment) >= 0) tree
+      else {
+        val p1s = e.size(prefix1)
+        val fs = e.size(fragment)
+        val children1 = tree.children.flatMap { child =>
+          val prefixEnd = e.substring(prefix1, (p1s - fs + 1) max 0, p1s)
+          val pes = e.size(prefixEnd)
+          var result = filter(child)
+          for (i <- 1 until (fs min (pes + 1))) {
+            if (e.regionMatches(fragment, 0, prefixEnd, pes - i, i))
+              result = result merge child.filterPrefix(e.substring(fragment, i, fs))
+          }
+          if (result.isEmpty) None else Some(result)
+        }
+        tree.copy(valueOpt = Opt.empty[V], children = children1)
+      }
+    }
+
+    filter0(e.empty, this)
+  }
 }
 
 object RadixTree {
@@ -313,6 +341,22 @@ object RadixTree {
     def compareAt(a: K, ai: Int, b: K, bi: Int): Int
 
     def indexOfFirstDifference(a: K, ai: Int, b: K, bi: Int, count: Int): Int
+
+    def indexOf(a: K, b: K): Int = {
+      val as = size(a)
+      val bs = size(b)
+      val l = as - bs
+      @tailrec
+      def find(ai: Int): Int = {
+        if (ai > l) -1
+        else if (regionMatches(a, ai, b, 0, bs)) ai
+        else find(ai + 1)
+      }
+      find(0)
+    }
+
+    def regionMatches(a: K, ai: Int, b:K, bi: Int, count: Int) =
+      indexOfFirstDifference(a, ai, b, bi, count) == ai + count
 
     def hash(e: K): Int
 
@@ -386,6 +430,12 @@ object RadixTree {
 
     override def substring(a: String, from: Int, until: Int): String =
       a.substring(from, until)
+
+    override def indexOf(a: String, b: String): Int =
+      a.indexOf(b)
+
+    override def regionMatches(a: String, ai: Int, b: String, bi: Int, count: Int): Boolean =
+      a.regionMatches(ai, b, bi, count)
 
     @tailrec
     override def indexOfFirstDifference(a: String, ai: Int, b: String, bi: Int, count:Int): Int =

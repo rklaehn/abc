@@ -7,13 +7,25 @@ import spire.util.Opt
 
 class RadixTreeTest {
 
+  implicit class StringOps(underlying: String) {
+    def toBytes = underlying.getBytes("UTF-8")
+  }
+
   val kvs = (0 until 100).map(i => i.toString -> i)
+
+  val kvs1k = (0 to 1000).map(i => i.toString -> i)
 
   val tree = RadixTree(kvs: _*)
 
-  val bkvs = (0 until 100).map(i => i.toString.getBytes("UTF-8") -> i.toString.getBytes("UTF-8"))
+  val tree1k = RadixTree(kvs1k :_*)
+
+  val bkvs = (0 until 100).map(i => i.toString.toBytes -> i.toString.toBytes)
 
   val btree = RadixTree(bkvs: _*)
+
+  val bkvs1k = (0 to 1000).map(i => i.toString.toBytes -> i.toString.toBytes)
+
+  val btree1k = RadixTree(bkvs1k: _*)
 
   @Test
   def testEquals(): Unit = {
@@ -120,5 +132,32 @@ class RadixTreeTest {
     assertEquals(
       kvs.filter { case (k,v) => k.startsWith("1")}.toSeq,
       tree.filter { case (k,v) => k.startsWith("1")}.pairs.toSeq)
+  }
+
+  @Test
+  def testFilterKeysContaining(): Unit = {
+    val tt = RadixTree("aa" -> 1, "ab" -> 2, "a" -> 3)
+    assertEquals(1,tt.filterKeysContaining("aa").count)
+    assertEquals(0,tt.filterKeysContaining("aaa").count)
+    val t = RadixTree("a" -> 1)
+    assertTrue(t.filterKeysContaining("b").isEmpty)
+    assertFalse(t.filterKeysContaining("a").isEmpty)
+    assertEquals(
+      kvs1k.filter(_._1.contains("10")).size,
+      tree1k.filterKeysContaining("10").count
+    )
+    assertEquals(
+      kvs.filter(_._1.contains("1")).size,
+      tree.filterKeysContaining("1").count
+    )
+  }
+
+  @Test
+  def testFilterKeysContainingBytes(): Unit = {
+    assertEquals(
+      kvs1k.filter(_._1.contains("10")).size,
+      btree1k.filterKeysContaining("10".toBytes).count
+    )
+    assertEquals(1, RadixTree("abcd".toBytes -> 1).filterKeysContaining("bcd".toBytes).count)
   }
 }
