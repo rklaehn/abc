@@ -27,6 +27,40 @@ class RadixTreeTest {
 
   val btree1k = RadixTree(bkvs1k: _*)
 
+  val textkvs = (0 until 1000).map(x => NumberToWord(x) -> x)
+
+  val texttree = RadixTree(textkvs: _*)
+
+  def testCreate[K, V](kvs: (K,V)*)(implicit f:RadixTree.Family[K,V]): Unit = {
+    val tree = RadixTree(kvs: _*)
+    assertEquals(kvs.size, tree.count)
+    for((k, v) <- kvs) {
+      assertTrue(tree.contains(k))
+      assertTrue(f.valueEq.eqv(v, tree(k)))
+    }
+  }
+
+  def testEquals[K, V](kvs: (K,V)*)(implicit f:RadixTree.Family[K,V]): Unit = {
+    assertEquals(RadixTree(kvs: _*), RadixTree(kvs.reverse: _*))
+  }
+
+  def testHashCode[K, V](kvs: (K,V)*)(implicit f:RadixTree.Family[K,V]): Unit = {
+    assertEquals(RadixTree(kvs: _*).hashCode, RadixTree(kvs.reverse: _*).hashCode)
+  }
+
+  def testGeneric[K, V](kvs: (K,V)*)(implicit f:RadixTree.Family[K,V]): Unit = {
+    testCreate(kvs: _*)
+    testEquals(kvs: _*)
+    testHashCode(kvs: _*)
+  }
+
+  @Test
+  def testGeneric(): Unit = {
+    testGeneric(kvs: _*)
+    testGeneric(kvs1k: _*)
+    testGeneric(bkvs1k: _*)
+  }
+
   @Test
   def testEquals(): Unit = {
     assertEquals(tree, RadixTree(kvs: _*))
@@ -143,19 +177,23 @@ class RadixTreeTest {
     assertTrue(t.filterKeysContaining("b").isEmpty)
     assertFalse(t.filterKeysContaining("a").isEmpty)
     assertEquals(
-      kvs1k.filter(_._1.contains("10")).size,
+      kvs1k.count(_._1.contains("10")),
       tree1k.filterKeysContaining("10").count
     )
     assertEquals(
-      kvs.filter(_._1.contains("1")).size,
+      kvs.count(_._1.contains("1")),
       tree.filterKeysContaining("1").count
+    )
+    assertEquals(
+      textkvs.count(_._1.contains("eight")),
+      texttree.filterKeysContaining("eight").count
     )
   }
 
   @Test
   def testFilterKeysContainingBytes(): Unit = {
     assertEquals(
-      kvs1k.filter(_._1.contains("10")).size,
+      kvs1k.count(_._1.contains("10")),
       btree1k.filterKeysContaining("10".toBytes).count
     )
     assertEquals(1, RadixTree("abcd".toBytes -> 1).filterKeysContaining("bcd".toBytes).count)

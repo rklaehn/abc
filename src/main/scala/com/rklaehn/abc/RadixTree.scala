@@ -9,8 +9,9 @@ import scala.util.hashing.Hashing
 
 final class RadixTree[K,V](val prefix:K, private val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(implicit e: RadixTree.Family[K, V]) {
 
-  private def childrenAsAnyRefArray = children.asInstanceOf[Array[AnyRef]]
-  
+  private def childrenAsAnyRefArray =
+    children.asInstanceOf[Array[AnyRef]]
+
   def count: Int = {
     var n = if (valueOpt.isDefined) 1 else 0
     var i = 0
@@ -31,7 +32,7 @@ final class RadixTree[K,V](val prefix:K, private val children:Array[RadixTree[K,
         java.util.Arrays.equals(this.childrenAsAnyRefArray, that.childrenAsAnyRefArray)
     case _ => false
   }
-  
+
   override lazy val hashCode = {
     import scala.util.hashing.MurmurHash3._
 
@@ -219,21 +220,22 @@ final class RadixTree[K,V](val prefix:K, private val children:Array[RadixTree[K,
   private def merge0(that: RadixTree[K, V], offset: Int, collision: (V, V) => V): RadixTree[K, V] = {
     val ps = e.size(prefix)
     val tps = e.size(that.prefix)
-    val maxFd = ps min (tps - offset)
+    val tps1 = tps-offset
+    val maxFd = ps min tps1
     val fd = e.indexOfFirstDifference(prefix, 0, that.prefix, offset, maxFd)
     if (fd == maxFd) {
       // prefixes match
       if (maxFd < ps) {
-        // this.prefix is longer than (that.prefix - offset)
+        // this.prefix is longer than (that.prefix.size - offset)
         val prefix0 = e.substring(prefix, 0, fd)
         val prefix1 = e.substring(prefix, fd, ps)
         val this1 = copy(prefix = prefix1)
         val children1 = e.mergeChildren(Array(this1), that.children, collision)
         copy(prefix = prefix0, valueOpt = that.valueOpt, children = children1)
       }
-      else if (tps - offset == ps) {
+      else if (tps1 == ps) {
         // this.prefix is the same as other.prefix when adjusted by offset
-        // merge the values using the collision function if necessary
+        // merge the values and children using the collision function if necessary
         val mergedValueOpt =
           if(this.valueOpt.isDefined) {
             if((collision ne null) && that.valueOpt.isDefined)
@@ -322,24 +324,46 @@ object RadixTree {
 
   trait Family[K, V] extends Eq[K] with Hashing[K] {
 
+    /**
+     * The Eq instance to be used for values. We can not use equals because we want this to work for Array[Byte]
+     */
     def valueEq: Eq[V]
 
+    /**
+     * The hashing to be used for values. We can not use hashcode because we want this to work for Array[Byte]
+     */
     def valueHashing: Hashing[V]
 
+    /**
+     * The empty key
+     */
     def empty: K
 
     def emptyTree: RadixTree[K, V]
 
+    /**
+     * The size of a key
+     */
     def size(c: K): Int
 
+    /**
+     * An identity function for keys that can perform interning as an optimization
+     */
     def intern(e: K): K
 
     def concat(a: K, b: K): K
 
     def substring(a: K, from: Int, until: Int): K
 
+    /**
+     * Compare key a at index ai with key b at index bi. This determines the order of keys in the tree
+     */
     def compareAt(a: K, ai: Int, b: K, bi: Int): Int
 
+    /**
+     * Starting from a at ai and b at bi, compares elements of a and b until count elements have been compared or until
+     * a difference has been found.
+     */
     def indexOfFirstDifference(a: K, ai: Int, b: K, bi: Int, count: Int): Int
 
     def indexOf(a: K, b: K): Int = {
@@ -419,11 +443,9 @@ object RadixTree {
   private final class StringRadixTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
     extends Family[String, V] {
 
-    private val _emptyTree = new RadixTree[String, V]("", Array.empty, Opt.empty)(this)
+    override val emptyTree: RadixTree[String, V] = new RadixTree[String, V]("", Array.empty, Opt.empty)(this)
 
-    override def empty: String = ""
-
-    override def emptyTree: RadixTree[String, V] = _emptyTree.asInstanceOf[RadixTree[String, V]]
+    override def empty: String = emptyTree.prefix
 
     override def size(c: String): Int =
       c.length
@@ -463,11 +485,11 @@ object RadixTree {
   private final class ByteArrayTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
     extends Family[Array[Byte], V] {
 
-    private val _emptyTree = new RadixTree[Array[Byte], V](Array.empty, Array.empty, Opt.empty)(this)
+    override def empty: Array[Byte] =
+      emptyTree.prefix
 
-    override def empty: Array[Byte] = _emptyTree.prefix
-
-    override def emptyTree: RadixTree[Array[Byte], V] = _emptyTree.asInstanceOf[RadixTree[Array[Byte], V]]
+    override val emptyTree: RadixTree[Array[Byte], V] =
+      new RadixTree[Array[Byte], V](Array.empty, Array.empty, Opt.empty)(this)
 
     override def size(c: Array[Byte]): Int =
       c.length
@@ -483,13 +505,13 @@ object RadixTree {
     override def concat(a: Array[Byte], b: Array[Byte]): Array[Byte] =
       a ++ b
 
-    override def eqv(a: Array[Byte], b: Array[Byte]): Boolean =
-      java.util.Arrays.equals(a, b)
-
     override def intern(s: Array[Byte]): Array[Byte] = s
 
     override def compareAt(a: Array[Byte], ai: Int, b: Array[Byte], bi: Int): Int =
       a(ai) compare b(bi)
+
+    override def eqv(a: Array[Byte], b: Array[Byte]): Boolean =
+      java.util.Arrays.equals(a, b)
 
     override def hash(e: Array[Byte]): Int =
       java.util.Arrays.hashCode(e)
