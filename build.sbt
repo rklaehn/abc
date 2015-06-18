@@ -6,6 +6,18 @@ scalaVersion := "2.11.6"
 
 version := "0.1-SNAPSHOT"
 
+lazy val abc = project.in(file("."))
+
+lazy val tests = project.in(file("tests"))
+  .settings(testSettings:_*)
+  .dependsOn(abc)
+
+lazy val testSettings = Seq(
+  libraryDependencies ++= Seq(
+    "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "3.0" % "test"
+  )
+)
+
 // I would prefer just referencing non/algebra at some point
 libraryDependencies += "org.spire-math" %% "spire" % "0.10.1"
 
@@ -16,8 +28,6 @@ libraryDependencies += "junit" % "junit" % "4.11" % "test"
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
 
 libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.6" % "test"
-
-libraryDependencies in Test += "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "3.0"
 
 unmanagedBase in Test <<= baseDirectory { base => base / "test-lib" }
 

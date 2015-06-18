@@ -1,5 +1,8 @@
 package com.rklaehn.abc
 
+/**
+ * Helper object to generate realistic test cases for the radix tree. Used with permission from www.source-code.biz
+ */
 object NumberToWord {
 
   def apply(n: Int): String = convertNumberToWords(n)

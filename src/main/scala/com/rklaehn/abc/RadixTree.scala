@@ -12,6 +12,14 @@ final class RadixTree[K,V](val prefix:K, private val children:Array[RadixTree[K,
   private def childrenAsAnyRefArray =
     children.asInstanceOf[Array[AnyRef]]
 
+  def packed: RadixTree[K, V] = {
+    val memo = new scala.collection.mutable.AnyRefMap[RadixTree[K, V], RadixTree[K, V]]
+    lazy val pack0: RadixTree[K, V] => RadixTree[K, V] = { tree =>
+      memo.getOrElseUpdate(tree, tree.copy(children = tree.children.map(pack0)))
+    }
+    pack0(this)
+  }
+
   def count: Int = {
     var n = if (valueOpt.isDefined) 1 else 0
     var i = 0
@@ -449,6 +457,9 @@ object RadixTree {
 
     override def size(c: String): Int =
       c.length
+
+    override def startsWith(a: String, b: String, ai: Int): Boolean =
+      a.startsWith(b, ai)
 
     override def substring(a: String, from: Int, until: Int): String =
       a.substring(from, until)

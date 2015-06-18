@@ -31,13 +31,14 @@ optimise space usage even more, an interning scheme for keys can be used.
 
 A merge of disjoint or mostly disjoint radix trees can be very fast. E.g. if you have a RadixTree with all english words
 starting with a, and one with all english words starting with b, merging will be O(1) regardless of the size of the 
-subtrees.
+subtrees, and will use structural sharing.
 
 ### FilterPrefix
 
-Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)), whereas it is worse than O(N) with
+Filtering by prefix is *extremely fast* with a radix tree (worst case O(log(N)), whereas it is worse than O(N) with
 SortedMap and HashMap. Filtering by prefix will also benefit a lot from structural sharing.
 
 ### Lookup
 
-Lookup is O(
+Successful lookup is O(k), where k is the number of elements in the key. Hashtable lookup is O(k) as well. Even if the
+hashcode matches, the key to be looked up has to be compared with the key in the hash map, which is O(k). 
