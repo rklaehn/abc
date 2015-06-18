@@ -6,9 +6,19 @@ import org.junit.Test
 import spire.algebra.Eq
 import spire.implicits._
 
+import scala.io.Source
 import scala.util.hashing.Hashing
 
 class SizeTest {
+
+  implicit object UnitEq extends Eq[Unit] {
+
+    override def eqv(x: Unit, y: Unit): Boolean = true
+  }
+
+  implicit object EqHashing extends Hashing[Unit] {
+    override def hash(x: Unit): Int = 0
+  }
 
   /*
 
@@ -28,18 +38,20 @@ class SizeTest {
     assertEquals(24, branchSize - overhead) // prefix, level, hash, left, right = 8 + 1 + 4 + 4 + 4 = 24 bytes
    */
 
-  val mm = new MemoryMeter()
-  val overhead = mm.measure(new java.lang.Object)
-  val pointerSize = (mm.measure(new Array[java.lang.Object](256)) - mm.measure(new Array[java.lang.Object](128))) / 128
+  lazy val mm = new MemoryMeter()
+  lazy val overhead = mm.measure(new java.lang.Object)
+  lazy val pointerSize = (mm.measure(new Array[java.lang.Object](256)) - mm.measure(new Array[java.lang.Object](128))) / 128
 
   @Test
   def testIntArraySet(): Unit = {
     val es = (0 until 100).toArray
     val a = ArraySet(es: _*)
     val b = Set(es: _*)
-    println("Elements: " + mm.measureDeep(es))
-    println("ArraySet: " + mm.measureDeep(a))
-    println("Set:      " + mm.measureDeep(b))
+    val payload = mm.measureDeep(es)
+    println("Set[Int] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
   @Test
@@ -47,32 +59,43 @@ class SizeTest {
     val es = (0 until 100).map(_.toString).toArray
     val a = ArraySet(es: _*)
     val b = Set(es: _*)
-
-    println("Elements: " + mm.measureDeep(es))
-    println("ArraySet: " + mm.measureDeep(a))
-    println("Set:      " + mm.measureDeep(b))
+    val payload = mm.measureDeep(es)
+    println("Set[String] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
   @Test
   def testIntArrayMap(): Unit = {
-    val es = (0 until 100).map(i => i -> i).toArray
-    val a = ArrayMap(es: _*)
-    val b = Map(es: _*)
-    println("ArrayMap: " + mm.measureDeep(a))
-    println("Map:      " + mm.measureDeep(b))
+    val ks = (0 until 100).toArray
+    val vs = ks
+    val a = ArrayMap(ks zip vs: _*)
+    val b = Map(ks zip vs: _*)
+
+    val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
+    println("Map[Int, Int] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
+  }
+
+  @Test
+  def testStringArrayMap(): Unit = {
+    val ks = (0 until 100).map(_.toString).toArray
+    val vs = (0 until 100).map(_.toString).toArray
+    val a = ArrayMap(ks zip vs: _*)
+    val b = Map(ks zip vs: _*)
+
+    val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
+    println("Map[String, String] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
   @Test
   def testRadixTreeUnit(): Unit = {
-
-    implicit object UnitEq extends Eq[Unit] {
-
-      override def eqv(x: Unit, y: Unit): Boolean = true
-    }
-
-    implicit object EqHashing extends Hashing[Unit] {
-      override def hash(x: Unit): Int = 0
-    }
 
     val names = (0 until 10000).map(x => x.toString -> (())).toArray
     val tree1 = RadixTree(names: _*)
@@ -80,5 +103,34 @@ class SizeTest {
     println("Elements:           " + mm.measureDeep(names))
     println("RadixTree:          " + mm.measureDeep(tree1))
     println("RadixTree (packed): " + mm.measureDeep(tree2))
+  }
+
+  @Test
+  def testRadixTreeUnit2(): Unit = {
+    val names = Source.fromURL("http://www-01.sil.org/linguistics/wordlists/english/wordlist/wordsEn.txt").getLines.toArray
+    val set = Set(names: _*)
+
+    val tree1 = RadixTree(names.map(s => s -> (())): _*)
+    val tree2 = tree1.packed
+
+    val tree3 = RadixTree(names.map(s => s.toCharArray -> (())): _*)
+    val tree4 = tree3.packed
+
+    val tree5 = RadixTree(names.map(s => s.getBytes("UTF-8") -> (())): _*)
+    val tree6 = tree5.packed
+
+    println(s"List of ${names.length} english words")
+    println("Elements:           " + mm.measureDeep(names))
+
+    println("RadixTree:          " + mm.measureDeep(tree1))
+    println("RadixTree (packed): " + mm.measureDeep(tree2))
+
+    println("RadixTree (Chars):  " + mm.measureDeep(tree3))
+    println("RadixTree (packed): " + mm.measureDeep(tree4))
+
+    println("RadixTree (Bytes):  " + mm.measureDeep(tree5))
+    println("RadixTree (packed): " + mm.measureDeep(tree6))
+
+    println("Set:                " + mm.measureDeep(set))
   }
 }

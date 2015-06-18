@@ -6,31 +6,13 @@ import spire.algebra.Eq
 import spire.implicits._
 
 import scala.collection.immutable.{HashMap, SortedMap}
+import scala.io.Source
 import scala.util.hashing.Hashing
 
-case class Element[@specialized A](value: A)(implicit e:Eq[A], h: Hashing[A]) {
-  override def equals(that: Any): Boolean = that match {
-    case that: Element[A] => e.eqv(this.value, that.value)
-    case _ => false
-  }
-
-  override val hashCode: Int = h.hash(value)
-}
-
-object Memo {
-
-  def simple[@specialized A](implicit e:Eq[A], h:Hashing[A]): A => A = new Function[A ,A] {
-
-    val memo = new scala.collection.mutable.AnyRefMap[Element[A], Element[A]]
-    
-    def apply(a: A): A = {
-      val k = Element(a)
-      memo.getOrElseUpdate(k, k).value
-    }
-  }
-}
-
 object RadixTreeBench extends App {
+  val names = Source.fromURL("http://www-01.sil.org/linguistics/wordlists/english/wordlist/wordsEn.txt").getLines.toArray
+  println(names.length)
+  println(names.take(10).mkString("\n"))
 
   implicit object UnitEq extends Eq[Unit] {
 
@@ -42,23 +24,15 @@ object RadixTreeBench extends App {
     override def hash(x: Unit): Int = 0
   }
 
-  lazy val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
+  lazy val th = new Thyme() // Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
 
-  val kvs = (0 until 10000).map(i => NumberToWord(i) -> (())).toArray
-
-  val kvs2 = (10000 until 20000).map(i => NumberToWord(i) -> (())).toArray
+  val kvs = names.map(s => s -> (()))
 
   val radixTree = RadixTree(kvs: _*).packed
 
   val sortedMap = SortedMap(kvs: _*)
 
   val hashMap = HashMap(kvs: _*)
-
-  val radixTree2 = RadixTree(kvs2: _*)
-
-  val sortedMap2 = SortedMap(kvs2: _*)
-
-  val hashMap2 = HashMap(kvs2: _*)
 
   def create0[K: Ordering, V](kvs: Array[(K, V)]): Int = {
     SortedMap(kvs: _*).size
@@ -86,19 +60,6 @@ object RadixTreeBench extends App {
     }
   }
 
-  def mergeS(): AnyRef = {
-    sortedMap ++ sortedMap2
-  }
-
-  def mergeH(): AnyRef = {
-    hashMap ++ hashMap2
-  }
-
-  def mergeR(): AnyRef = {
-    radixTree merge radixTree2
-  }
-
-
   def filterPrefixS(): AnyRef = {
     sortedMap.filter { case (k,v) => k.startsWith("one") }
   }
@@ -125,9 +86,6 @@ object RadixTreeBench extends App {
 
   th.pbenchOffWarm("Create 1000 SortedMap vs. RadixTree")(th.Warm(create0(kvs)))(th.Warm(create1(kvs)))
   th.pbenchOffWarm("Lookup 1000 SortedMap vs. RadixTree")(th.Warm(lookup0()))(th.Warm(lookup1()))
-
-  th.pbenchOffWarm("Merge 2000 HashMap vs. RadixTree")(th.Warm(mergeH()))(th.Warm(mergeR()))
-  th.pbenchOffWarm("Merge 2000 SortedMap vs. RadixTree")(th.Warm(mergeS()))(th.Warm(mergeR()))
 
   th.pbenchOffWarm("FilterPrefix HashMap vs. RadixTree")(th.Warm(filterPrefixH()))(th.Warm(filterPrefixR()))
   th.pbenchOffWarm("FilterPrefix SortedMap vs. RadixTree")(th.Warm(filterPrefixS()))(th.Warm(filterPrefixR()))
