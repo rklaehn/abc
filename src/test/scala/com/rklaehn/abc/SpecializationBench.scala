@@ -19,7 +19,7 @@ object SpecializationBench extends App {
   val aa0 = (0 until 1000000).toArray
   val ae = 123456
   val aa = aa0
-  val as = Set(aa0: _*)
+  val as = ArraySet(aa0: _*)
 
   def search1: Int =
     java.util.Arrays.binarySearch(aa, 0, aa.length, ae)

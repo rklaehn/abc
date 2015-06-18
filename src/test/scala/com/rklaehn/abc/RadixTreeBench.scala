@@ -9,18 +9,19 @@ import scala.collection.immutable.{HashMap, SortedMap}
 import scala.util.hashing.Hashing
 
 object Memo {
-  def simple[@specialized A](implicit e:Eq[A], h:Hashing[A]): A => A = new (A => A) {
-    
-    case class Element(@specialized value: A) {
-      override def equals(that: Any): Boolean = that match {
-        case that: Element => e.eqv(this.value, that.value)
-        case _ => false
-      }
-      
-      override val hashCode: Int = h.hash(value)
+
+  case class Element[@specialized A](value: A)(implicit e:Eq[A], h: Hashing[A]) {
+    override def equals(that: Any): Boolean = that match {
+      case that: Element[A] => e.eqv(this.value, that.value)
+      case _ => false
     }
-    
-    val memo = new scala.collection.mutable.AnyRefMap[Element, Element]
+
+    override val hashCode: Int = h.hash(value)
+  }
+
+  def simple[@specialized A](implicit e:Eq[A], h:Hashing[A]): A => A = new Function[A ,A] {
+
+    val memo = new scala.collection.mutable.AnyRefMap[Element[A], Element[A]]
     
     def apply(a: A): A = {
       val k = Element(a)
