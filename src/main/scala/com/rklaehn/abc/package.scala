@@ -1,7 +1,5 @@
 package com.rklaehn
 
-import scala.reflect.ClassTag
-
 package object abc {
 
   def singletonArray[@specialized T](value: T): Array[T] = {
