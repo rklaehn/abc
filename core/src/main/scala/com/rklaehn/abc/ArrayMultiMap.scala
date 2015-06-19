@@ -31,20 +31,20 @@ object ArrayMultiMap extends App {
 
   def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](implicit f: ArrayMultiMap.Family[K, V]): ArrayMultiMap[K, V] = f.empty
 
-  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: ArraySet[V])(implicit f: ArrayMultiMap.Family[K, V]): ArrayMultiMap[K, V]
-    = new ArrayMultiMap[K, V](ArrayMap.single(k, v)(f.mapFamily))
+  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: ArraySet[V])(implicit f: ArrayMultiMap.Family[K, V]): ArrayMultiMap[K, V]
+    = new ArrayMultiMap[K, V](ArrayMap.singleton(k, v)(f.mapFamily))
 
   def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K, ArraySet[V])*)(implicit f: ArrayMultiMap.Family[K, V]) = {
     val reducer = Reducer.create[ArrayMultiMap[K,V]](_ merge _)
     for((k, v) <- kvs)
-      reducer(single(k, v))
+      reducer(singleton(k, v))
     reducer.result().getOrElse(empty[K,V])
   }
 
   def fromKVs[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K, V)*)(implicit f: ArrayMultiMap.Family[K, V]) = {
     val reducer = Reducer.create[ArrayMultiMap[K,V]](_ merge _)
     for((k, v) <- kvs)
-      reducer(single(k, ArraySet.singleton(v)(f.vSetFamily)))
+      reducer(singleton(k, ArraySet.singleton(v)(f.vSetFamily)))
     reducer.result().getOrElse(empty[K,V])
   }
 

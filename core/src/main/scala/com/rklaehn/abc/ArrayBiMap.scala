@@ -40,12 +40,12 @@ object ArrayBiMap {
       fvk: ArrayMap.Family[V, K]): ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](fkv.empty, fvk.empty)
 
-  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
       k: K, v: V)(
       implicit fkv: ArrayMap.Family[K, V], fvk: ArrayMap.Family[V, K]): ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](
-      ArrayMap.single[K,V](k, v),
-      ArrayMap.single[V,K](v, k)
+      ArrayMap.singleton[K,V](k, v),
+      ArrayMap.singleton[V,K](v, k)
     )
 
   def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](

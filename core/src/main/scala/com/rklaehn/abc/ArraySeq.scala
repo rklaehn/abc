@@ -43,7 +43,7 @@ object ArraySeq {
   def empty[@sp(Int, Long, Double) T: Family]: ArraySeq[T] =
     implicitly[Family[T]].empty
 
-  def single[@sp(Int, Long, Double) T: Family](e: T): ArraySeq[T] =
+  def singleton[@sp(Int, Long, Double) T: Family](e: T): ArraySeq[T] =
     new ArraySeq[T](singletonArray(e))
 
   def apply[@sp(Int, Long, Double) T: Family: ClassTag](elements: T*): ArraySeq[T] =

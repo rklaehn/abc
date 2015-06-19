@@ -8,7 +8,9 @@ import scala.collection.AbstractTraversable
 import scala.util.hashing.Hashing
 
 // scalastyle:off equals.hash.code
-final class RadixTree[K,V](val prefix:K, private val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(implicit e: RadixTree.Family[K, V]) {
+final class RadixTree[K,V](
+    val prefix:K, private[abc] val children:Array[RadixTree[K,V]], val valueOpt:Opt[V])(
+    implicit e: RadixTree.Family[K, V]) {
 
   private def childrenAsAnyRefArray =
     children.asInstanceOf[Array[AnyRef]]

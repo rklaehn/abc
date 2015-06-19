@@ -240,7 +240,7 @@ object ArrayMap {
   def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
       implicit f: Family[K,V]): ArrayMap[K, V] = f.empty
 
-  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V]
+  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V]
       (k: K, v: V)
       (implicit f: Family[K,V]): ArrayMap[K, V] =
     new ArrayMap[K, V](singletonArray(k), singletonArray(v))
@@ -251,7 +251,7 @@ object ArrayMap {
     implicit val order = f.kOrder
     val reducer = Reducer.create[ArrayMap[K,V]](_ merge _)
     for((k, v) <- kvs)
-      reducer.apply(single(k, v))
+      reducer.apply(singleton(k, v))
     reducer.result().getOrElse(empty[K,V])
   }
 }
