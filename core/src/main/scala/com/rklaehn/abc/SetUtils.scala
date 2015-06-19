@@ -135,7 +135,7 @@ private[abc] object SetUtils {
     }
 
     def fromA(a0: Int, a1: Int, bi: Int): Unit = copyFromA(a0, a1)
-    
+
     def fromB(ai: Int, b0: Int, b1: Int): Unit = copyFromB(b0, b1)
   }
 

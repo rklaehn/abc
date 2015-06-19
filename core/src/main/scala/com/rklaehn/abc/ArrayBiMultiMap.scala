@@ -41,16 +41,22 @@ class ArrayBiMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] privat
 
 object ArrayBiMultiMap {
 
-  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] =
+  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+      implicit fkv: ArrayMultiMap.Family[K, V],
+      fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] =
     new ArrayBiMultiMap[K, V](fkv.empty, fvk.empty)
 
-  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: V)(implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] =
+  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+      k: K, v: V)(
+      implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] =
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.single[K,V](k, ArraySet.singleton(v)(fvk.mapFamily.kSetFamily)),
       ArrayMultiMap.single[V,K](v, ArraySet.singleton(k)(fkv.mapFamily.kSetFamily))
     )
 
-  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K, V)*)(implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] = {
+  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+      kvs: (K, V)*)(
+      implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] = {
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.fromKVs(kvs: _*)(fkv),
       ArrayMultiMap.fromKVs(kvs.map(_.swap): _*)(fvk)

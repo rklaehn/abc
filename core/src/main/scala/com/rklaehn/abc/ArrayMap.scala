@@ -8,7 +8,10 @@ import scala.{specialized => sp}
 import spire.algebra.{Eq, Order}
 import spire.implicits._
 
-final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](private val keys0: Array[K], private val values0:Array[V])(implicit val f: ArrayMap.Family[K, V]) {
+final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] (
+    private val keys0: Array[K],
+    private val values0:Array[V])(
+    implicit val f: ArrayMap.Family[K, V]) {
   import ArrayMap._
   import f._
 
@@ -42,7 +45,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](private
 
   def merge(that: ArrayMap[K, V], f: (V, V) => V): ArrayMap[K, V] =
     new MapMerger2[K,V](this, that, f).result
-  
+
   def filterKeys(keys: ArraySet[K]): ArrayMap[K, V] =
     new FilterKeys[K, V](this, keys).result
 
@@ -85,9 +88,15 @@ object ArrayMap {
     implicit def vSeqFamily: ArraySeq.Family[V]
   }
 
-  implicit def genericFamily[@sp(Int, Long, Double) K: Order: Eq: Hashing: ClassTag, @sp(Int, Long, Double) V: Eq: Hashing: ClassTag] = new GenericFamily[K,V](Array.empty[K], Array.empty[V])
+  implicit def genericFamily[@sp(Int, Long, Double) K: Order: Eq: Hashing: ClassTag,
+      @sp(Int, Long, Double) V: Eq: Hashing: ClassTag]
+    = new GenericFamily[K,V](Array.empty[K], Array.empty[V])
 
-  class GenericFamily[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](eK: Array[K], eV: Array[V])(implicit val kOrder: Order[K], val kHashing: Hashing[K], val vEq: Eq[V], val vHashing: Hashing[V]) extends Family[K, V] {
+  class GenericFamily[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+      eK: Array[K], eV: Array[V])(
+      implicit val kOrder: Order[K],
+      val kHashing: Hashing[K], val vEq: Eq[V], val vHashing: Hashing[V])
+    extends Family[K, V] {
 
     val empty: ArrayMap[K, V] = new ArrayMap[K, V](eK, eV)(this)
 
@@ -130,11 +139,13 @@ object ArrayMap {
     }
 
     merge0(0, ak.length, 0, bk.length)
-    
+
     def result: ArrayMap[K, V] = new ArrayMap[K,V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
 
-  private class MapMerger2[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V) extends BinaryMerge {
+  private class MapMerger2[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](
+      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
+    extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -171,7 +182,7 @@ object ArrayMap {
 
     def result: ArrayMap[K, V] = new ArrayMap[K,V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
-  
+
   private class FilterKeys[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -226,11 +237,17 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K,V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
 
-  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](implicit f: Family[K,V]): ArrayMap[K, V] = f.empty
+  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+      implicit f: Family[K,V]): ArrayMap[K, V] = f.empty
 
-  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: V)(implicit f: Family[K,V]): ArrayMap[K, V] = new ArrayMap[K, V](singletonArray(k), singletonArray(v))
+  def single[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V]
+      (k: K, v: V)
+      (implicit f: Family[K,V]): ArrayMap[K, V] =
+    new ArrayMap[K, V](singletonArray(k), singletonArray(v))
 
-  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K,V)*)(implicit f: Family[K,V]): ArrayMap[K, V] = {
+  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] (
+      kvs: (K,V)*)(
+      implicit f: Family[K,V]): ArrayMap[K, V] = {
     implicit val order = f.kOrder
     val reducer = Reducer.create[ArrayMap[K,V]](_ merge _)
     for((k, v) <- kvs)

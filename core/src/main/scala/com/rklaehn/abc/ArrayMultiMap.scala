@@ -6,7 +6,8 @@ import scala.util.hashing.Hashing
 import scala.{specialized ⇒ sp}
 
 final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
-    private[abc] val map: ArrayMap[K, ArraySet[V]])(implicit val f: ArrayMultiMap.Family[K, V]) {
+    private[abc] val map: ArrayMap[K, ArraySet[V]])(
+    implicit val f: ArrayMultiMap.Family[K, V]) {
 
   def keys: ArraySet[K] = map.keys
 
@@ -60,9 +61,14 @@ object ArrayMultiMap extends App {
     def vSetFamily: ArraySet.Family[V]
   }
 
-  implicit def genericFamily[K, V](implicit mapFamily: ArrayMap.Family[K, ArraySet[V]], vSetFamily: ArraySet.Family[V]) : Family[K, V] = new GenericFamily[K, V](mapFamily, vSetFamily)
+  implicit def genericFamily[K, V](
+      implicit mapFamily: ArrayMap.Family[K, ArraySet[V]],
+      vSetFamily: ArraySet.Family[V]) : Family[K, V] =
+    new GenericFamily[K, V](mapFamily, vSetFamily)
 
-  private class GenericFamily[K, V](val mapFamily: ArrayMap.Family[K, ArraySet[V]], val vSetFamily: ArraySet.Family[V]) extends Family[K, V] {
+  private class GenericFamily[K, V](
+      val mapFamily: ArrayMap.Family[K, ArraySet[V]],
+      val vSetFamily: ArraySet.Family[V]) extends Family[K, V] {
 
     val kOrder = mapFamily.kOrder
 
