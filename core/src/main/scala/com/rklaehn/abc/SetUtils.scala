@@ -108,14 +108,14 @@ private[abc] object SetUtils {
 
     def order: Order[T]
 
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int): Int = order.compare(a(ai), b(bi))
 
-    def copyFromA(a0: Int, a1: Int) = {
+    def copyFromA(a0: Int, a1: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)
       ri += a1 - a0
     }
 
-    def copyFromB(b0: Int, b1: Int) = {
+    def copyFromB(b0: Int, b1: Int): Unit = {
       System.arraycopy(b, b0, r, ri, b1 - b0)
       ri += b1 - b0
     }
@@ -129,7 +129,7 @@ private[abc] object SetUtils {
 
   final class UnionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
-    def collision(ai: Int, bi: Int) = {
+    def collision(ai: Int, bi: Int): Unit = {
       r(ri) = a(ai)
       ri += 1
     }
@@ -141,7 +141,7 @@ private[abc] object SetUtils {
 
   final class IntersectionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
-    def collision(ai: Int, bi: Int) = {
+    def collision(ai: Int, bi: Int): Unit = {
       r(ri) = a(ai)
       ri += 1
     }
@@ -153,7 +153,7 @@ private[abc] object SetUtils {
 
   final class DiffMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
-    def collision(ai: Int, bi: Int) = {}
+    def collision(ai: Int, bi: Int): Unit = {}
 
     def fromA(a0: Int, a1: Int, bi: Int): Unit = copyFromA(a0, a1)
 

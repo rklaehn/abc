@@ -9,7 +9,7 @@ import scala.collection.immutable.{HashMap, SortedMap}
 import scala.io.Source
 import scala.util.hashing.Hashing
 
-object RadixTreeBench extends App {
+object RadixTreeBench2 extends App {
   val names = Source.fromURL("http://www-01.sil.org/linguistics/wordlists/english/wordlist/wordsEn.txt").getLines.toArray
   println(names.length)
   println(names.take(10).mkString("\n"))

@@ -104,33 +104,33 @@ class SizeTest {
     println("RadixTree:          " + mm.measureDeep(tree1))
     println("RadixTree (packed): " + mm.measureDeep(tree2))
   }
-
-  @Test
-  def testRadixTreeUnit2(): Unit = {
-    val names = Source.fromURL("http://www-01.sil.org/linguistics/wordlists/english/wordlist/wordsEn.txt").getLines.toArray
-    val set = Set(names: _*)
-
-    val tree1 = RadixTree(names.map(s => s -> (())): _*)
-    val tree2 = tree1.packed
-
-    val tree3 = RadixTree(names.map(s => s.toCharArray -> (())): _*)
-    val tree4 = tree3.packed
-
-    val tree5 = RadixTree(names.map(s => s.getBytes("UTF-8") -> (())): _*)
-    val tree6 = tree5.packed
-
-    println(s"List of ${names.length} english words")
-    println("Elements:           " + mm.measureDeep(names))
-
-    println("RadixTree:          " + mm.measureDeep(tree1))
-    println("RadixTree (packed): " + mm.measureDeep(tree2))
-
-    println("RadixTree (Chars):  " + mm.measureDeep(tree3))
-    println("RadixTree (packed): " + mm.measureDeep(tree4))
-
-    println("RadixTree (Bytes):  " + mm.measureDeep(tree5))
-    println("RadixTree (packed): " + mm.measureDeep(tree6))
-
-    println("Set:                " + mm.measureDeep(set))
-  }
+//
+//  @Test
+//  def testRadixTreeUnit2(): Unit = {
+//    val names = Source.fromURL("http://www-01.sil.org/linguistics/wordlists/english/wordlist/wordsEn.txt").getLines.toArray
+//    val set = Set(names: _*)
+//
+//    val tree1 = RadixTree(names.map(s => s -> (())): _*)
+//    val tree2 = tree1.packed
+//
+//    val tree3 = RadixTree(names.map(s => s.toCharArray -> (())): _*)
+//    val tree4 = tree3.packed
+//
+//    val tree5 = RadixTree(names.map(s => s.getBytes("UTF-8") -> (())): _*)
+//    val tree6 = tree5.packed
+//
+//    println(s"List of ${names.length} english words")
+//    println("Elements:           " + mm.measureDeep(names))
+//
+//    println("RadixTree:          " + mm.measureDeep(tree1))
+//    println("RadixTree (packed): " + mm.measureDeep(tree2))
+//
+//    println("RadixTree (Chars):  " + mm.measureDeep(tree3))
+//    println("RadixTree (packed): " + mm.measureDeep(tree4))
+//
+//    println("RadixTree (Bytes):  " + mm.measureDeep(tree5))
+//    println("RadixTree (packed): " + mm.measureDeep(tree6))
+//
+//    println("Set:                " + mm.measureDeep(set))
+//  }
 }
