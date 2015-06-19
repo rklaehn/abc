@@ -29,7 +29,7 @@ package object abc {
       java.lang.reflect.Array.newInstance(underlying.getClass.getComponentType, n).asInstanceOf[Array[T]]
 
     def resizeInPlace(n: Int): Array[T] =
-      if(underlying.length == n)
+      if (underlying.length == n)
         underlying
       else {
         val r = java.lang.reflect.Array.newInstance(underlying.getClass.getComponentType, n).asInstanceOf[Array[T]]

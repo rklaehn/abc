@@ -4,11 +4,11 @@ import spire.algebra.Eq
 
 import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
-import scala.{specialized => sp}
+import scala.{ specialized => sp }
 import spire.implicits._
 
 class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
-    private val elements: Array[T])(
+  private val elements: Array[T])(
     implicit f: ArraySeq.Family[T]) {
   import f._
 
@@ -17,7 +17,7 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
     case _ => false
   }
 
-  override def hashCode:Int = ArrayHashing.arrayHashCode(elements)
+  override def hashCode: Int = ArrayHashing.arrayHashCode(elements)
 }
 
 object ArraySeq {
@@ -35,7 +35,7 @@ object ArraySeq {
     new GenericFamily(Array.empty[T])
 
   private[abc] final class GenericFamily[@sp(Int, Long, Double) T](
-      val tEmptyArray: Array[T])(
+    val tEmptyArray: Array[T])(
       implicit val tEq: Eq[T], val tHashing: Hashing[T]) extends Family[T] {
     val empty = new ArraySeq[T](tEmptyArray)(this)
   }

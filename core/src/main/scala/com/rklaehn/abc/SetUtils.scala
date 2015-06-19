@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import scala.annotation.tailrec
 import scala.util.control.ControlThrowable
-import scala.{specialized => sp}
+import scala.{ specialized => sp }
 import spire.algebra.Order
 
 /**
@@ -14,7 +14,7 @@ private[abc] object SetUtils {
 
   private[this] val abort = new AbortControl
 
-  def binarySearch[@sp(Int, Long, Double) T](a: Array[T], e: T, from: Int, until: Int)(implicit o:Order[T]): Int = {
+  def binarySearch[@sp(Int, Long, Double) T](a: Array[T], e: T, from: Int, until: Int)(implicit o: Order[T]): Int = {
 
     @tailrec
     def binarySearch0(low: Int, high: Int): Int =
@@ -38,32 +38,32 @@ private[abc] object SetUtils {
     binarySearch(a, e, 0, a.length)
 
   def union[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new UnionMerge[T](a,b,a.newArray(a.length + b.length), implicitly[Order[T]]).result
+    new UnionMerge[T](a, b, a.newArray(a.length + b.length), implicitly[Order[T]]).result
 
   def intersection[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new IntersectionMerge[T](a,b,a.newArray(a.length min b.length), implicitly[Order[T]]).result
+    new IntersectionMerge[T](a, b, a.newArray(a.length min b.length), implicitly[Order[T]]).result
 
   def diff[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new DiffMerge[T](a,b,a.newArray(a.length), implicitly[Order[T]]).result
+    new DiffMerge[T](a, b, a.newArray(a.length), implicitly[Order[T]]).result
 
   def xor[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new XorMerge[T](a,b,a.newArray(a.length + b.length), implicitly[Order[T]]).result
+    new XorMerge[T](a, b, a.newArray(a.length + b.length), implicitly[Order[T]]).result
 
   def subsetOf[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
-      new SubsetOf[T](a,b,implicitly[Order[T]])
+      new SubsetOf[T](a, b, implicitly[Order[T]])
       true
     } catch {
-      case x:AbortControl => false
+      case x: AbortControl => false
     }
   }
 
   def intersects[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
-      new NoIntersect[T](a,b,implicitly[Order[T]])
+      new NoIntersect[T](a, b, implicitly[Order[T]])
       false
     } catch {
-      case x:AbortControl => true
+      case x: AbortControl => true
     }
   }
 

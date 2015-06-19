@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import language.implicitConversions
 import scala.util.hashing.Hashing
-import scala.{specialized => sp}
+import scala.{ specialized => sp }
 import spire.algebra.Order
 import spire.implicits._
 
@@ -23,10 +23,10 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def intersects(that: ArraySet[T]): Boolean =
     SetUtils.intersects(this.elements, that.elements)
 
-  def union(that:ArraySet[T]): ArraySet[T] =
+  def union(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  def intersection(that:ArraySet[T]): ArraySet[T] =
+  def intersection(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
   def diff(that: ArraySet[T]): ArraySet[T] =
@@ -40,9 +40,9 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
     case _ => false
   }
 
-  override def hashCode:Int = ArrayHashing.arrayHashCode(elements)
+  override def hashCode: Int = ArrayHashing.arrayHashCode(elements)
 
-  override def toString: String = elements.mkString("Set(",",",")")
+  override def toString: String = elements.mkString("Set(", ",", ")")
 }
 
 object ArraySet {
@@ -58,9 +58,9 @@ object ArraySet {
     def tSeqFamily: ArraySeq.Family[T]
   }
 
-  implicit def genericFamily[@sp(Int, Long, Double) T: Order : ClassTag : Hashing] = new GenericFamily(Array.empty[T])
+  implicit def genericFamily[@sp(Int, Long, Double) T: Order: ClassTag: Hashing] = new GenericFamily(Array.empty[T])
 
-  private[abc] class GenericFamily[@sp(Int, Long, Double) T](ea:Array[T])(implicit val tOrder: Order[T], val tHashing: Hashing[T]) extends Family[T] {
+  private[abc] class GenericFamily[@sp(Int, Long, Double) T](ea: Array[T])(implicit val tOrder: Order[T], val tHashing: Hashing[T]) extends Family[T] {
 
     val empty = new ArraySet[T](ea)(this)
 
@@ -72,7 +72,7 @@ object ArraySet {
   def apply[@sp(Int, Long, Double) T](elements: T*)(implicit f: Family[T]): ArraySet[T] = {
     import f._
     val reducer = Reducer.create[ArraySet[T]](_ union _)
-    for(e <- elements)
+    for (e <- elements)
       reducer(singleton(e))
     reducer.result().getOrElse(f.empty)
   }

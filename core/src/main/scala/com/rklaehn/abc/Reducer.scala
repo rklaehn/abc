@@ -31,11 +31,11 @@ object Reducer {
    * @tparam T the element type
    * @return an opt containing the result, or Opt.empty[T] if the array is of size 0
    */
-  def reduceArray[T](elements:Array[T])(op: (T,T) ⇒ T): Opt[T] = if(elements.isEmpty) Opt.empty[T] else {
-    def m(a:Int, b:Int) : Int = {
+  def reduceArray[T](elements: Array[T])(op: (T, T) ⇒ T): Opt[T] = if (elements.isEmpty) Opt.empty[T] else {
+    def m(a: Int, b: Int): Int = {
       (a + b) / 2
     }
-    def reduce0(i0:Int, i1:Int) : T = {
+    def reduce0(i0: Int, i1: Int): T = {
       (i1 - i0) match {
         case 1 ⇒ elements(i0)
         case 2 ⇒ op(elements(i0), elements(i0 + 1))
@@ -54,7 +54,7 @@ object Reducer {
    * @tparam T the element and result type
    * @return an opt containing the result, or Opt.empty[T] if the collection is of size 0
    */
-  def reduce[T](elements:TraversableOnce[T])(op: (T, T) ⇒ T): Opt[T] = {
+  def reduce[T](elements: TraversableOnce[T])(op: (T, T) ⇒ T): Opt[T] = {
     val reducer = create(op)
     elements.foreach(reducer)
     reducer.result()
@@ -68,7 +68,7 @@ object Reducer {
    * @tparam T the element and result type
    * @return a stateful reducer that can be fed elements by calling apply
    */
-  def create[T](op: (T,T) ⇒ T) : Reducer[T] = new Impl[T](op)
+  def create[T](op: (T, T) ⇒ T): Reducer[T] = new Impl[T](op)
 
   private final class Impl[T](op: (T, T) ⇒ T) extends Reducer[T] {
 
@@ -77,18 +77,18 @@ object Reducer {
     private[this] val current = new Array[AnyRef](32)
 
     //scalastyle:off null
-    @inline private[this] def combine(a:AnyRef, b:AnyRef): AnyRef = {
-      if(b ne null)
+    @inline private[this] def combine(a: AnyRef, b: AnyRef): AnyRef = {
+      if (b ne null)
         op(a.asInstanceOf[T], b.asInstanceOf[T]).asInstanceOf[AnyRef]
       else
         a
     }
 
-    private[this] def reduceTo(weight:Int, initial:AnyRef = null): AnyRef = {
+    private[this] def reduceTo(weight: Int, initial: AnyRef = null): AnyRef = {
       var i = 0
       var t = initial
-      while(i < weight) {
-        if(current(i) ne null) {
+      while (i < weight) {
+        if (current(i) ne null) {
           t = combine(current(i), t)
           current(i) = null
         }
