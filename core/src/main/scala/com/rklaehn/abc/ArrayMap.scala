@@ -1,17 +1,19 @@
 package com.rklaehn.abc
 
 import spire.math.BinaryMerge
+import sun.reflect.generics.factory.GenericsFactory
 
+import scala.collection.immutable.SortedMap
 import scala.reflect.ClassTag
 import scala.util.hashing.{ MurmurHash3, Hashing }
 import scala.{ specialized => sp }
 import spire.algebra.{ Eq, Order }
 import spire.implicits._
 
-final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-  private val keys0: Array[K],
-  private val values0: Array[V])(
-    implicit val f: ArrayMap.Family[K, V]) {
+final class ArrayMap[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  private[abc] val keys0: Array[K],
+  private[abc] val values0: Array[V])(
+    implicit val f: ArrayMap.Family[K, V]) { self ⇒
   import ArrayMap._
   import f._
 
@@ -20,6 +22,11 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   def keys: ArraySet[K] = new ArraySet[K](keys0)
 
   def values: ArraySeq[V] = new ArraySeq[V](values0)
+
+  def asSortedMap: SortedMap[K,V] = {
+    val pairs = keys0 zip values0
+    SortedMap(pairs: _*)(Order.ordering(f.kOrder))
+  }
 
   def apply(k: K): V = {
     val i = SetUtils.binarySearch(keys0, k, 0, keys0.length)
@@ -52,7 +59,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   def filterNotKeys(keys: ArraySet[K]): ArrayMap[K, V] =
     new FilterNotKeys[K, V](this, keys).result
 
-  def mapValues[@sp(Int, Long, Double) V2](f: V => V2)(implicit f2: Family[K, V2], c: ClassTag[V2]): ArrayMap[K, V2] = {
+  def mapValues[@sp(Int, Long, Double, AnyRef) V2](f: V => V2)(implicit f2: Family[K, V2], c: ClassTag[V2]): ArrayMap[K, V2] = {
     new ArrayMap(keys0, values0.map(f).toArray)
   }
 
@@ -71,7 +78,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
 object ArrayMap {
 
-  trait Family[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] {
+  trait Family[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V] {
 
     def empty: ArrayMap[K, V]
 
@@ -88,9 +95,10 @@ object ArrayMap {
     implicit def vSeqFamily: ArraySeq.Family[V]
   }
 
-  implicit def genericFamily[@sp(Int, Long, Double) K: Order: Eq: Hashing: ClassTag, @sp(Int, Long, Double) V: Eq: Hashing: ClassTag] = new GenericFamily[K, V](Array.empty[K], Array.empty[V])
+  @inline
+  implicit def genericFamily[@sp(Int, Long, Double, AnyRef) K: Order: Eq: Hashing: ClassTag, @sp(Int, Long, Double, AnyRef) V: Eq: Hashing: ClassTag] = new GenericFamily[K, V](Array.empty[K], Array.empty[V])
 
-  class GenericFamily[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+  final class GenericFamily[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
     eK: Array[K], eV: Array[V])(
       implicit val kOrder: Order[K],
       val kHashing: Hashing[K], val vEq: Eq[V], val vHashing: Hashing[V])
@@ -103,7 +111,7 @@ object ArrayMap {
     val vSeqFamily: ArraySeq.Family[V] = new ArraySeq.GenericFamily[V](eV)
   }
 
-  private class MapMerger[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArrayMap[K, V]) extends BinaryMerge {
+  private class MapMerger[@sp(Int, Long, Double, AnyRef) K: Order, @sp(Int, Long, Double, AnyRef) V](a: ArrayMap[K, V], b: ArrayMap[K, V]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -141,7 +149,7 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
 
-  private class MapMerger2[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](
+  private class MapMerger2[@sp(Int, Long, Double, AnyRef) K: Order, @sp(Int, Long, Double, AnyRef) V](
     a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
     extends BinaryMerge {
 
@@ -181,7 +189,7 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
 
-  private class FilterKeys[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
+  private class FilterKeys[@sp(Int, Long, Double, AnyRef) K: Order, @sp(Int, Long, Double, AnyRef) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -208,7 +216,7 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
 
-  private class FilterNotKeys[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
+  private class FilterNotKeys[@sp(Int, Long, Double, AnyRef) K: Order, @sp(Int, Long, Double, AnyRef) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -235,13 +243,13 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))(a.f)
   }
 
-  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+  def empty[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
     implicit f: Family[K, V]): ArrayMap[K, V] = f.empty
 
-  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: V)(implicit f: Family[K, V]): ArrayMap[K, V] =
+  def singleton[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](k: K, v: V)(implicit f: Family[K, V]): ArrayMap[K, V] =
     new ArrayMap[K, V](singletonArray(k), singletonArray(v))
 
-  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+  def apply[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
     kvs: (K, V)*)(
       implicit f: Family[K, V]): ArrayMap[K, V] = {
     implicit val order = f.kOrder

@@ -14,7 +14,7 @@ private[abc] object SetUtils {
 
   private[this] val abort = new AbortControl
 
-  def binarySearch[@sp(Int, Long, Double) T](a: Array[T], e: T, from: Int, until: Int)(implicit o: Order[T]): Int = {
+  def binarySearch[@sp(Int, Long, Double, AnyRef) T](a: Array[T], e: T, from: Int, until: Int)(implicit o: Order[T]): Int = {
 
     @tailrec
     def binarySearch0(low: Int, high: Int): Int =
@@ -31,25 +31,25 @@ private[abc] object SetUtils {
     binarySearch0(from, until - 1)
   }
 
-  def contains[@sp(Int, Long, Double) T: Order](a: Array[T], e: T): Boolean =
+  def contains[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], e: T): Boolean =
     binarySearch(a, e, 0, a.length) >= 0
 
-  def indexOf[@sp(Int, Long, Double) T: Order](a: Array[T], e: T): Int =
+  def indexOf[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], e: T): Int =
     binarySearch(a, e, 0, a.length)
 
-  def union[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
+  def union[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], b: Array[T]): Array[T] =
     new UnionMerge[T](a, b, a.newArray(a.length + b.length), implicitly[Order[T]]).result
 
-  def intersection[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
+  def intersection[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], b: Array[T]): Array[T] =
     new IntersectionMerge[T](a, b, a.newArray(a.length min b.length), implicitly[Order[T]]).result
 
-  def diff[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
+  def diff[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], b: Array[T]): Array[T] =
     new DiffMerge[T](a, b, a.newArray(a.length), implicitly[Order[T]]).result
 
-  def xor[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
+  def xor[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], b: Array[T]): Array[T] =
     new XorMerge[T](a, b, a.newArray(a.length + b.length), implicitly[Order[T]]).result
 
-  def subsetOf[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
+  def subsetOf[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
       new SubsetOf[T](a, b, implicitly[Order[T]])
       true
@@ -58,7 +58,7 @@ private[abc] object SetUtils {
     }
   }
 
-  def intersects[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
+  def intersects[@sp(Int, Long, Double, AnyRef) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
       new NoIntersect[T](a, b, implicitly[Order[T]])
       false
@@ -67,7 +67,7 @@ private[abc] object SetUtils {
     }
   }
 
-  sealed trait BooleanOperation[@sp(Int, Long, Double) T] extends spire.math.BinaryMerge {
+  sealed trait BooleanOperation[@sp(Int, Long, Double, AnyRef) T] extends spire.math.BinaryMerge {
 
     def a: Array[T]
 
@@ -80,7 +80,7 @@ private[abc] object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class SubsetOf[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val order: Order[T]) extends BooleanOperation[T] {
+  final class SubsetOf[@sp(Int, Long, Double, AnyRef) T](val a: Array[T], val b: Array[T], val order: Order[T]) extends BooleanOperation[T] {
 
     def collision(ai: Int, bi: Int): Unit = {}
 
@@ -89,7 +89,7 @@ private[abc] object SetUtils {
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
   }
 
-  final class NoIntersect[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val order: Order[T]) extends BooleanOperation[T] {
+  final class NoIntersect[@sp(Int, Long, Double, AnyRef) T](val a: Array[T], val b: Array[T], val order: Order[T]) extends BooleanOperation[T] {
 
     def collision(ai: Int, bi: Int): Unit = { throw abort }
 
@@ -98,7 +98,7 @@ private[abc] object SetUtils {
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
   }
 
-  sealed trait AbstractMerge[@sp(Int, Long, Double) T] extends spire.math.BinaryMerge {
+  sealed trait AbstractMerge[@sp(Int, Long, Double, AnyRef) T] extends spire.math.BinaryMerge {
 
     def a: Array[T]
 
@@ -127,7 +127,7 @@ private[abc] object SetUtils {
     def result: Array[T] = r.resizeInPlace(ri)
   }
 
-  final class UnionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
+  final class UnionMerge[@sp(Int, Long, Double, AnyRef) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
     def collision(ai: Int, bi: Int): Unit = {
       r(ri) = a(ai)
@@ -139,7 +139,7 @@ private[abc] object SetUtils {
     def fromB(ai: Int, b0: Int, b1: Int): Unit = copyFromB(b0, b1)
   }
 
-  final class IntersectionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
+  final class IntersectionMerge[@sp(Int, Long, Double, AnyRef) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
     def collision(ai: Int, bi: Int): Unit = {
       r(ri) = a(ai)
@@ -151,7 +151,7 @@ private[abc] object SetUtils {
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
   }
 
-  final class DiffMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
+  final class DiffMerge[@sp(Int, Long, Double, AnyRef) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
     def collision(ai: Int, bi: Int): Unit = {}
 
@@ -160,7 +160,7 @@ private[abc] object SetUtils {
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
   }
 
-  final class XorMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
+  final class XorMerge[@sp(Int, Long, Double, AnyRef) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
 
     def collision(ai: Int, bi: Int): Unit = {}
 
