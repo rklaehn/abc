@@ -9,7 +9,7 @@ import scala.{ specialized => sp }
 
 class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
   private[abc] val elements: Array[T])(
-    implicit f: ArraySeq.Family[T]) {
+    implicit f: ArrayTag[T]) {
   import f._
 
   def asIndexedSeq: IndexedSeq[T] = new IndexedSeq[T] {
@@ -41,30 +41,12 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
 
 object ArraySeq {
 
-  trait Family[@sp(Int, Long, Double) T] {
+  def empty[@sp(Int, Long, Double) T: ArrayTag]: ArraySeq[T] =
+    new ArraySeq(implicitly[ArrayTag[T]].empty)
 
-    implicit def tEq: Eq[T]
+  def singleton[@sp(Int, Long, Double) T: ArrayTag](e: T): ArraySeq[T] =
+    new ArraySeq[T](implicitly[ArrayTag[T]].singleton(e))
 
-    implicit def tHashing: Hashing[T]
-
-    def empty: ArraySeq[T]
-  }
-
-  implicit def genericFamily[@sp(Int, Long, Double) T: Eq: Hashing: ClassTag]: Family[T] =
-    new GenericFamily(Array.empty[T])
-
-  private[abc] final class GenericFamily[@sp(Int, Long, Double) T](
-    val tEmptyArray: Array[T])(
-      implicit val tEq: Eq[T], val tHashing: Hashing[T]) extends Family[T] {
-    val empty = new ArraySeq[T](tEmptyArray)(this)
-  }
-
-  def empty[@sp(Int, Long, Double) T: Family]: ArraySeq[T] =
-    implicitly[Family[T]].empty
-
-  def singleton[@sp(Int, Long, Double) T: Family](e: T): ArraySeq[T] =
-    new ArraySeq[T](singletonArray(e))
-
-  def apply[@sp(Int, Long, Double) T: Family: ClassTag](elements: T*): ArraySeq[T] =
-    new ArraySeq[T](elements.toArray)
+  def apply[@sp(Int, Long, Double) T: ArrayTag](elements: T*): ArraySeq[T] =
+    new ArraySeq[T](elements.toArray(implicitly[ArrayTag[T]].tClassTag))
 }

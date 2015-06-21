@@ -16,7 +16,7 @@ object ArrayResizeBench extends App {
   val t = Array(1)
 
   def alloc1: Array[Int] =
-    t.resizeInPlace(10)
+    t.resizeInPlace0(10)
 
   def alloc2: Array[Int] =
     java.lang.reflect.Array.newInstance(t.getClass.getComponentType, 10).asInstanceOf[Array[Int]]

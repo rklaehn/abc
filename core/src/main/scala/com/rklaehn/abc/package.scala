@@ -1,5 +1,7 @@
 package com.rklaehn
 
+import scala.reflect.ClassTag
+
 package object abc {
 
   def singletonArray[@specialized T](value: T): Array[T] = {
@@ -28,7 +30,16 @@ package object abc {
     def newArray(n: Int): Array[T] =
       java.lang.reflect.Array.newInstance(underlying.getClass.getComponentType, n).asInstanceOf[Array[T]]
 
-    def resizeInPlace(n: Int): Array[T] =
+    def resizeInPlace(n: Int)(c: ClassTag[T]): Array[T] =
+      if (underlying.length == n)
+        underlying
+      else {
+        val r = c.newArray(n)
+        System.arraycopy(underlying, 0, r, 0, n min underlying.length)
+        r
+      }
+
+    def resizeInPlace0(n: Int): Array[T] =
       if (underlying.length == n)
         underlying
       else {

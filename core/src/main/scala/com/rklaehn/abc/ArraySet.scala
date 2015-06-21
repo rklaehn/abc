@@ -8,7 +8,7 @@ import spire.implicits._
 
 import scala.reflect.ClassTag
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit f: ArraySet.Family[T]) { self ⇒
+final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit f: OrderedArrayTag[T]) { self ⇒
   import f._
 
   def asSet: Set[T] = new Set[T] {
@@ -23,7 +23,7 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   }
 
   def asArraySeq: ArraySeq[T] =
-    new ArraySeq[T](elements)(f.tSeqFamily)
+    new ArraySeq[T](elements)(f)
 
   def apply(e: T): Boolean =
     SetUtils.contains(elements, e)
@@ -58,35 +58,16 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySet {
 
-  trait Family[@sp(Int, Long, Double) T] {
+  def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
+    new ArraySet[T](implicitly[ArrayTag[T]].empty)
 
-    def empty: ArraySet[T]
-
-    implicit def tOrder: Order[T]
-
-    implicit def tHashing: Hashing[T]
-
-    def tSeqFamily: ArraySeq.Family[T]
-  }
-
-  implicit def genericFamily[@sp(Int, Long, Double) T: Order: ClassTag: Hashing] = new GenericFamily(Array.empty[T])
-
-  private[abc] class GenericFamily[@sp(Int, Long, Double) T](ea: Array[T])(implicit val tOrder: Order[T], val tHashing: Hashing[T]) extends Family[T] {
-
-    val empty = new ArraySet[T](ea)(this)
-
-    val tSeqFamily = new ArraySeq.GenericFamily[T](empty.elements)
-  }
-
-  def empty[@sp(Int, Long, Double) T: Family]: ArraySet[T] = implicitly[Family[T]].empty
-
-  def apply[@sp(Int, Long, Double) T](elements: T*)(implicit f: Family[T]): ArraySet[T] = {
-    import f._
+  def apply[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
     val reducer = Reducer.create[ArraySet[T]](_ union _)
     for (e <- elements)
       reducer(singleton(e))
-    reducer.result().getOrElse(f.empty)
+    reducer.result().getOrElse(empty)
   }
 
-  def singleton[@sp(Int, Long, Double) T: Family](e: T): ArraySet[T] = new ArraySet[T](singletonArray(e))
+  def singleton[@sp(Int, Long, Double) T: OrderedArrayTag](e: T): ArraySet[T] =
+    new ArraySet[T](implicitly[ArrayTag[T]].singleton(e))
 }

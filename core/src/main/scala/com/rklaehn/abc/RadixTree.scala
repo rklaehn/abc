@@ -5,6 +5,7 @@ import spire.util.Opt
 
 import scala.annotation.tailrec
 import scala.collection.AbstractTraversable
+import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
 
 // scalastyle:off equals.hash.code
@@ -341,6 +342,7 @@ object RadixTree {
      */
     def valueHashing: Hashing[V]
 
+
     /**
      * The empty key
      */
@@ -440,7 +442,7 @@ object RadixTree {
 
         merge0(0, a.length, 0, b.length)
       }
-      r.resizeInPlace(ri)
+      r.resizeInPlace0(ri)
     }
   }
 

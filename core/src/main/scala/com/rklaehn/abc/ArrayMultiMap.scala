@@ -5,9 +5,8 @@ import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
 import scala.{ specialized ⇒ sp }
 
-final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
-  private[abc] val map: ArrayMap[K, ArraySet[V]])(
-    implicit val f: ArrayMultiMap.Family[K, V]) {
+final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] private[abc] (
+  private[abc] val map: ArrayMap[K, ArraySet[V]]) {
 
   def keys: ArraySet[K] = map.keys
 
@@ -29,51 +28,45 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
 
 object ArrayMultiMap {
 
-  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](implicit f: Family[K, V]): ArrayMultiMap[K, V] = f.empty
+  private implicit def anyRefArrayTag[T <: AnyRef : ClassTag] = new ArrayTag[T] {
+    override def empty: Array[T] = Array.empty[T]
 
-  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: ArraySet[V])(implicit f: Family[K, V]): ArrayMultiMap[K, V]
-    = new ArrayMultiMap[K, V](ArrayMap.singleton(k, v)(f.mapFamily))
+    override def tHashing: Hashing[T] = ???
 
-  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K, ArraySet[V])*)(implicit f: Family[K, V]) = {
+    override def singleton(e: T): Array[T] = {
+      val r = newArray(1)
+      r(0) = e
+      r
+    }
+
+    override def newArray(n: Int): Array[T] = Array.ofDim(n)
+
+    override def tClassTag: ClassTag[T] = implicitly[ClassTag[T]]
+
+    override def hash(a: Array[T]): Int = ???
+
+    override def tEq: Eq[T] = ???
+
+    override def eqv(a: Array[T], b: Array[T]): Boolean = ???
+  }
+
+  def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag]: ArrayMultiMap[K, V] =
+    new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])
+
+  def singleton[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](k: K, v: ArraySet[V]) =
+    new ArrayMultiMap[K, V](ArrayMap.singleton(k, v))
+
+  def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, ArraySet[V])*) = {
     val reducer = Reducer.create[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer(singleton(k, v))
     reducer.result().getOrElse(empty[K, V])
   }
 
-  def fromKVs[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K, V)*)(implicit f: Family[K, V]) = {
+  def fromKVs[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, V)*) = {
     val reducer = Reducer.create[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
-      reducer(singleton(k, ArraySet.singleton(v)(f.vSetFamily)))
+      reducer(singleton(k, ArraySet.singleton(v)))
     reducer.result().getOrElse(empty[K, V])
-  }
-
-  trait Family[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] {
-
-    def empty: ArrayMultiMap[K, V]
-
-    def kOrder: Order[K]
-
-    def vOrder: Order[V]
-
-    def mapFamily: ArrayMap.Family[K, ArraySet[V]]
-
-    def vSetFamily: ArraySet.Family[V]
-  }
-
-  implicit def genericFamily[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-    implicit mapFamily: ArrayMap.Family[K, ArraySet[V]],
-    vSetFamily: ArraySet.Family[V]): Family[K, V] =
-    new GenericFamily[K, V](mapFamily, vSetFamily)
-
-  class GenericFamily[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-    val mapFamily: ArrayMap.Family[K, ArraySet[V]],
-    val vSetFamily: ArraySet.Family[V]) extends Family[K, V] {
-
-    val kOrder = mapFamily.kOrder
-
-    val vOrder = vSetFamily.tOrder
-
-    val empty = new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]](mapFamily))(this)
   }
 }

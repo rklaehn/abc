@@ -8,6 +8,9 @@ import spire.optional.genericEq._
 
 class SpecializeTest {
 
+  import scala.util.hashing.Hashing._
+  import OrderedArrayTag.default
+
   @Test
   def testSeqSpecialization(): Unit = {
     assertTrue(ArraySeq.empty[Int].isSpecialized)

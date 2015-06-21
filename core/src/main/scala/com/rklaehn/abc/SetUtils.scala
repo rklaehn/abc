@@ -124,7 +124,7 @@ private[abc] object SetUtils {
 
     merge0(0, a.length, 0, b.length)
 
-    def result: Array[T] = r.resizeInPlace(ri)
+    def result: Array[T] = r.resizeInPlace0(ri)
   }
 
   final class UnionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends AbstractMerge[T] {
