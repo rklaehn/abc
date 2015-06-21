@@ -1,7 +1,6 @@
 package com.rklaehn.abc
 
 import spire.math.BinaryMerge
-import sun.reflect.generics.factory.GenericsFactory
 
 import scala.collection.immutable.SortedMap
 import scala.reflect.ClassTag
