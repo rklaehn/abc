@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import scala.{ specialized => sp }
 
-class ArrayBiMap[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V] private[abc] (
+class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
   val kv: ArrayMap[K, V],
   val vk: ArrayMap[V, K]) {
 
@@ -35,19 +35,19 @@ class ArrayBiMap[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef
 
 object ArrayBiMap {
 
-  def empty[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     implicit fkv: ArrayMap.Family[K, V],
     fvk: ArrayMap.Family[V, K]): ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](fkv.empty, fvk.empty)
 
-  def singleton[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     k: K, v: V)(
       implicit fkv: ArrayMap.Family[K, V], fvk: ArrayMap.Family[V, K]): ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](
       ArrayMap.singleton[K, V](k, v),
       ArrayMap.singleton[V, K](v, k))
 
-  def apply[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     kvs: (K, V)*)(
       implicit fkv: ArrayMap.Family[K, V], fvk: ArrayMap.Family[V, K]): ArrayBiMap[K, V] = {
     new ArrayBiMap[K, V](

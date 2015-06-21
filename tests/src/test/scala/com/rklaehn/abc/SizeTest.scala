@@ -8,17 +8,9 @@ import spire.implicits._
 
 import scala.io.Source
 import scala.util.hashing.Hashing
+import spire.optional.genericEq._
 
 class SizeTest {
-
-  implicit object UnitEq extends Eq[Unit] {
-
-    override def eqv(x: Unit, y: Unit): Boolean = true
-  }
-
-  implicit object EqHashing extends Hashing[Unit] {
-    override def hash(x: Unit): Int = 0
-  }
 
   /*
 
@@ -89,6 +81,21 @@ class SizeTest {
 
     val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
     println("Map[String, String] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
+  }
+
+  @Test
+  def testIntIntMultiMap(): Unit = {
+    val ks = (100000 until 101000).toArray
+    val vs = (100000 until 101000).toArray
+    implicit val f = ArraySet.genericFamily[Int]
+    val a = ArrayMultiMap[Int, Int](ks zip vs.map(x => ArraySet(0 until 100: _*)(f)): _*)
+    val b = Map[Int, Set[Int]](ks zip vs.map(x => Set(0 until 100: _*)): _*)
+
+    val payload = mm.measureDeep(ks) + mm.measureDeep(vs) * 100
+    println("MultiMap[Int, Int] 100*100")
     println("Elements: " + payload)
     println("ArraySet: " + (mm.measureDeep(a) - payload))
     println("Set:      " + (mm.measureDeep(b) - payload))

@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import scala.{ specialized => sp }
 
-class ArrayBiMultiMap[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V] private[abc] (
+class ArrayBiMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
   val kv: ArrayMultiMap[K, V],
   val vk: ArrayMultiMap[V, K]) {
 
@@ -41,19 +41,19 @@ class ArrayBiMultiMap[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, A
 
 object ArrayBiMultiMap {
 
-  def empty[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     implicit fkv: ArrayMultiMap.Family[K, V],
     fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] =
     new ArrayBiMultiMap[K, V](fkv.empty, fvk.empty)
 
-  def singleton[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     k: K, v: V)(
       implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] =
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.singleton[K, V](k, ArraySet.singleton(v)(fvk.mapFamily.kSetFamily)),
       ArrayMultiMap.singleton[V, K](v, ArraySet.singleton(k)(fkv.mapFamily.kSetFamily)))
 
-  def apply[@sp(Int, Long, Double, AnyRef) K, @sp(Int, Long, Double, AnyRef) V](
+  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     kvs: (K, V)*)(
       implicit fkv: ArrayMultiMap.Family[K, V], fvk: ArrayMultiMap.Family[V, K]): ArrayBiMultiMap[K, V] = {
     new ArrayBiMultiMap[K, V](
