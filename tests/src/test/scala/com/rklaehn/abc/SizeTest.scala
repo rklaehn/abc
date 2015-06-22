@@ -73,6 +73,20 @@ class SizeTest {
   }
 
   @Test
+  def testIntArrayMapLarge(): Unit = {
+    val ks = (0 until 100000).toArray
+    val vs = ks
+    val a = ArrayMap(ks zip vs: _*)
+    val b = Map(ks zip vs: _*)
+
+    val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
+    println("Map[Int, Int] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
+  }
+
+  @Test
   def testIntStringArrayMap(): Unit = {
     val ks = (0 until 100).toArray
     val vs = ks.map(_.toString)

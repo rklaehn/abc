@@ -1,8 +1,5 @@
 package com.rklaehn.abc
 
-import spire.algebra.{ Eq, Order }
-import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
 import scala.{ specialized ⇒ sp }
 
 final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] private[abc] (
@@ -27,8 +24,6 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
 }
 
 object ArrayMultiMap {
-
-  implicit def arrayTag[T]: ArrayTag[ArraySet[T]] = implicitly[ArrayTag[ArraySet[T]]]
 
   def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag]: ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])

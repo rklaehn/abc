@@ -3,7 +3,7 @@ package com.rklaehn.abc
 import language.implicitConversions
 import scala.util.hashing.Hashing
 import scala.{ specialized => sp }
-import spire.algebra.Order
+import spire.algebra.{Eq, Order}
 import spire.implicits._
 
 import scala.reflect.ClassTag
@@ -57,6 +57,9 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 }
 
 object ArraySet {
+
+  implicit def eqv[T]: Eq[ArraySet[T]] =
+    spire.optional.genericEq.generic[ArraySet[T]]
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
     new ArraySet[T](implicitly[ArrayTag[T]].empty)
