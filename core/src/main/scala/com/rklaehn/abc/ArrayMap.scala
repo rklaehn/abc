@@ -3,6 +3,9 @@ package com.rklaehn.abc
 import spire.math.BinaryMerge
 import spire.util.Opt
 
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.{mutable, SortedMapLike}
 import scala.collection.immutable.SortedMap
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized => sp }
@@ -10,26 +13,40 @@ import spire.algebra.Order
 
 final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
-  private[abc] val values0: Array[V])(implicit val kArrayTag: OrderedArrayTag[K], val vArrayTag: ArrayTag[V]) { self ⇒
+  private[abc] val values0: Array[V])(implicit val kArrayTag: OrderedArrayTag[K], val vArrayTag: ArrayTag[V])
+  extends SortedMap[K, V] with SortedMapLike[K, V, ArrayMap[K, V]]
+{ self ⇒
   import ArrayMap._
   import kArrayTag.order
 
-  def size: Int = keys0.length
+  override def empty = ArrayMap.empty[K, V]
 
-  def lastKey: K = keys0.last
+  override protected[this] def newBuilder: mutable.Builder[(K, V), ArrayMap[K, V]] =
+    new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMap(x: _*))
 
-  def firstKey: K = keys0.head
+  implicit def ordering = Order.ordering(kArrayTag.order)
 
-  def keys: ArraySet[K] = new ArraySet[K](keys0)
+  def iteratorFrom(start: K) = ???
 
-  def values: ArraySeq[V] = new ArraySeq[V](values0)
+  def keysIteratorFrom(start: K) = ???
 
-  def asSortedMap: SortedMap[K,V] = {
-    val pairs = keys0 zip values0
-    SortedMap(pairs: _*)(Order.ordering(kArrayTag.order))
-  }
+  def valuesIteratorFrom(start: K) = ???
 
-  def apply(k: K): V = {
+  def rangeImpl(from: Option[K], until: Option[K]) = ???
+
+  def iterator = keys0.iterator zip values0.iterator
+
+  override def size: Int = keys0.length
+
+  override def lastKey: K = keys0.last
+
+  override def firstKey: K = keys0.head
+
+  override def keys: ArraySet[K] = new ArraySet[K](keys0)
+
+  override def values: ArraySeq[V] = new ArraySeq[V](values0)
+
+  override def apply(k: K): V = {
     val i = kArrayTag.binarySearch(keys0, 0, keys0.length, k)
     if (i >= 0)
       values0(i)
@@ -42,9 +59,9 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     if (i < 0) None else Some(values0(i))
   }
 
-  def +(kv: (K, V)) = update(kv._1, kv._2)
+  def +(kv: (K, V)) = updated(kv._1, kv._2)
 
-  def update(k: K, v: V) = merge(new ArrayMap[K, V](singletonArray(k), singletonArray(v)))
+  def updated(k: K, v: V) = merge(new ArrayMap[K, V](singletonArray(k), singletonArray(v)))
 
   def -(k: K) = exceptKeys(new ArraySet(singletonArray(k)))
 
@@ -57,7 +74,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   def except(that: ArrayMap[K, V], f: (V, V) ⇒ Opt[V]): ArrayMap[K, V] =
     new Except[K, V](this, that, f).result
 
-  def filterKeys(f: K ⇒ Boolean): ArrayMap[K, V] = {
+  override def filterKeys(f: K ⇒ Boolean): ArrayMap[K, V] = {
     val rk = kArrayTag.newArray(keys0.length)
     val rv = vArrayTag.newArray(values0.length)
     var ri = 0
@@ -114,6 +131,12 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 }
 
 object ArrayMap {
+
+  implicit def cbf[CC, @sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag]: CanBuildFrom[CC, (K, V), ArrayMap[K, V]] = new CanBuildFrom[CC, (K, V), ArrayMap[K, V]] {
+    def apply(from: CC) = apply()
+
+    def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMap(x: _*))
+  }
 
   private class MapMerger[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArrayMap[K, V]) extends BinaryMerge {
 

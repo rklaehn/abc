@@ -1,6 +1,9 @@
 package com.rklaehn.abc
 
 import language.implicitConversions
+import scala.collection.SetLike
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing
 import scala.{ specialized => sp }
 import spire.algebra.{Eq, Order}
@@ -8,24 +11,25 @@ import spire.implicits._
 
 import scala.reflect.ClassTag
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit tArrayTag: OrderedArrayTag[T]) { self ⇒
+final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit tArrayTag: OrderedArrayTag[T])
+  extends Set[T] with SetLike[T, ArraySet[T]]
+{ self ⇒
   import tArrayTag._
 
-  def asSet: Set[T] = new Set[T] {
+  def contains(elem: T) = self.apply(elem)
 
-    def contains(elem: T) = self.apply(elem)
+  def +(elem: T) = self.union(ArraySet.singleton(elem))
 
-    def +(elem: T) = self.union(ArraySet.singleton(elem)).asSet
+  def -(elem: T) = self.diff(ArraySet.singleton(elem))
 
-    def -(elem: T) = self.diff(ArraySet.singleton(elem)).asSet
+  def iterator = elements.iterator
 
-    def iterator = elements.iterator
-  }
+  override def empty = ArraySet.empty[T]
 
   def asArraySeq: ArraySeq[T] =
     new ArraySeq[T](elements)(tArrayTag)
 
-  def apply(e: T): Boolean =
+  override def apply(e: T): Boolean =
     SetUtils.contains(elements, e)
 
   def subsetOf(that: ArraySet[T]): Boolean =
@@ -43,13 +47,13 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def diff(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
 
-  def filter(p: T => Boolean): ArraySet[T] =
+  override def filter(p: T => Boolean): ArraySet[T] =
     new ArraySet[T](this.elements.filter(p))
 
   def xor(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
-  def isEmpty: Boolean = elements.isEmpty
+  override def isEmpty: Boolean = elements.isEmpty
 
   override def equals(that: Any) = that match {
     case that: ArraySet[T] => this.elements === that.elements
@@ -62,6 +66,12 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 }
 
 object ArraySet {
+
+  implicit def cbf[CC, @sp(Int, Long, Double) U: OrderedArrayTag]: CanBuildFrom[CC, U, ArraySet[U]] = new CanBuildFrom[CC, U, ArraySet[U]] {
+    def apply(from: CC) = apply()
+
+    def apply() = new ArrayBuffer[U].mapResult(x ⇒ ArraySet[U](x: _*))
+  }
 
   implicit def eqv[T]: Eq[ArraySet[T]] =
     spire.optional.genericEq.generic[ArraySet[T]]
