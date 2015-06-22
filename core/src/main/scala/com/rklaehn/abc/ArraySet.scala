@@ -1,7 +1,8 @@
 package com.rklaehn.abc
 
 import language.implicitConversions
-import scala.collection.{mutable, SetLike}
+import scala.collection.immutable.SortedSet
+import scala.collection.{SortedSetLike, mutable, SetLike}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing
@@ -12,9 +13,21 @@ import spire.implicits._
 import scala.reflect.ClassTag
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit tArrayTag: OrderedArrayTag[T])
-  extends Set[T] with SetLike[T, ArraySet[T]]
+  extends SortedSet[T] with SortedSetLike[T, ArraySet[T]]
 { self ⇒
   import tArrayTag._
+
+  implicit def ordering = Order.ordering(order)
+
+  def rangeImpl(from: Option[T], until: Option[T]) = ???
+
+  def keysIteratorFrom(start: T) = {
+    val index = tArrayTag.binarySearch(elements, 0, elements.length, start)
+    if(index >= 0)
+      iterator.drop(index)
+    else
+      iterator.drop(-index -1)
+  }
 
   def contains(elem: T) = self.apply(elem)
 
