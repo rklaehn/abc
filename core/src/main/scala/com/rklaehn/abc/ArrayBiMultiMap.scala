@@ -17,13 +17,13 @@ class ArrayBiMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, 
   //
   //  def -(k: K) = removeKeys(ArraySet(k)(vk.f.vSetFamily))
 
-  def removeKeys(keys: ArraySet[K]): ArrayBiMultiMap[K, V] = {
-    val keys1 = keys intersection kv.keys
-    val kv1 = kv.filterNotKeys(keys1)
+  def exceptKeys(keys: ArraySet[K]): ArrayBiMultiMap[K, V] = {
+    val removedKeys = keys intersection kv.keys
+    val kv1 = kv.exceptKeys(removedKeys)
     var s = ArraySet.empty[V]
-    for (k <- keys1.elements)
+    for (k <- removedKeys.elements)
       s = s.union(kv.apply(k))
-    val vk1 = vk.filterNotKeys(s)
+    val vk1 = vk.exceptKeys(s)
     new ArrayBiMultiMap[K, V](kv1, vk1)
   }
 

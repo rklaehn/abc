@@ -14,6 +14,7 @@ lazy val tests = project.in(file("tests"))
 lazy val commonSettings = Seq(
   scalaVersion := "2.11.6",
   version := "0.1-SNAPSHOT",
+  organization := "com.rklaehn",
   libraryDependencies += "junit" % "junit" % "4.11" % "test",
   libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
 )
@@ -36,7 +37,7 @@ lazy val testSettings = {
 }
 
 lazy val coreSettings = Seq(
-  name := "array based collections",
+  name := "abc",
   // I would prefer just referencing non/algebra at some point
   libraryDependencies += "org.spire-math" %% "spire" % "0.10.1",
   libraryDependencies += "org.spire-math" %% "spire-scalacheck-binding" % "0.9.0" % "test",

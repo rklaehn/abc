@@ -43,8 +43,13 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def diff(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
 
+  def filter(p: T => Boolean): ArraySet[T] =
+    new ArraySet[T](this.elements.filter(p))
+
   def xor(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
+
+  def isEmpty: Boolean = elements.isEmpty
 
   override def equals(that: Any) = that match {
     case that: ArraySet[T] => this.elements === that.elements

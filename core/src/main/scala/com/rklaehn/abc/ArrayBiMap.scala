@@ -13,12 +13,12 @@ class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc
       kv.merge(that.kv),
       vk.merge(that.vk))
 
-  def removeKeys(keys: ArraySet[K]): ArrayBiMap[K, V] = {
+  def exceptKeys(keys: ArraySet[K]): ArrayBiMap[K, V] = {
     import vk.kArrayTag
-    val keys1 = keys intersection kv.keys
-    val kv1 = kv.filterNotKeys(keys1)
-    val values = keys1.elements.map(kv.apply)
-    val vk1 = vk.filterNotKeys(ArraySet(values: _*))
+    val removedKeys = keys intersection kv.keys
+    val kv1 = kv.exceptKeys(removedKeys)
+    val values = removedKeys.elements.map(kv.apply)
+    val vk1 = vk.exceptKeys(ArraySet(values: _*))
     new ArrayBiMap[K, V](kv1, vk1)
   }
 

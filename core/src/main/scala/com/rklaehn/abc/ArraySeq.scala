@@ -25,6 +25,12 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
       new ArraySeq[T](temp)
     }
 
+  def map[U : ArrayTag](f: T => U): ArraySeq[U] =
+    new ArraySeq[U](this.elements.map(f).toArray(implicitly[ArrayTag[U]].tClassTag))
+
+  def filter(p: T => Boolean): ArraySeq[T] =
+    new ArraySeq[T](this.elements.filter(p))
+
   override def equals(that: Any) = that match {
     case that: ArraySeq[T] => tArrayTag.eqv(this.elements, that.elements)
     case _ => false

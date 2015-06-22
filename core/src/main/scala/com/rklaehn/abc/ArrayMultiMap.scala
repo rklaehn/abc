@@ -1,5 +1,7 @@
 package com.rklaehn.abc
 
+import spire.util.Opt
+
 import scala.{ specialized ⇒ sp }
 
 final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] private[abc] (
@@ -7,15 +9,27 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
 
   def keys: ArraySet[K] = map.keys
 
-  def filterKeys(keys: ArraySet[K]): ArrayMultiMap[K, V] =
-    new ArrayMultiMap[K, V](map.filterKeys(keys))
+  def justKeys(keys: ArraySet[K]): ArrayMultiMap[K, V] =
+    new ArrayMultiMap[K, V](map.justKeys(keys))
 
-  def filterNotKeys(keys: ArraySet[K]): ArrayMultiMap[K, V] =
-    new ArrayMultiMap[K, V](map.filterNotKeys(keys))
+  def exceptKeys(keys: ArraySet[K]): ArrayMultiMap[K, V] =
+    new ArrayMultiMap[K, V](map.exceptKeys(keys))
+
+  def filterKeys(p: K ⇒ Boolean): ArrayMultiMap[K, V] =
+    new ArrayMultiMap[K, V](map.filterKeys(p))
 
   def merge(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
     def mergeElements(a: ArraySet[V], b: ArraySet[V]): ArraySet[V] = a.union(b)
     new ArrayMultiMap[K, V](map.merge(that.map, mergeElements))
+  }
+
+  def except(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
+    val map1 = map.except(that.map, (x,y) ⇒ {
+      val r = x diff y
+      if(r.isEmpty) Opt.empty[ArraySet[V]]
+      else Opt(r)
+    })
+    new ArrayMultiMap[K, V](map1)
   }
 
   def apply(k: K): ArraySet[V] = map.apply(k)

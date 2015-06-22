@@ -39,16 +39,16 @@ class SpecializeTest {
     assertTrue(ArrayMap(1 → 1, 2 → 2).isSpecialized)
     assertTrue(ArrayMap(1 → 1, 2 → 2).keys.isSpecialized)
     assertTrue(ArrayMap(1 → 1, 2 → 2).values.isSpecialized)
-    assertTrue(ArrayMap(1 → 1, 2 → 2).filterKeys(ArraySet(1)).isSpecialized)
-    assertTrue(ArrayMap(1 → 1, 2 → 2).filterNotKeys(ArraySet(1)).isSpecialized)
+    assertTrue(ArrayMap(1 → 1, 2 → 2).justKeys(ArraySet(1)).isSpecialized)
+    assertTrue(ArrayMap(1 → 1, 2 → 2).exceptKeys(ArraySet(1)).isSpecialized)
 
     // for a mixed primitive/anyref map there is no specialization (partial specialization does not work).
     // but we can still use a primitive array for the key array because we have the class tag
     assertTrue(ArrayMap.empty[Int, String].keys0.isIntArray)
     assertTrue(ArrayMap.singleton(1, "1").keys0.isIntArray)
     assertTrue(ArrayMap(1 -> "1", 2 -> "2").keys0.isIntArray)
-    assertTrue(ArrayMap(1 -> "1", 2 -> "2").filterKeys(ArraySet(1)).keys0.isIntArray)
-    assertTrue(ArrayMap(1 -> "1", 2 -> "2").filterNotKeys(ArraySet(1)).keys0.isIntArray)
+    assertTrue(ArrayMap(1 -> "1", 2 -> "2").justKeys(ArraySet(1)).keys0.isIntArray)
+    assertTrue(ArrayMap(1 -> "1", 2 -> "2").exceptKeys(ArraySet(1)).keys0.isIntArray)
   }
 
   @Test
