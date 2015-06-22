@@ -1,7 +1,7 @@
 package com.rklaehn.abc
 
 import language.implicitConversions
-import scala.collection.SetLike
+import scala.collection.{mutable, SetLike}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing
@@ -70,7 +70,29 @@ object ArraySet {
   implicit def cbf[CC, @sp(Int, Long, Double) U: OrderedArrayTag]: CanBuildFrom[CC, U, ArraySet[U]] = new CanBuildFrom[CC, U, ArraySet[U]] {
     def apply(from: CC) = apply()
 
-    def apply() = new ArrayBuffer[U].mapResult(x ⇒ ArraySet[U](x: _*))
+    def apply(): mutable.Builder[U, ArraySet[U]] = new ArraySetBuilder[U]
+  }
+
+  private[this] class ArraySetBuilder[@sp(Int, Long, Double) T](implicit tag: OrderedArrayTag[T]) extends scala.collection.mutable.Builder[T, ArraySet[T]] {
+
+    private[this] def union(a: Array[T], b: Array[T]) = {
+      SetUtils.union(a, b)(tag.order)
+    }
+
+    private[this] var reducer = Reducer.create[Array[T]](union)
+
+    def +=(elem: T) = {
+      reducer.apply(tag.singleton(elem))
+      this
+    }
+
+    def clear() = {
+      reducer = Reducer.create[Array[T]](union)
+    }
+
+    def result() = {
+      reducer.result.map(x ⇒ new ArraySet(x)).getOrElse(empty)
+    }
   }
 
   implicit def eqv[T]: Eq[ArraySet[T]] =
@@ -79,13 +101,13 @@ object ArraySet {
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
     new ArraySet[T](implicitly[ArrayTag[T]].empty)
 
-  def apply[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
-    val reducer = Reducer.create[ArraySet[T]](_ union _)
-    for (e <- elements)
-      reducer(singleton(e))
-    reducer.result().getOrElse(empty)
-  }
-
   def singleton[@sp(Int, Long, Double) T: OrderedArrayTag](e: T): ArraySet[T] =
     new ArraySet[T](implicitly[ArrayTag[T]].singleton(e))
+
+  def apply[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
+    val b = new ArraySetBuilder[T]
+    b ++= elements
+    b.result()
+  }
+
 }

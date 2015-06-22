@@ -3,7 +3,7 @@ package com.rklaehn.abc
 import spire.math.BinaryMerge
 import spire.util.Opt
 
-import scala.collection.generic.CanBuildFrom
+import scala.collection.generic.{GenericCompanion, CanBuildFrom}
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, SortedMapLike}
 import scala.collection.immutable.SortedMap
@@ -26,11 +26,29 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   implicit def ordering = Order.ordering(kArrayTag.order)
 
-  def iteratorFrom(start: K) = ???
+  def iteratorFrom(start: K) = {
+    val index = kArrayTag.binarySearch(keys0, 0, keys0.length, start)
+    if(index >= 0)
+      iterator.drop(index)
+    else
+      iterator.drop(-index -1)
+  }
 
-  def keysIteratorFrom(start: K) = ???
+  def keysIteratorFrom(start: K) = {
+    val index = kArrayTag.binarySearch(keys0, 0, keys0.length, start)
+    if(index >= 0)
+      keys0.iterator.drop(index)
+    else
+      keys0.iterator.drop(-index -1)
+  }
 
-  def valuesIteratorFrom(start: K) = ???
+  def valuesIteratorFrom(start: K) = {
+    val index = kArrayTag.binarySearch(keys0, 0, keys0.length, start)
+    if(index >= 0)
+      values0.iterator.drop(index)
+    else
+      values0.iterator.drop(-index -1)
+  }
 
   def rangeImpl(from: Option[K], until: Option[K]) = ???
 
@@ -90,13 +108,13 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     new ArrayMap[K, V](kArrayTag.resize(rk, ri), vArrayTag.resize(rv, ri))
   }
 
-  def filter(f: (K, V) ⇒ Boolean): ArrayMap[K, V] = {
+  override def filter(f: ((K, V)) ⇒ Boolean): ArrayMap[K, V] = {
     val rk = kArrayTag.newArray(keys0.length)
     val rv = vArrayTag.newArray(values0.length)
     var ri = 0
     var i = 0
     while(i < keys0.length) {
-      if (f(keys0(i), values0(i))) {
+      if (f((keys0(i), values0(i)))) {
         rk(ri) = keys0(i)
         rv(ri) = values0(i)
         ri += 1
@@ -136,6 +154,22 @@ object ArrayMap {
     def apply(from: CC) = apply()
 
     def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMap(x: _*))
+  }
+
+  private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
+
+    private[this] var reducer = Reducer.create[ArrayMap[K, V]](_ merge _)
+
+    def +=(elem: (K, V)) = {
+      reducer.apply(singleton(elem._1, elem._2))
+      this
+    }
+
+    def clear() =
+      reducer = Reducer.create[ArrayMap[K, V]](_ merge _)
+
+    def result() =
+      reducer.result.getOrElse(empty)
   }
 
   private class MapMerger[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArrayMap[K, V]) extends BinaryMerge {
@@ -327,13 +361,9 @@ object ArrayMap {
     implicit kArrayTag: OrderedArrayTag[K], vArrayTag:ArrayTag[V]): ArrayMap[K, V] =
     new ArrayMap[K, V](kArrayTag.singleton(k), vArrayTag.singleton(v))
 
-  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-    kvs: (K, V)*)(
-    implicit kArrayTag: OrderedArrayTag[K], vArrayTag:ArrayTag[V]): ArrayMap[K, V] = {
-    implicit val order = kArrayTag.order
-    val reducer = Reducer.create[ArrayMap[K, V]](_ merge _)
-    for ((k, v) <- kvs)
-      reducer.apply(singleton(k, v))
-    reducer.result().getOrElse(empty[K, V])
+  def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag](kvs: (K, V)*): ArrayMap[K, V] = {
+    val b = new ArrayMapBuilder[K, V]
+    b ++= kvs
+    b.result()
   }
 }
