@@ -8,8 +8,8 @@ import spire.implicits._
 
 import scala.reflect.ClassTag
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit f: OrderedArrayTag[T]) { self ⇒
-  import f._
+final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit tArrayTag: OrderedArrayTag[T]) { self ⇒
+  import tArrayTag._
 
   def asSet: Set[T] = new Set[T] {
 
@@ -23,7 +23,7 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   }
 
   def asArraySeq: ArraySeq[T] =
-    new ArraySeq[T](elements)(f)
+    new ArraySeq[T](elements)(tArrayTag)
 
   def apply(e: T): Boolean =
     SetUtils.contains(elements, e)

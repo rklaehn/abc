@@ -9,7 +9,7 @@ import scala.util.hashing.Hashing
 object MapMergeTest extends App {
 
   import scala.util.hashing.Hashing._
-  import OrderedArrayTag.default
+  import OrderedArrayTag.generic
 //  implicit val x = OrderedArrayTag.default[Int](
 //    implicitly[Order[Int]],
 //    implicitly[ClassTag[Int]],

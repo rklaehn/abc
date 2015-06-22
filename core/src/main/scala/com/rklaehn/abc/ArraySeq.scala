@@ -1,16 +1,10 @@
 package com.rklaehn.abc
 
-import spire.algebra.Eq
-
-import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
-import spire.implicits._
 import scala.{ specialized => sp }
 
 class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
   private[abc] val elements: Array[T])(
-    implicit f: ArrayTag[T]) {
-  import f._
+    implicit tArrayTag: ArrayTag[T]) {
 
   def asIndexedSeq: IndexedSeq[T] = new IndexedSeq[T] {
 
@@ -32,11 +26,11 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
     }
 
   override def equals(that: Any) = that match {
-    case that: ArraySeq[T] => this.elements === that.elements
+    case that: ArraySeq[T] => tArrayTag.eqv(this.elements, that.elements)
     case _ => false
   }
 
-  override def hashCode: Int = ArrayHashing.arrayHashCode(elements)
+  override def hashCode: Int = tArrayTag.hash(elements)
 }
 
 object ArraySeq {

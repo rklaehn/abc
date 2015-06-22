@@ -73,6 +73,20 @@ class SizeTest {
   }
 
   @Test
+  def testIntStringArrayMap(): Unit = {
+    val ks = (0 until 100).toArray
+    val vs = ks.map(_.toString)
+    val a = ArrayMap(ks zip vs: _*)
+    val b = Map(ks zip vs: _*)
+
+    val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
+    println("Map[Int, String] 100")
+    println("Elements: " + payload)
+    println("ArraySet: " + (mm.measureDeep(a) - payload))
+    println("Set:      " + (mm.measureDeep(b) - payload))
+  }
+
+  @Test
   def testStringArrayMap(): Unit = {
     val ks = (0 until 100).map(_.toString).toArray
     val vs = (0 until 100).map(_.toString).toArray
@@ -90,8 +104,7 @@ class SizeTest {
   def testIntIntMultiMap(): Unit = {
     val ks = (100000 until 101000).toArray
     val vs = (100000 until 101000).toArray
-    implicit val f = ArraySet.genericFamily[Int]
-    val a = ArrayMultiMap[Int, Int](ks zip vs.map(x => ArraySet(0 until 100: _*)(f)): _*)
+    val a = ArrayMultiMap[Int, Int](ks zip vs.map(x => ArraySet(0 until 100: _*)): _*)
     val b = Map[Int, Set[Int]](ks zip vs.map(x => Set(0 until 100: _*)): _*)
 
     val payload = mm.measureDeep(ks) + mm.measureDeep(vs) * 100

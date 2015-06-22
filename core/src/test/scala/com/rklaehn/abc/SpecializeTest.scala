@@ -9,7 +9,7 @@ import spire.optional.genericEq._
 class SpecializeTest {
 
   import scala.util.hashing.Hashing._
-  import OrderedArrayTag.default
+  import OrderedArrayTag.generic
 
   @Test
   def testSeqSpecialization(): Unit = {

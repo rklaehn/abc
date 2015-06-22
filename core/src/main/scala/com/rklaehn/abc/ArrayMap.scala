@@ -27,7 +27,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   }
 
   def apply(k: K): V = {
-    val i = SetUtils.binarySearch(keys0, k, 0, keys0.length)
+    val i = kArrayTag.binarySearch(keys0, 0, keys0.length, k)
     if (i >= 0)
       values0(i)
     else
@@ -35,7 +35,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   }
 
   def get(k: K): Option[V] = {
-    val i = SetUtils.binarySearch(keys0, k, 0, keys0.length)
+    val i = kArrayTag.binarySearch(keys0, 0, keys0.length, k)
     if (i < 0) None else Some(values0(i))
   }
 
@@ -114,7 +114,7 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri)(kArrayTag.tClassTag), rv.resizeInPlace(ri)(vArrayTag.tClassTag))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resize(rk, ri), vArrayTag.resize(rv, ri))
   }
 
   private class MapMerger2[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](
@@ -156,7 +156,7 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri)(kArrayTag.tClassTag), rv.resizeInPlace(ri)(vArrayTag.tClassTag))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resize(rk, ri), vArrayTag.resize(rv, ri))
   }
 
   private class FilterKeys[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
@@ -185,7 +185,7 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri)(kArrayTag.tClassTag), rv.resizeInPlace(ri)(vArrayTag.tClassTag))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resize(rk, ri), vArrayTag.resize(rv, ri))
   }
 
   private class FilterNotKeys[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
@@ -214,7 +214,7 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri)(kArrayTag.tClassTag), rv.resizeInPlace(ri)(vArrayTag.tClassTag))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resize(rk, ri), vArrayTag.resize(rv, ri))
   }
 
   def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](

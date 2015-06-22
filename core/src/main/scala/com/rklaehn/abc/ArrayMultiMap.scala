@@ -28,27 +28,7 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
 
 object ArrayMultiMap {
 
-  private implicit def anyRefArrayTag[T <: AnyRef : ClassTag] = new ArrayTag[T] {
-    override def empty: Array[T] = Array.empty[T]
-
-    override def tHashing: Hashing[T] = ???
-
-    override def singleton(e: T): Array[T] = {
-      val r = newArray(1)
-      r(0) = e
-      r
-    }
-
-    override def newArray(n: Int): Array[T] = Array.ofDim(n)
-
-    override def tClassTag: ClassTag[T] = implicitly[ClassTag[T]]
-
-    override def hash(a: Array[T]): Int = ???
-
-    override def tEq: Eq[T] = ???
-
-    override def eqv(a: Array[T], b: Array[T]): Boolean = ???
-  }
+  implicit def arrayTag[T]: ArrayTag[ArraySet[T]] = implicitly[ArrayTag[ArraySet[T]]]
 
   def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag]: ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])
