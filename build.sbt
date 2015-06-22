@@ -45,7 +45,7 @@ lazy val coreSettings = Seq(
   unmanagedBase in Test <<= baseDirectory { base => base / "test-lib" },
   coverageMinimum := 100,
   coverageFailOnMinimum := true,
-  scalacOptions ++= Seq("-unchecked", "-feature"),
+  scalacOptions ++= Seq("-unchecked", "-feature", "–no-specialization"),
   initialCommands in console +=
     """import com.rklaehn.abc._
       |import spire.math._

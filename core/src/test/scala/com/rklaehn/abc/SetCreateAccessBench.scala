@@ -10,7 +10,7 @@ object SetCreateAccessBench extends App {
   val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
 
   def createInt(): Unit = {
-    for (n ← Array(1, 10, 100, 1000, 10000, 100000, 1000000)) {
+    for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
       val elements = (0 until n).toArray
       def s0 = HashSet(elements:_*)
       def s1 = ArraySet(elements:_*)
@@ -21,7 +21,7 @@ object SetCreateAccessBench extends App {
   }
 
   def accessInt(): Unit = {
-    for (n ← Array(1, 10, 100, 1000, 10000, 100000, 1000000)) {
+    for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
       val elements = (0 until n).toArray
       val s0 = HashSet(elements:_*)
       val s1 = ArraySet(elements:_*)

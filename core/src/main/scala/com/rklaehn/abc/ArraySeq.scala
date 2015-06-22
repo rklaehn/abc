@@ -26,7 +26,7 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
     }
 
   def map[U : ArrayTag](f: T => U): ArraySeq[U] =
-    new ArraySeq[U](this.elements.map(f).toArray(implicitly[ArrayTag[U]].tClassTag))
+    new ArraySeq[U](this.elements.map(f).toArray(implicitly[ArrayTag[U]].classTag))
 
   def filter(p: T => Boolean): ArraySeq[T] =
     new ArraySeq[T](this.elements.filter(p))
@@ -48,5 +48,5 @@ object ArraySeq {
     new ArraySeq[T](implicitly[ArrayTag[T]].singleton(e))
 
   def apply[@sp(Int, Long, Double) T: ArrayTag](elements: T*): ArraySeq[T] =
-    new ArraySeq[T](elements.toArray(implicitly[ArrayTag[T]].tClassTag))
+    new ArraySeq[T](elements.toArray(implicitly[ArrayTag[T]].classTag))
 }

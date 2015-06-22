@@ -6,6 +6,25 @@ import scala.util.hashing.Hashing
 import scala.{specialized => sp}
 import spire.implicits._
 
+trait ArrayTag[@sp T] {
+
+  def empty: Array[T]
+
+  def singleton(e: T): Array[T]
+
+  def newArray(n: Int): Array[T]
+
+  final def resize(a: Array[T], n: Int): Array[T] = if(n == a.length) a else copyOf(a, n)
+
+  def eqv(a: Array[T], b: Array[T]): Boolean
+
+  def hash(a: Array[T]): Int
+
+  def copyOf(a: Array[T], n: Int): Array[T]
+
+  implicit def classTag: ClassTag[T]
+}
+
 object ArrayTag {
 
   implicit val byteArrayTag: ArrayTag[Byte] = OrderedArrayTag.byteOrderedArrayTag
@@ -15,21 +34,26 @@ object ArrayTag {
   implicit val floatArrayTag: ArrayTag[Float] = OrderedArrayTag.floatOrderedArrayTag
   implicit val doubleArrayTag: ArrayTag[Double] = OrderedArrayTag.doubleOrderedArrayTag
   implicit val charArrayTag: ArrayTag[Char] = OrderedArrayTag.charOrderedArrayTag
+  implicit val booleanArrayTag: ArrayTag[Boolean] = OrderedArrayTag.booleanOrderedArrayTag
 
   implicit def generic[T](implicit o: Eq[T], c: ClassTag[T], h: Hashing[T]): ArrayTag[T] =
     new GenericArrayTag[T]()(o, c, h)
 
-  private[abc] class GenericArrayTag[@sp T](implicit val tEq: Eq[T], val tClassTag: ClassTag[T], val tHashing: Hashing[T]) extends ArrayTag[T] {
+  private[abc] class GenericArrayTag[@sp T](implicit val tEq: Eq[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends ArrayTag[T] {
 
     override def singleton(e: T): Array[T] = {
-      val r = tClassTag.newArray(1)
+      val r = classTag.newArray(1)
       r(0) = e
       r
     }
 
-    override def resize(a: Array[T], n: Int) = a.resizeInPlace(n)(tClassTag)
+    override def copyOf(a: Array[T], n: Int) = {
+      val t = newArray(n)
+      System.arraycopy(a, 0, t, 0, n)
+      t
+    }
 
-    override def newArray(n: Int): Array[T] = tClassTag.newArray(n)
+    override def newArray(n: Int): Array[T] = classTag.newArray(n)
 
     override def eqv(a: Array[T], b: Array[T]): Boolean = a === b
 
@@ -37,21 +61,4 @@ object ArrayTag {
 
     val empty = Array.empty[T]
   }
-}
-
-trait ArrayTag[@sp T] {
-
-  def empty: Array[T]
-
-  def singleton(e: T): Array[T]
-
-  def newArray(n: Int): Array[T]
-
-  def resize(a: Array[T], n: Int): Array[T]
-
-  def eqv(a: Array[T], b: Array[T]): Boolean
-
-  def hash(a: Array[T]): Int
-
-  implicit def tClassTag: ClassTag[T]
 }

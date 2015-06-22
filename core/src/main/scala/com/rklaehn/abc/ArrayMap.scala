@@ -12,7 +12,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
   private[abc] val values0: Array[V])(implicit val kArrayTag: OrderedArrayTag[K], val vArrayTag: ArrayTag[V]) { self ⇒
   import ArrayMap._
-  import kArrayTag.tOrder
+  import kArrayTag.order
 
   def size: Int = keys0.length
 
@@ -26,7 +26,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   def asSortedMap: SortedMap[K,V] = {
     val pairs = keys0 zip values0
-    SortedMap(pairs: _*)(Order.ordering(kArrayTag.tOrder))
+    SortedMap(pairs: _*)(Order.ordering(kArrayTag.order))
   }
 
   def apply(k: K): V = {
@@ -96,7 +96,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     new ExceptKeys[K, V](this, keys).result
 
   def mapValues[@sp(Int, Long, Double) V2: ArrayTag](f: V => V2): ArrayMap[K, V2] = {
-    new ArrayMap(keys0, values0.map(f).toArray(implicitly[ArrayTag[V2]].tClassTag))
+    new ArrayMap(keys0, values0.map(f).toArray(implicitly[ArrayTag[V2]].classTag))
   }
 
   override def hashCode() = MurmurHash3.mixLast(
@@ -307,7 +307,7 @@ object ArrayMap {
   def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     kvs: (K, V)*)(
     implicit kArrayTag: OrderedArrayTag[K], vArrayTag:ArrayTag[V]): ArrayMap[K, V] = {
-    implicit val order = kArrayTag.tOrder
+    implicit val order = kArrayTag.order
     val reducer = Reducer.create[ArrayMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer.apply(singleton(k, v))
