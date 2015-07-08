@@ -20,7 +20,15 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
 
   def merge(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
     def mergeElements(a: ArraySet[V], b: ArraySet[V]): ArraySet[V] = a.union(b)
-    new ArrayMultiMap[K, V](map.merge(that.map, mergeElements))
+    new ArrayMultiMap[K, V](map.mergeWith(that.map, mergeElements))
+  }
+
+  def inverse: ArrayMultiMap[V, K] = {
+    val swappedPairs = for {
+      (k, vs) ← map.toArray
+      v ← vs
+    } yield (v, k)
+    ArrayMultiMap.fromKVs(swappedPairs: _*)
   }
 
   def except(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
@@ -33,6 +41,8 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
   }
 
   def apply(k: K): ArraySet[V] = map.apply(k)
+
+  def getOrEmpty(k: K): ArraySet[V] = map.getOrElse(k, ArraySet.empty[V])
 
   override def toString: String = map.toString
 }

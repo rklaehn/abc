@@ -17,6 +17,11 @@ class ArrayBiMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, 
   //
   //  def -(k: K) = removeKeys(ArraySet(k)(vk.f.vSetFamily))
 
+  def except(that: ArrayBiMultiMap[K, V]): ArrayBiMultiMap[K, V] = {
+    val kv1 = kv.except(that.kv)
+    ArrayBiMultiMap.fromMultiMap(kv1)
+  }
+
   def exceptKeys(keys: ArraySet[K]): ArrayBiMultiMap[K, V] = {
     val removedKeys = keys intersection kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
@@ -40,6 +45,9 @@ class ArrayBiMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, 
 }
 
 object ArrayBiMultiMap {
+
+  def fromMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kv: ArrayMultiMap[K, V]) =
+    new ArrayBiMultiMap[K,V](kv, kv.inverse)
 
   def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] =
     new ArrayBiMultiMap[K, V](ArrayMultiMap.empty[K, V], ArrayMultiMap.empty[V, K])

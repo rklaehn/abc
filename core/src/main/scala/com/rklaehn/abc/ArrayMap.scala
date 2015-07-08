@@ -66,10 +66,8 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   override def apply(k: K): V = {
     val i = kArrayTag.binarySearch(keys0, 0, keys0.length, k)
-    if (i >= 0)
-      values0(i)
-    else
-      throw new NoSuchElementException
+    if (i >= 0) values0(i)
+    else throw new NoSuchElementException
   }
 
   def get(k: K): Option[V] = {
@@ -79,9 +77,9 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   def +(kv: (K, V)) = updated(kv._1, kv._2)
 
-  def updated(k: K, v: V) = merge(new ArrayMap[K, V](singletonArray(k), singletonArray(v)))
+  def updated(k: K, v: V) = merge(ArrayMap.singleton(k, v))
 
-  def -(k: K) = exceptKeys(new ArraySet(singletonArray(k)))
+  def -(k: K) = exceptKeys(ArraySet.singleton(k))
 
   def merge(that: ArrayMap[K, V]): ArrayMap[K, V] =
     new MapMerger[K, V](this, that).result
