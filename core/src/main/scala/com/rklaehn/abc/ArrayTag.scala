@@ -2,30 +2,32 @@ package com.rklaehn.abc
 
 import spire.algebra.Eq
 import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
+import scala.util.hashing.{MurmurHash3, Hashing}
 import scala.{specialized => sp}
 import spire.implicits._
 
-trait ArrayTag[@sp T] {
-
+trait ArrayTag[@sp T] extends Eq[Array[T]] with Hashing[Array[T]] {
   def empty: Array[T]
-
   def singleton(e: T): Array[T]
-
   def newArray(n: Int): Array[T]
-
-  final def resize(a: Array[T], n: Int): Array[T] = if(n == a.length) a else copyOf(a, n)
-
-  def eqv(a: Array[T], b: Array[T]): Boolean
-
-  def hash(a: Array[T]): Int
-
   def copyOf(a: Array[T], n: Int): Array[T]
-
   implicit def classTag: ClassTag[T]
+  final def resizeInPlace(a: Array[T], n: Int): Array[T] = if(n == a.length) a else copyOf(a, n)
 }
 
 object ArrayTag {
+
+  @inline final def apply[@sp T](implicit ev: ArrayTag[T]): ArrayTag[T] = ev
+
+  private[abc] def hash[T](a: Array[T])(implicit elementHashing: Hashing[T]): Int =  {
+    var r = MurmurHash3.arraySeed
+    var i = 0
+    while(i < a.length) {
+      r = MurmurHash3.mix(r, elementHashing.hash(a(i)))
+      i += 1
+    }
+    r
+  }
 
   implicit val byteArrayTag: ArrayTag[Byte] = OrderedArrayTag.byteOrderedArrayTag
   implicit val shortArrayTag: ArrayTag[Short] = OrderedArrayTag.shortOrderedArrayTag
@@ -38,6 +40,17 @@ object ArrayTag {
 
   implicit def generic[T](implicit o: Eq[T], c: ClassTag[T], h: Hashing[T]): ArrayTag[T] =
     new GenericArrayTag[T]()(o, c, h)
+
+  def reference[T <: AnyRef](implicit classTag: ClassTag[T]) = new ReferenceArrayTag[T](classTag)
+
+  private[abc] class ReferenceArrayTag[T <: AnyRef](val classTag: ClassTag[T]) extends ArrayTag[T] {
+    def empty = Array.empty[T](classTag)
+    def singleton(e: T) = Array(e)(classTag)
+    def newArray(n: Int) = classTag.newArray(n)
+    def hash(x: Array[T]) = java.util.Arrays.hashCode(x.asInstanceOf[Array[AnyRef]])
+    def copyOf(a: Array[T], n: Int) = java.util.Arrays.copyOf(a.asInstanceOf[Array[AnyRef]], n).asInstanceOf[Array[T]]
+    def eqv(x: Array[T], y: Array[T]) = java.util.Arrays.equals(x.asInstanceOf[Array[AnyRef]], y.asInstanceOf[Array[AnyRef]])
+  }
 
   private[abc] class GenericArrayTag[@sp T](implicit val tEq: Eq[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends ArrayTag[T] {
 
@@ -55,9 +68,9 @@ object ArrayTag {
 
     override def newArray(n: Int): Array[T] = classTag.newArray(n)
 
-    override def eqv(a: Array[T], b: Array[T]): Boolean = a === b
+    override def eqv(a: Array[T], b: Array[T]): Boolean = spire.std.array.ArrayEq(tEq).eqv(a, b)
 
-    override def hash(a: Array[T]): Int = ArrayHashing.arrayHashCode(a)
+    override def hash(a: Array[T]): Int = ArrayTag.hash(a)
 
     val empty = Array.empty[T]
   }

@@ -2,10 +2,8 @@ package com.rklaehn.abc
 
 import language.implicitConversions
 import scala.collection.immutable.SortedSet
-import scala.collection.{SortedSetLike, mutable, SetLike}
+import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable.ArrayBuffer
-import scala.util.hashing.Hashing
 import scala.{ specialized => sp }
 import spire.algebra.{Eq, Order}
 import spire.implicits._
@@ -43,10 +41,30 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
     new ArraySeq[T](elements)(tArrayTag)
 
   override def apply(e: T): Boolean =
-    SetUtils.contains(elements, e)
+    tArrayTag.binarySearch(elements, 0, elements.length, e) >= 0
 
   def subsetOf(that: ArraySet[T]): Boolean =
-    SetUtils.subsetOf(that.elements, this.elements)
+    SetUtils.subsetOf(this.elements, that.elements)
+
+  override def union(that: GenSet[T]) = that match {
+    case that: ArraySet[T] ⇒ this.union(that)
+    case _ ⇒ super.union(that)
+  }
+
+  override def diff(that: GenSet[T]) = that match {
+    case that: ArraySet[T] ⇒ this.diff(that)
+    case _ ⇒ super.diff(that)
+  }
+
+  override def intersect(that: GenSet[T]) = that match {
+    case that: ArraySet[T] ⇒ this.intersect(that)
+    case _ ⇒ super.intersect(that)
+  }
+
+  override def subsetOf(that: GenSet[T]) = that match {
+    case that: ArraySet[T] ⇒ this.subsetOf(that)
+    case _ ⇒ super.subsetOf(that)
+  }
 
   def intersects(that: ArraySet[T]): Boolean =
     SetUtils.intersects(this.elements, that.elements)
@@ -54,7 +72,7 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def union(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  def intersection(that: ArraySet[T]): ArraySet[T] =
+  def intersect(that: ArraySet[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
   def diff(that: ArraySet[T]): ArraySet[T] =
@@ -69,11 +87,11 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   override def isEmpty: Boolean = elements.isEmpty
 
   override def equals(that: Any) = that match {
-    case that: ArraySet[T] => this.elements === that.elements
+    case that: ArraySet[T] => tArrayTag.eqv(this.elements, that.elements)
     case _ => false
   }
 
-  override def hashCode: Int = ArrayHashing.arrayHashCode(elements)
+  override def hashCode: Int = tArrayTag.hash(this.elements)
 
   override def toString: String = elements.mkString("Set(", ",", ")")
 }
@@ -89,7 +107,7 @@ object ArraySet {
   private[this] class ArraySetBuilder[@sp(Int, Long, Double) T](implicit tag: OrderedArrayTag[T]) extends scala.collection.mutable.Builder[T, ArraySet[T]] {
 
     private[this] def union(a: Array[T], b: Array[T]) = {
-      SetUtils.union(a, b)(tag.order)
+      SetUtils.union(a, b)
     }
 
     private[this] var reducer = Reducer.create[Array[T]](union)
@@ -112,10 +130,10 @@ object ArraySet {
     spire.optional.genericEq.generic[ArraySet[T]]
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
-    new ArraySet[T](implicitly[ArrayTag[T]].empty)
+    new ArraySet[T](ArrayTag[T].empty)
 
   def singleton[@sp(Int, Long, Double) T: OrderedArrayTag](e: T): ArraySet[T] =
-    new ArraySet[T](implicitly[ArrayTag[T]].singleton(e))
+    new ArraySet[T](ArrayTag[T].singleton(e))
 
   def apply[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
     val b = new ArraySetBuilder[T]

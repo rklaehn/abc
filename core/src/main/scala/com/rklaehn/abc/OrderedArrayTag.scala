@@ -1,6 +1,7 @@
 package com.rklaehn.abc
 
 import spire.algebra.Order
+import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
 import scala.{specialized => sp}
@@ -16,8 +17,27 @@ trait OrderedArrayTag[@sp T] extends ArrayTag[T] {
 
 object OrderedArrayTag {
 
+  @inline final def apply[@sp T](implicit ev: OrderedArrayTag[T]): OrderedArrayTag[T] = ev
+
   implicit def generic[T](implicit o: Order[T], c: ClassTag[T], h: Hashing[T]): OrderedArrayTag[T] =
     new GenericOrderedArrayTag[T]()(o, c, h)
+
+  private def binarySearch[@sp(Int, Long, Double) T](a: Array[T], e: T, from: Int, until: Int)(implicit o: Order[T]): Int = {
+
+    @tailrec
+    def binarySearch0(low: Int, high: Int): Int =
+      if (low <= high) {
+        val mid = (low + high) >>> 1
+        val c = o.compare(e, a(mid))
+        if (c > 0)
+          binarySearch0(mid + 1, high)
+        else if (c < 0)
+          binarySearch0(low, mid - 1)
+        else
+          mid
+      } else -(low + 1)
+    binarySearch0(from, until - 1)
+  }
 
   private[abc] class GenericOrderedArrayTag[@sp T](implicit val order: spire.algebra.Order[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends OrderedArrayTag[T] {
     override def compare(a: Array[T], ai: Int, b: Array[T], bi: Int): Int = order.compare(a(ai), b(bi))
@@ -26,7 +46,7 @@ object OrderedArrayTag {
       r(0) = e
       r
     }
-    override def binarySearch(as: Array[T], a0: Int, a1: Int, a: T) = SetUtils.binarySearch(as, a, a0, a1)
+    override def binarySearch(as: Array[T], a0: Int, a1: Int, a: T) = OrderedArrayTag.binarySearch(as, a, a0, a1)
     override def sort(as: Array[T]): Unit = spire.math.Sorting.sort(as)
     override def copyOf(a: Array[T], n: Int) = {
       val t = newArray(n)
@@ -34,8 +54,8 @@ object OrderedArrayTag {
       t
     }
     override def newArray(n: Int): Array[T] = classTag.newArray(n)
-    override def eqv(a: Array[T], b: Array[T]): Boolean = a === b
-    override def hash(a: Array[T]): Int = ArrayHashing.arrayHashCode(a)
+    override def eqv(a: Array[T], b: Array[T]): Boolean = spire.std.array.ArrayEq(order).eqv(a, b)
+    override def hash(a: Array[T]): Int = ArrayTag.hash(a)
     def tEq = order
     val empty = Array.empty[T]
   }
@@ -153,7 +173,7 @@ object OrderedArrayTag {
     val order = implicitly[Order[Boolean]]
     val empty = Array.empty[Boolean]
     def compare(a: Array[Boolean], ai: Int, b: Array[Boolean], bi: Int) = java.lang.Boolean.compare(a(ai), b(bi))
-    def binarySearch(as: Array[Boolean], a0: Int, a1: Int, a: Boolean) = SetUtils.binarySearch(as, a, a0, a1)
+    def binarySearch(as: Array[Boolean], a0: Int, a1: Int, a: Boolean) = OrderedArrayTag.binarySearch(as, a, a0, a1)
     def copyOf(a: Array[Boolean], n: Int) = java.util.Arrays.copyOf(a, n)
     def sort(a: Array[Boolean]) = spire.math.Sorting.sort(a)
     def singleton(e: Boolean) = {

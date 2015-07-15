@@ -23,7 +23,7 @@ class ArrayBiMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, 
   }
 
   def exceptKeys(keys: ArraySet[K]): ArrayBiMultiMap[K, V] = {
-    val removedKeys = keys intersection kv.keys
+    val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
     var s = ArraySet.empty[V]
     for (k <- removedKeys.elements)

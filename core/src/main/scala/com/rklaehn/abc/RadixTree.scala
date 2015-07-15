@@ -6,15 +6,14 @@ import spire.util.Opt
 import scala.annotation.tailrec
 import scala.collection.AbstractTraversable
 import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
+import scala.util.hashing.{MurmurHash3, Hashing}
 
 // scalastyle:off equals.hash.code
 final class RadixTree[K, V](
   val prefix: K, private[abc] val children: Array[RadixTree[K, V]], val valueOpt: Opt[V])(
     implicit e: RadixTree.Family[K, V]) {
 
-  private def childrenAsAnyRefArray =
-    children.asInstanceOf[Array[AnyRef]]
+  import RadixTree._
 
   def packed: RadixTree[K, V] = {
     val memo = new scala.collection.mutable.AnyRefMap[RadixTree[K, V], RadixTree[K, V]]
@@ -39,9 +38,9 @@ final class RadixTree[K, V](
       import spire.implicits._
       implicit def veq = e.valueEq
       this.hashCode == that.hashCode &&
-        this.prefix === that.prefix &&
-        this.valueOpt === that.valueOpt &&
-        java.util.Arrays.equals(this.childrenAsAnyRefArray, that.childrenAsAnyRefArray)
+      this.prefix === that.prefix &&
+      this.valueOpt === that.valueOpt &&
+      this.children === that.children
     case _ => false
   }
 
@@ -49,9 +48,7 @@ final class RadixTree[K, V](
     import scala.util.hashing.MurmurHash3._
 
     mixLast(
-      mix(
-        e.hash(prefix),
-        java.util.Arrays.hashCode(this.childrenAsAnyRefArray)),
+      arrayHash(children, e.hash(prefix)),
       if (valueOpt.isDefined) e.valueHashing.hash(valueOpt.get) else 0)
   }
 
@@ -330,6 +327,9 @@ object RadixTree {
     reducer.result().getOrElse(empty[K, V])
   }
 
+  private val arrayTag0 = ArrayTag.reference[RadixTree[AnyRef, AnyRef]]
+  private implicit def arrayTag[K, V]: ArrayTag[RadixTree[K, V]] = arrayTag0.asInstanceOf[ArrayTag[RadixTree[K, V]]]
+
   trait Family[K, V] extends Eq[K] with Hashing[K] {
 
     /**
@@ -341,7 +341,6 @@ object RadixTree {
      * The hashing to be used for values. We can not use hashcode because we want this to work for Array[Byte]
      */
     def valueHashing: Hashing[V]
-
 
     /**
      * The empty key
@@ -419,9 +418,9 @@ object RadixTree {
     }
 
     final def mergeChildren(a: Array[RadixTree[K, V]], b: Array[RadixTree[K, V]], f: (V, V) => V): Array[RadixTree[K, V]] = {
-      val r = a.newArray(a.length + b.length)
+      val r = new Array[RadixTree[K, V]](a.length + b.length)
       var ri: Int = 0
-      new spire.math.BinaryMerge {
+      new spire.math.BinaryMerge2 {
 
         def compare(ai: Int, bi: Int) = compareAt(a(ai).prefix, 0, b(bi).prefix, 0)
 
@@ -442,12 +441,12 @@ object RadixTree {
 
         merge0(0, a.length, 0, b.length)
       }
-      r.resizeInPlace0(ri)
+      ArrayTag[RadixTree[K,V]].resizeInPlace(r, ri)
     }
   }
 
   implicit def stringIsKey[V: Eq]: Family[String, V] =
-    new StringRadixTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
+    new StringRadixTreeFamily[V](Eq[V], implicitly[Hashing[V]])
 
   private final class StringRadixTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
     extends Family[String, V] {
@@ -492,7 +491,7 @@ object RadixTree {
   }
 
   implicit def byteArrayIsKey[V: Eq]: Family[Array[Byte], V] =
-    new ByteArrayTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
+    new ByteArrayTreeFamily[V](Eq[V], Hashing[V])
 
   private final class ByteArrayTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
     extends Family[Array[Byte], V] {
@@ -530,7 +529,7 @@ object RadixTree {
   }
 
   implicit def charArrayIsKey[V: Eq]: Family[Array[Char], V] =
-    new CharArrayTreeFamily[V](implicitly[Eq[V]], implicitly[Hashing[V]])
+    new CharArrayTreeFamily[V](Eq[V], Hashing[V])
 
   private final class CharArrayTreeFamily[V](val valueEq: Eq[V], val valueHashing: Hashing[V])
     extends Family[Array[Char], V] {

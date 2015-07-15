@@ -25,7 +25,7 @@ class SpecializeTest {
     assertTrue(ArraySet.singleton(1).isSpecialized)
     assertTrue(ArraySet(1,2,3).isSpecialized)
     assertTrue(ArraySet(1,2,3).union(ArraySet(3,4,5)).isSpecialized)
-    assertTrue(ArraySet(1,2,3).intersection(ArraySet(3,4,5)).isSpecialized)
+    assertTrue(ArraySet(1,2,3).intersect(ArraySet(3,4,5)).isSpecialized)
     assertTrue(ArraySet(1,2,3).diff(ArraySet(3,4,5)).isSpecialized)
     assertTrue(ArraySet(1,2,3).xor(ArraySet(3,4,5)).isSpecialized)
     assertTrue(ArraySet(1,2,3).asArraySeq.isSpecialized)

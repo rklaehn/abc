@@ -1,13 +1,12 @@
 package com.rklaehn
 
 import scala.reflect.ClassTag
+import scala.util.hashing.Hashing
 
 package object abc {
 
-  def singletonArray[@specialized T](value: T): Array[T] = {
-    val r = java.lang.reflect.Array.newInstance(value.getClass, 1).asInstanceOf[Array[T]]
-    r(0) = value
-    r
+  implicit class HashingOps(private val underlying: Hashing.type) extends AnyVal {
+    def apply[T](implicit ev: Hashing[T]): Hashing[T] = ev
   }
 
   implicit class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
@@ -18,8 +17,8 @@ package object abc {
       result
     }
 
-    def patched(index: Int, value: T): Array[T] = {
-      val result = underlying.newArray(underlying.length + 1)
+    def patched(index: Int, value: T)(implicit c: ClassTag[T]): Array[T] = {
+      val result = new Array[T](underlying.length + 1)
       System.arraycopy(underlying, 0, result, 0, index)
       result(index) = value
       if (index < underlying.length)
@@ -27,25 +26,11 @@ package object abc {
       result
     }
 
-    def newArray(n: Int): Array[T] =
-      java.lang.reflect.Array.newInstance(underlying.getClass.getComponentType, n).asInstanceOf[Array[T]]
-
-    def resizeInPlace(n: Int)(c: ClassTag[T]): Array[T] =
+    def resizeInPlace(n: Int)(implicit c: ClassTag[T]): Array[T] =
       if (underlying.length == n)
         underlying
       else {
         val r = c.newArray(n)
-        System.arraycopy(underlying, 0, r, 0, n min underlying.length)
-        r
-      }
-
-    def resizeInPlace0(n: Int): Array[T] =
-      if (underlying.length == n)
-        underlying
-      else {
-        val r = java.lang.reflect.Array.newInstance(underlying.getClass.getComponentType, n).asInstanceOf[Array[T]]
-        // val r = ClassTag.apply[T](underlying.getClass.getComponentType).newArray(n)
-        // val r = c.newArray(n)
         System.arraycopy(underlying, 0, r, 0, n min underlying.length)
         r
       }

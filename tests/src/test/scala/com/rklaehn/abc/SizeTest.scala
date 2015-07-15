@@ -34,6 +34,9 @@ class SizeTest {
   lazy val overhead = mm.measure(new java.lang.Object)
   lazy val pointerSize = (mm.measure(new Array[java.lang.Object](256)) - mm.measure(new Array[java.lang.Object](128))) / 128
 
+  def measureElements[K](xs: Seq[K]): Long =
+    xs.foldLeft(0L) { case (sum, x) ⇒ sum + mm.measureDeep(x) }
+
   @Test
   def testIntArraySet(): Unit = {
     val es = (0 until 100).toArray
@@ -92,12 +95,12 @@ class SizeTest {
     val vs = ks.map(_.toString)
     val a = ArrayMap(ks zip vs: _*)
     val b = Map(ks zip vs: _*)
-
-    val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
+    val payload = mm.measureDeep(ks) + measureElements(vs)
+    val typeclasses = mm.measureDeep(a.kArrayTag) + mm.measureDeep(a.vArrayTag)
     println("Map[Int, String] 100")
     println("Elements: " + payload)
-    println("ArraySet: " + (mm.measureDeep(a) - payload))
-    println("Set:      " + (mm.measureDeep(b) - payload))
+    println("ArrayMap: " + (mm.measureDeep(a) - payload - typeclasses))
+    println("Map:      " + (mm.measureDeep(b) - payload))
   }
 
   @Test
@@ -106,12 +109,13 @@ class SizeTest {
     val vs = (0 until 100).map(_.toString).toArray
     val a = ArrayMap(ks zip vs: _*)
     val b = Map(ks zip vs: _*)
+    println(b.size)
 
     val payload = mm.measureDeep(ks) + mm.measureDeep(vs)
     println("Map[String, String] 100")
     println("Elements: " + payload)
-    println("ArraySet: " + (mm.measureDeep(a) - payload))
-    println("Set:      " + (mm.measureDeep(b) - payload))
+    println("ArrayMap: " + (mm.measureDeep(a) - payload))
+    println("Map:      " + (mm.measureDeep(b) - payload))
   }
 
   @Test

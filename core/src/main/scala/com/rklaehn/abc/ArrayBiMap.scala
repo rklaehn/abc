@@ -15,7 +15,7 @@ class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc
 
   def exceptKeys(keys: ArraySet[K]): ArrayBiMap[K, V] = {
     import vk.kArrayTag
-    val removedKeys = keys intersection kv.keys
+    val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
     val values = removedKeys.elements.map(kv.apply)
     val vk1 = vk.exceptKeys(ArraySet(values: _*))

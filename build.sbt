@@ -1,6 +1,6 @@
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
-lazy val root = project.aggregate(core, tests)
+lazy val root = project.aggregate(core, tests, benchmarks)
 
 lazy val core = project.in(file("core"))
   .settings(commonSettings:_*)
@@ -11,8 +11,13 @@ lazy val tests = project.in(file("tests"))
   .settings(testSettings:_*)
   .dependsOn(core)
 
+lazy val benchmarks = project.in(file("benchmarks"))
+  .settings(commonSettings:_*)
+  .dependsOn(core)
+  .enablePlugins(JmhPlugin)
+
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.7",
   version := "0.1-SNAPSHOT",
   organization := "com.rklaehn",
   libraryDependencies += "junit" % "junit" % "4.11" % "test",
@@ -42,10 +47,11 @@ lazy val coreSettings = Seq(
   libraryDependencies += "org.spire-math" %% "spire" % "0.10.1",
   libraryDependencies += "org.spire-math" %% "spire-scalacheck-binding" % "0.9.0" % "test",
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
-  unmanagedBase in Test <<= baseDirectory { base => base / "test-lib" },
+  libraryDependencies += "ichi.bench" % "thyme" % "0.1.1" % "test" from "https://github.com/Ichoran/thyme/raw/master/Thyme.jar",
   coverageMinimum := 100,
   coverageFailOnMinimum := true,
   scalacOptions ++= Seq("-unchecked", "-feature"),
+  // scalacOptions ++= Seq("-no-specialization"),
   initialCommands in console +=
     """import com.rklaehn.abc._
       |import spire.math._

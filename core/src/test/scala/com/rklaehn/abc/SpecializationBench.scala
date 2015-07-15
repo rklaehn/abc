@@ -25,7 +25,7 @@ object SpecializationBench extends App {
     java.util.Arrays.binarySearch(aa, 0, aa.length, ae)
 
   def search2: Int =
-    SetUtils.binarySearch(aa, ae, 0, aa.length)
+    OrderedArrayTag[Int].binarySearch(aa, 0, aa.length, ae)
 
   def search3: Int =
     if(as(ae)) 1 else 0
