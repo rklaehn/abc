@@ -1,10 +1,10 @@
 package com.rklaehn.abc
 
-import spire.algebra.Order
+import algebra.Order
+import algebra.std.all._
 import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
 import scala.{specialized => sp}
-import spire.implicits._
 
 trait OrderedArrayTag[@sp T] extends ArrayTag[T] {
   implicit def classTag: ClassTag[T]
@@ -19,7 +19,7 @@ object OrderedArrayTag {
   implicit def generic[T](implicit o: Order[T], c: ClassTag[T], h: Hashing[T]): OrderedArrayTag[T] =
     new GenericOrderedArrayTag[T]()(o, c, h)
 
-  private[abc] class GenericOrderedArrayTag[@sp T](implicit val order: spire.algebra.Order[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends OrderedArrayTag[T] {
+  private[abc] class GenericOrderedArrayTag[@sp T](implicit val order: Order[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends OrderedArrayTag[T] {
     override def compare(a: Array[T], ai: Int, b: Array[T], bi: Int): Int = order.compare(a(ai), b(bi))
     override def singleton(e: T): Array[T] = {
       val r = classTag.newArray(1)
@@ -27,14 +27,14 @@ object OrderedArrayTag {
       r
     }
     override def binarySearch(as: Array[T], a0: Int, a1: Int, a: T) = SetUtils.binarySearch(as, a, a0, a1)
-    override def sort(as: Array[T]): Unit = spire.math.Sorting.sort(as)
+    override def sort(as: Array[T]): Unit = ???
     override def copyOf(a: Array[T], n: Int) = {
       val t = newArray(n)
       System.arraycopy(a, 0, t, 0, n)
       t
     }
     override def newArray(n: Int): Array[T] = classTag.newArray(n)
-    override def eqv(a: Array[T], b: Array[T]): Boolean = a === b
+    override def eqv(a: Array[T], b: Array[T]): Boolean = ???
     override def hash(a: Array[T]): Int = ArrayHashing.arrayHashCode(a)
     def tEq = order
     val empty = Array.empty[T]
@@ -155,7 +155,7 @@ object OrderedArrayTag {
     def compare(a: Array[Boolean], ai: Int, b: Array[Boolean], bi: Int) = java.lang.Boolean.compare(a(ai), b(bi))
     def binarySearch(as: Array[Boolean], a0: Int, a1: Int, a: Boolean) = SetUtils.binarySearch(as, a, a0, a1)
     def copyOf(a: Array[Boolean], n: Int) = java.util.Arrays.copyOf(a, n)
-    def sort(a: Array[Boolean]) = spire.math.Sorting.sort(a)
+    def sort(a: Array[Boolean]) = ???
     def singleton(e: Boolean) = {
       val r = new Array[Boolean](1)
       r(0) = e

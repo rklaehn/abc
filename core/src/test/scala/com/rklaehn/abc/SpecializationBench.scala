@@ -2,8 +2,7 @@ package com.rklaehn.abc
 
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
-import spire.implicits._
-import spire.math.Rational
+import algebra.std.all._
 
 object SpecializationBench extends App {
 

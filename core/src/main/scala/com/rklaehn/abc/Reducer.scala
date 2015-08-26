@@ -1,5 +1,4 @@
 package com.rklaehn.abc
-import spire.util._
 
 /**
  * An abstraction for a stateful reduce operation. The operation is called once for each element of the sequence to be
@@ -8,7 +7,7 @@ import spire.util._
  * @tparam T the element and result type
  */
 sealed abstract class Reducer[T] extends (T ⇒ Unit) {
-  def result(): Opt[T]
+  def result(): Option[T]
 }
 
 /**
@@ -31,7 +30,7 @@ object Reducer {
    * @tparam T the element type
    * @return an opt containing the result, or Opt.empty[T] if the array is of size 0
    */
-  def reduceArray[T](elements: Array[T])(op: (T, T) ⇒ T): Opt[T] = if (elements.isEmpty) Opt.empty[T] else {
+  def reduceArray[T](elements: Array[T])(op: (T, T) ⇒ T): Option[T] = if (elements.isEmpty) Option.empty[T] else {
     def m(a: Int, b: Int): Int = {
       (a + b) / 2
     }
@@ -44,7 +43,7 @@ object Reducer {
           op(reduce0(i0, im), reduce0(im, i1))
       }
     }
-    Opt(reduce0(0, elements.length))
+    Option(reduce0(0, elements.length))
   }
 
   /**
@@ -54,7 +53,7 @@ object Reducer {
    * @tparam T the element and result type
    * @return an opt containing the result, or Opt.empty[T] if the collection is of size 0
    */
-  def reduce[T](elements: TraversableOnce[T])(op: (T, T) ⇒ T): Opt[T] = {
+  def reduce[T](elements: TraversableOnce[T])(op: (T, T) ⇒ T): Option[T] = {
     val reducer = create(op)
     elements.foreach(reducer)
     reducer.result()
@@ -104,9 +103,9 @@ object Reducer {
       current(weight) = reduceTo(weight, value.asInstanceOf[AnyRef])
     }
 
-    def result(): Opt[T] = {
+    def result(): Option[T] = {
       count = 0
-      Opt(reduceTo(32)).asInstanceOf[Opt[T]]
+      Option(reduceTo(32)).asInstanceOf[Option[T]]
     }
   }
 }

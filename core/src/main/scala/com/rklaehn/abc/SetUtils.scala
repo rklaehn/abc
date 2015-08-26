@@ -3,7 +3,7 @@ package com.rklaehn.abc
 import scala.annotation.tailrec
 import scala.util.control.ControlThrowable
 import scala.{ specialized => sp }
-import spire.algebra.Order
+import algebra.Order
 
 /**
  * Set operations. Some of them can be used for both sets and ordered sequences, as well as from inside the radix tree

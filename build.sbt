@@ -12,7 +12,7 @@ lazy val tests = project.in(file("tests"))
   .dependsOn(core)
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.7",
   version := "0.1-SNAPSHOT",
   organization := "com.rklaehn",
   libraryDependencies += "junit" % "junit" % "4.11" % "test",
@@ -39,8 +39,9 @@ lazy val testSettings = {
 lazy val coreSettings = Seq(
   name := "abc",
   // I would prefer just referencing non/algebra at some point
-  libraryDependencies += "org.spire-math" %% "spire" % "0.10.1",
-  libraryDependencies += "org.spire-math" %% "spire-scalacheck-binding" % "0.9.0" % "test",
+  libraryDependencies += "org.spire-math" %% "algebra" % "0.3.1",
+  libraryDependencies += "org.spire-math" %% "algebra-std" % "0.3.1",
+  libraryDependencies += "org.spire-math" %% "algebra-laws" % "0.3.1" % "test",
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
   unmanagedBase in Test <<= baseDirectory { base => base / "test-lib" },
   coverageMinimum := 100,

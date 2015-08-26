@@ -1,12 +1,11 @@
 package com.rklaehn.abc
 
 import spire.math.BinaryMerge
-import spire.util.Opt
 
 import scala.collection.immutable.SortedMap
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized => sp }
-import spire.algebra.Order
+import algebra.Order
 
 final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
@@ -54,7 +53,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   def merge(that: ArrayMap[K, V], f: (V, V) => V): ArrayMap[K, V] =
     new MapMerger2[K, V](this, that, f).result
 
-  def except(that: ArrayMap[K, V], f: (V, V) ⇒ Opt[V]): ArrayMap[K, V] =
+  def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V]): ArrayMap[K, V] =
     new Except[K, V](this, that, f).result
 
   def filterKeys(f: K ⇒ Boolean): ArrayMap[K, V] = {
@@ -198,7 +197,7 @@ object ArrayMap {
   }
 
   private class Except[@sp(Int, Long, Double) K: Order, @sp(Int, Long, Double) V](
-      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Opt[V])
+      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])
     extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -226,7 +225,7 @@ object ArrayMap {
 
     def collision(ai: Int, bi: Int) = {
       f(av(ai), bv(bi)) match {
-        case Opt(v) ⇒
+        case Some(v) ⇒
           rk(ri) = bk(bi)
           rv(ri) = v
           ri += 1

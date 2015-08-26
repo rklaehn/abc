@@ -1,7 +1,6 @@
 package com.rklaehn.abc
 
-import spire.algebra.Order
-import spire.implicits._
+import algebra.Order
 
 import scala.reflect.ClassTag
 import scala.util.hashing.Hashing

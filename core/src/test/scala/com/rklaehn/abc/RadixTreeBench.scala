@@ -2,8 +2,7 @@ package com.rklaehn.abc
 
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
-import spire.algebra.Eq
-import spire.implicits._
+import algebra.Eq
 
 import scala.collection.immutable.{HashMap, SortedMap}
 import scala.util.hashing.Hashing

@@ -3,12 +3,11 @@ package com.rklaehn.abc
 import org.github.jamm.MemoryMeter
 import org.junit.Assert._
 import org.junit.Test
-import spire.algebra.Eq
-import spire.implicits._
+import algebra.Eq
+import algebra.std.all._
 
 import scala.io.Source
 import scala.util.hashing.Hashing
-import spire.optional.genericEq._
 
 class SizeTest {
 
@@ -128,16 +127,16 @@ class SizeTest {
     println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testRadixTreeUnit(): Unit = {
-
-    val names = (0 until 10000).map(x => x.toString -> (())).toArray
-    val tree1 = RadixTree(names: _*)
-    val tree2 = tree1.packed
-    println("Elements:           " + mm.measureDeep(names))
-    println("RadixTree:          " + mm.measureDeep(tree1))
-    println("RadixTree (packed): " + mm.measureDeep(tree2))
-  }
+//  @Test
+//  def testRadixTreeUnit(): Unit = {
+//
+//    val names = (0 until 10000).map(x => x.toString -> (())).toArray
+//    val tree1 = RadixTree(names: _*)
+//    val tree2 = tree1.packed
+//    println("Elements:           " + mm.measureDeep(names))
+//    println("RadixTree:          " + mm.measureDeep(tree1))
+//    println("RadixTree (packed): " + mm.measureDeep(tree2))
+//  }
 //
 //  @Test
 //  def testRadixTreeUnit2(): Unit = {

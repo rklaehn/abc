@@ -1,10 +1,9 @@
 package com.rklaehn.abc
 
-import spire.algebra.Eq
+import algebra.Eq
 import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
 import scala.{specialized => sp}
-import spire.implicits._
 
 trait ArrayTag[@sp T] {
 
@@ -55,7 +54,7 @@ object ArrayTag {
 
     override def newArray(n: Int): Array[T] = classTag.newArray(n)
 
-    override def eqv(a: Array[T], b: Array[T]): Boolean = a === b
+    override def eqv(a: Array[T], b: Array[T]): Boolean = ???
 
     override def hash(a: Array[T]): Int = ArrayHashing.arrayHashCode(a)
 

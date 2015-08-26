@@ -1,7 +1,5 @@
 package com.rklaehn.abc
 
-import spire.util.Opt
-
 import scala.{ specialized ⇒ sp }
 
 final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] private[abc] (
@@ -26,8 +24,8 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
   def except(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
     val map1 = map.except(that.map, (x,y) ⇒ {
       val r = x diff y
-      if(r.isEmpty) Opt.empty[ArraySet[V]]
-      else Opt(r)
+      if(r.isEmpty) None
+      else Some(r)
     })
     new ArrayMultiMap[K, V](map1)
   }
