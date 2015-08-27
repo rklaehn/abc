@@ -19,6 +19,6 @@ object MapMergeTest extends App {
   println(r)
 
   val r2 = ArrayMap(1L -> "2") merge ArrayMap(2L -> "3")
-  val r3 = r2.updated(1L, "x")
-  println(r3)
+//  val r3 = r2.updated(1L, "x")
+  println(r2)
 }

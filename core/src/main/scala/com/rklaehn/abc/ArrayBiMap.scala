@@ -8,13 +8,12 @@ class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc
 
   def swap: ArrayBiMap[V, K] = new ArrayBiMap[V, K](vk, kv)
 
-  def merge(that: ArrayBiMap[K, V]): ArrayBiMap[K, V] =
+  def merge(that: ArrayBiMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayBiMap[K, V] =
     new ArrayBiMap(
       kv.merge(that.kv),
       vk.merge(that.vk))
 
-  def exceptKeys(keys: ArraySet[K]): ArrayBiMap[K, V] = {
-    import vk.kArrayTag
+  def exceptKeys(keys: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayBiMap[K, V] = {
     val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
     val values = removedKeys.elements.map(kv.apply)

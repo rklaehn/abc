@@ -1,107 +1,123 @@
 package com.rklaehn.abc
 
+import com.rklaehn.abc.ArraySet.AsCollection
+
 import language.implicitConversions
-import scala.collection.immutable.SortedSet
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
+import scala.collection.immutable.SortedSet
 import scala.{ specialized => sp }
-import spire.algebra.{Eq, Order}
-import spire.implicits._
+import spire.algebra.{Order, Eq}
 
-import scala.reflect.ClassTag
+final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit tArrayTag: OrderedArrayTag[T])
-  extends SortedSet[T] with SortedSetLike[T, ArraySet[T]]
-{ self ⇒
-  import tArrayTag._
+  def asCollection(implicit tArrayTag: OrderedArrayTag[T]): SortedSet[T] = AsCollection.wrap(this)
 
-  implicit def ordering = Order.ordering(order)
+  def contains(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = self.apply(elem)
 
-  def rangeImpl(from: Option[T], until: Option[T]) = ???
+  def +(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = self.union(ArraySet.singleton(elem))
 
-  def keysIteratorFrom(start: T) = {
-    val index = tArrayTag.binarySearch(elements, 0, elements.length, start)
-    if(index >= 0)
-      iterator.drop(index)
-    else
-      iterator.drop(-index -1)
-  }
-
-  def contains(elem: T) = self.apply(elem)
-
-  def +(elem: T) = self.union(ArraySet.singleton(elem))
-
-  def -(elem: T) = self.diff(ArraySet.singleton(elem))
+  def -(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = self.diff(ArraySet.singleton(elem))
 
   def iterator = elements.iterator
 
-  override def empty = ArraySet.empty[T]
-
   def asArraySeq: ArraySeq[T] =
-    new ArraySeq[T](elements)(tArrayTag)
+    new ArraySeq[T](elements)
 
-  override def apply(e: T): Boolean =
+  def apply(e: T)(implicit tArrayTag: OrderedArrayTag[T]): Boolean =
     tArrayTag.binarySearch(elements, 0, elements.length, e) >= 0
 
-  def subsetOf(that: ArraySet[T]): Boolean =
+  def subsetOf(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): Boolean =
     SetUtils.subsetOf(this.elements, that.elements)
 
-  override def union(that: GenSet[T]) = that match {
-    case that: ArraySet[T] ⇒ this.union(that)
-    case _ ⇒ super.union(that)
-  }
-
-  override def diff(that: GenSet[T]) = that match {
-    case that: ArraySet[T] ⇒ this.diff(that)
-    case _ ⇒ super.diff(that)
-  }
-
-  override def intersect(that: GenSet[T]) = that match {
-    case that: ArraySet[T] ⇒ this.intersect(that)
-    case _ ⇒ super.intersect(that)
-  }
-
-  override def subsetOf(that: GenSet[T]) = that match {
-    case that: ArraySet[T] ⇒ this.subsetOf(that)
-    case _ ⇒ super.subsetOf(that)
-  }
-
-  def intersects(that: ArraySet[T]): Boolean =
+  def intersects(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): Boolean =
     SetUtils.intersects(this.elements, that.elements)
 
-  def union(that: ArraySet[T]): ArraySet[T] =
+  def union(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  def intersect(that: ArraySet[T]): ArraySet[T] =
+  def intersect(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
-  def diff(that: ArraySet[T]): ArraySet[T] =
+  def diff(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
 
-  override def filter(p: T => Boolean): ArraySet[T] =
+  def filter(p: T => Boolean): ArraySet[T] =
     new ArraySet[T](this.elements.filter(p))
 
-  def xor(that: ArraySet[T]): ArraySet[T] =
+  def xor(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
-  override def isEmpty: Boolean = elements.isEmpty
-
-  override def equals(that: Any) = that match {
-    case that: ArraySet[T] => tArrayTag.eqv(this.elements, that.elements)
-    case _ => false
-  }
-
-  override def hashCode: Int = tArrayTag.hash(this.elements)
+  def isEmpty: Boolean = elements.isEmpty
 
   override def toString: String = elements.mkString("Set(", ",", ")")
 }
 
 object ArraySet {
 
-  implicit def cbf[CC, @sp(Int, Long, Double) U: OrderedArrayTag]: CanBuildFrom[CC, U, ArraySet[U]] = new CanBuildFrom[CC, U, ArraySet[U]] {
-    def apply(from: CC) = apply()
+  private final class AsCollection[T](val underlying: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]) extends SortedSet[T] with SortedSetLike[T, AsCollection[T]] {
+    import AsCollection.wrap
+    implicit def ordering = Order.ordering(tArrayTag.order)
 
-    def apply(): mutable.Builder[U, ArraySet[U]] = new ArraySetBuilder[U]
+    def +(elem: T) = wrap(underlying + elem)
+
+    def -(elem: T) = wrap(underlying - elem)
+
+    def contains(elem: T) = underlying contains elem
+
+    def iterator = underlying.iterator
+
+    def rangeImpl(from: Option[T], until: Option[T]) = ???
+
+    def keysIteratorFrom(start: T) = ???
+
+    override def union(that: GenSet[T]) = that match {
+      case that: AsCollection[T] ⇒ wrap(underlying union that.underlying)
+      case _ ⇒ super.union(that)
+    }
+
+    override def diff(that: GenSet[T]) = that match {
+      case that: AsCollection[T] ⇒ wrap(underlying diff that.underlying)
+      case _ ⇒ super.diff(that)
+    }
+
+    override def intersect(that: GenSet[T]) = that match {
+      case that: AsCollection[T] ⇒ wrap(underlying intersect that.underlying)
+      case _ ⇒ super.intersect(that)
+    }
+
+    override def subsetOf(that: GenSet[T]) = that match {
+      case that: AsCollection[T] ⇒ underlying subsetOf that.underlying
+      case _ ⇒ super.subsetOf(that)
+    }
+
+    override def filter(p: T => Boolean) = new AsCollection(underlying.filter(p))
+
+    override def isEmpty: Boolean = underlying.isEmpty
+
+    override def equals(that: Any) = that match {
+      case that: AsCollection[T] => tArrayTag.eqv(underlying.elements, that.underlying.elements)
+      case _ => false
+    }
+
+    override def toString = underlying.toString
+
+    override def hashCode: Int = tArrayTag.hash(underlying.elements)
+
+    override def apply(e: T): Boolean = underlying.apply(e)
+
+    override def empty = new AsCollection(ArraySet.empty[T])
+  }
+
+  private object AsCollection {
+
+    def wrap[U: OrderedArrayTag](underlying: ArraySet[U]) = new AsCollection[U](underlying)
+
+    implicit def cbf[CC, @sp(Int, Long, Double) U: OrderedArrayTag]: CanBuildFrom[CC, U, ArraySet[U]] = new CanBuildFrom[CC, U, ArraySet[U]] {
+      def apply(from: CC) = apply()
+
+      def apply(): mutable.Builder[U, ArraySet[U]] = new ArraySetBuilder[U]
+    }
   }
 
   private[this] class ArraySetBuilder[@sp(Int, Long, Double) T](implicit tag: OrderedArrayTag[T]) extends scala.collection.mutable.Builder[T, ArraySet[T]] {
@@ -122,12 +138,12 @@ object ArraySet {
     }
 
     def result() = {
-      reducer.result.map(x ⇒ new ArraySet(x)).getOrElse(empty)
+      reducer.result().map(x ⇒ new ArraySet(x)).getOrElse(empty)
     }
   }
 
-  implicit def eqv[T]: Eq[ArraySet[T]] =
-    spire.optional.genericEq.generic[ArraySet[T]]
+  implicit def eqv[T](implicit tArrayTag: OrderedArrayTag[T]): Eq[ArraySet[T]] =
+    tArrayTag.on(_.elements)
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
     new ArraySet[T](ArrayTag[T].empty)

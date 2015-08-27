@@ -4,34 +4,35 @@ import spire.util.Opt
 
 import scala.{ specialized ⇒ sp }
 
-final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] private[abc] (
+final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
   private[abc] val map: ArrayMap[K, ArraySet[V]]) {
 
   def keys: ArraySet[K] = map.keys
 
-  def justKeys(keys: ArraySet[K]): ArrayMultiMap[K, V] =
+  def justKeys(keys: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.justKeys(keys))
 
-  def exceptKeys(keys: ArraySet[K]): ArrayMultiMap[K, V] =
+  def exceptKeys(keys: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.exceptKeys(keys))
 
-  def filterKeys(p: K ⇒ Boolean): ArrayMultiMap[K, V] =
+  def filterKeys(p: K ⇒ Boolean)(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.filterKeys(p))
 
-  def merge(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
+  def merge(that: ArrayMultiMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] = {
     def mergeElements(a: ArraySet[V], b: ArraySet[V]): ArraySet[V] = a.union(b)
     new ArrayMultiMap[K, V](map.mergeWith(that.map, mergeElements))
   }
 
   def inverse: ArrayMultiMap[V, K] = {
-    val swappedPairs = for {
-      (k, vs) ← map.toArray
-      v ← vs
-    } yield (v, k)
-    ArrayMultiMap.fromKVs(swappedPairs: _*)
+    ???
+//    val swappedPairs = for {
+//      (k, vs) ← map
+//      v ← vs
+//    } yield (v, k)
+//    ArrayMultiMap.fromKVs(swappedPairs: _*)
   }
 
-  def except(that: ArrayMultiMap[K, V]): ArrayMultiMap[K, V] = {
+  def except(that: ArrayMultiMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] = {
     val map1 = map.except(that.map, (x,y) ⇒ {
       val r = x diff y
       if(r.isEmpty) Opt.empty[ArraySet[V]]
@@ -40,9 +41,9 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Lo
     new ArrayMultiMap[K, V](map1)
   }
 
-  def apply(k: K): ArraySet[V] = map.apply(k)
+  def apply(k: K)(implicit kArrayTag: OrderedArrayTag[K]): ArraySet[V] = map.apply(k)
 
-  def getOrEmpty(k: K): ArraySet[V] = map.getOrElse(k, ArraySet.empty[V])
+  // def getOrEmpty(k: K)(implicit kArrayTag: OrderedArrayTag[K]): ArraySet[V] = map.getOrElse(k, ArraySet.empty[V])
 
   override def toString: String = map.toString
 }

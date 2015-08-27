@@ -1,24 +1,24 @@
 package com.rklaehn.abc
 
+import com.rklaehn.abc.ArraySeq.AsCollection
+
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, IndexedSeqOptimized}
 import scala.{ specialized => sp }
 
-class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
-                                                        private[abc] val elements: Array[T]) (
-                                                        implicit tArrayTag: ArrayTag[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, ArraySeq[T]] {
+class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) {
 
-  override protected[this] def newBuilder: mutable.Builder[T, ArraySeq[T]] =
-    new ArrayBuffer[T].mapResult(x ⇒ new ArraySeq[T](x.toArray(tArrayTag.classTag)))
+  def asCollection(implicit tArrayTag: ArrayTag[T]): IndexedSeq[T] =
+    new AsCollection[T](this)
 
   def length = elements.length
 
   def apply(idx: Int): T = elements(idx)
 
-  override def isEmpty: Boolean = elements.isEmpty
+  def isEmpty: Boolean = elements.isEmpty
 
-  def concat(that: ArraySeq[T]): ArraySeq[T] =
+  def concat(that: ArraySeq[T])(implicit tArrayTag: ArrayTag[T]): ArraySeq[T] =
     if (this.isEmpty) that
     else if (that.isEmpty) this
     else {
@@ -31,23 +31,36 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (
   def mapDirect[U : ArrayTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f).toArray(ArrayTag[U].classTag))
 
-  override def filter(p: T => Boolean): ArraySeq[T] =
+  def filter(p: T => Boolean): ArraySeq[T] =
     new ArraySeq[T](this.elements.filter(p))
-
-  override def equals(that: Any) = that match {
-    case that: ArraySeq[T] => tArrayTag.eqv(this.elements, that.elements)
-    case _ => false
-  }
-
-  override def hashCode: Int = tArrayTag.hash(elements)
 }
 
 object ArraySeq {
 
-  implicit def cbf[T, U: ArrayTag]: CanBuildFrom[ArraySeq[T], U, ArraySeq[U]] = new CanBuildFrom[ArraySeq[T], U, ArraySeq[U]] {
-    def apply(from: ArraySeq[T]) = apply()
+  final class AsCollection[T](val underlying: ArraySeq[T])(implicit tArrayTag: ArrayTag[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {
 
-    def apply() = new ArrayBuffer[U].mapResult(x ⇒ new ArraySeq[U](x.toArray(ArrayTag[U].classTag)))
+    override protected[this] def newBuilder: mutable.Builder[T, AsCollection[T]] =
+      new ArrayBuffer[T].mapResult(x ⇒ new AsCollection(new ArraySeq(x.toArray(tArrayTag.classTag))))
+
+    def apply(idx: Int) = underlying.apply(idx)
+
+    def length = underlying.length
+
+    override def equals(that: Any) = that match {
+      case that: AsCollection[T] => tArrayTag.eqv(this.underlying.elements, that.underlying.elements)
+      case _ => false
+    }
+
+    override def hashCode: Int = tArrayTag.hash(underlying.elements)
+  }
+
+  object AsCollection {
+
+    implicit def cbf[T, U: ArrayTag]: CanBuildFrom[AsCollection[T], U, AsCollection[U]] = new CanBuildFrom[AsCollection[T], U, AsCollection[U]] {
+      def apply(from: AsCollection[T]) = apply()
+
+      def apply() = new ArrayBuffer[U].mapResult(x ⇒ new AsCollection(new ArraySeq[U](x.toArray(ArrayTag[U].classTag))))
+    }
   }
 
   def empty[@sp(Int, Long, Double) T: ArrayTag]: ArraySeq[T] =

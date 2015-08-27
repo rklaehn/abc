@@ -28,7 +28,7 @@ class SetCreateAccessBench {
   @Setup
   def setup(): Unit = {
     def make(elements: Seq[Int]): Set[Int] = kind match {
-      case "arrayset" ⇒ ArraySet(elements: _*)
+      case "arrayset" ⇒ ArraySet(elements: _*).asCollection
       case "hashset" ⇒ HashSet(elements: _*)
       case "sortedset" ⇒ SortedSet(elements: _*)
       case _ ⇒ ???

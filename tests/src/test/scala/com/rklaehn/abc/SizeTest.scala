@@ -96,10 +96,9 @@ class SizeTest {
     val a = ArrayMap(ks zip vs: _*)
     val b = Map(ks zip vs: _*)
     val payload = mm.measureDeep(ks) + measureElements(vs)
-    val typeclasses = mm.measureDeep(a.kArrayTag) + mm.measureDeep(a.vArrayTag)
     println("Map[Int, String] 100")
     println("Elements: " + payload)
-    println("ArrayMap: " + (mm.measureDeep(a) - payload - typeclasses))
+    println("ArrayMap: " + (mm.measureDeep(a) - payload))
     println("Map:      " + (mm.measureDeep(b) - payload))
   }
 
