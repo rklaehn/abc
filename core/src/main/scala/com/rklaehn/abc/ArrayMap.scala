@@ -96,10 +96,47 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
 object ArrayMap {
 
-  implicit def cbf[CC, @sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag]: CanBuildFrom[CC, (K, V), ArrayMap[K, V]] = new CanBuildFrom[CC, (K, V), ArrayMap[K, V]] {
-    def apply(from: CC) = apply()
+  class AsCollection[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]) extends SortedMap[K, V] with SortedMapLike[K, V, AsCollection[K, V]] {
+    import AsCollection._
 
-    def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMap(x: _*))
+    implicit def ordering = Order.ordering(kArrayTag.order)
+
+    override def newBuilder : mutable.Builder[(K, V), AsCollection[K, V]] =
+      new ArrayMapBuilder[K, V].mapResult(x ⇒ wrap(x))
+
+    override def empty = wrap(ArrayMap.empty[K, V])
+
+    def valuesIteratorFrom(start: K) = ???
+
+    def rangeImpl(from: Option[K], until: Option[K]) = ???
+
+    def iteratorFrom(start: K) = ???
+
+    def get(key: K) = underlying.get(key)
+
+    def iterator = underlying.iterator
+
+    override def +[V1 >: V](kv: (K, V1)) = {
+      val u = underlying.asInstanceOf[ArrayMap[K, V1]]
+      implicit val v1ArrayTag = vArrayTag.asInstanceOf[ArrayTag[V1]]
+      wrap(u.merge(ArrayMap.singleton(kv._1, kv._2)))
+    }
+
+    def -(key: K) = wrap(underlying.exceptKeys(ArraySet.singleton(key)))
+
+    def keysIteratorFrom(start: K) = ???
+  }
+
+  object AsCollection {
+
+    implicit def cbf[CC, @sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag]: CanBuildFrom[CC, (K, V), ArrayMap[K, V]] = new CanBuildFrom[CC, (K, V), ArrayMap[K, V]] {
+      def apply(from: CC) = apply()
+
+      def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMap(x: _*))
+    }
+
+    def wrap[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] =
+      new AsCollection[K, V](underlying)
   }
 
   private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
