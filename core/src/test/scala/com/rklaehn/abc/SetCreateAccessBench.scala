@@ -15,6 +15,7 @@ object SetCreateAccessBench extends App {
       def s0 = HashSet(elements:_*)
       def s1 = SortedSet(elements:_*)
       def s2 = ArraySet(elements:_*)
+//      def s3 = ArraySet2(elements:_*)
       th.pbenchOffWarm(s"Create HashSet[Int] vs ArraySet[Int] $n")(
         th.Warm(s0.asInstanceOf[AnyRef]))(
         th.Warm(s2.asInstanceOf[AnyRef]))
@@ -30,13 +31,17 @@ object SetCreateAccessBench extends App {
       val s0 = HashSet(elements:_*)
       val s1 = SortedSet(elements:_*)
       val s2 = ArraySet(elements:_*)
-      val x = n / 2
+//      val s3 = ArraySet2(elements:_*)
+      val x = 0
       th.pbenchOffWarm(s"Access HashSet[Int] vs ArraySet[Int] $n")(
         th.Warm(s0(x)))(
-          th.Warm(s2(x)))
+        th.Warm(s2(x)))
       th.pbenchOffWarm(s"Access SortedSet[Int] vs ArraySet[Int] $n")(
         th.Warm(s1(x)))(
-          th.Warm(s2(x)))
+        th.Warm(s2(x)))
+/*      th.pbenchOffWarm(s"Access ArraySet[Int] vs ArraySet2[Int] $n")(
+        th.Warm(s2(x)))(
+        th.Warm(s3(x)))*/
     }
   }
 

@@ -11,7 +11,7 @@ import spire.algebra.{Order, Eq}
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
-  def asCollection(implicit tArrayTag: OrderedArrayTag[T]): SortedSet[T] = AsCollection.wrap(this)
+  def asCollection(implicit tArrayTag: OrderedArrayTag[T]): ArraySet.AsCollection[T] = AsCollection.wrap(this)
 
   def contains(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = self.apply(elem)
 
@@ -55,7 +55,7 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySet {
 
-  private final class AsCollection[T](val underlying: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]) extends SortedSet[T] with SortedSetLike[T, AsCollection[T]] {
+  final class AsCollection[T](val underlying: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]) extends SortedSet[T] with SortedSetLike[T, AsCollection[T]] {
     import AsCollection.wrap
     implicit def ordering = Order.ordering(tArrayTag.order)
 
@@ -109,14 +109,14 @@ object ArraySet {
     override def empty = new AsCollection(ArraySet.empty[T])
   }
 
-  private object AsCollection {
+  object AsCollection {
 
-    def wrap[U: OrderedArrayTag](underlying: ArraySet[U]) = new AsCollection[U](underlying)
+    private[abc] def wrap[U: OrderedArrayTag](underlying: ArraySet[U]) = new AsCollection[U](underlying)
 
-    implicit def cbf[CC, @sp(Int, Long, Double) U: OrderedArrayTag]: CanBuildFrom[CC, U, ArraySet[U]] = new CanBuildFrom[CC, U, ArraySet[U]] {
+    implicit def cbf[CC, @sp(Int, Long, Double) U: OrderedArrayTag]: CanBuildFrom[CC, U, AsCollection[U]] = new CanBuildFrom[CC, U, AsCollection[U]] {
       def apply(from: CC) = apply()
 
-      def apply(): mutable.Builder[U, ArraySet[U]] = new ArraySetBuilder[U]
+      def apply(): mutable.Builder[U, AsCollection[U]] = new ArraySetBuilder[U].mapResult(x ⇒ wrap(x))
     }
   }
 

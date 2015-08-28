@@ -7,9 +7,9 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, IndexedSeqOptimized}
 import scala.{ specialized => sp }
 
-class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) {
+final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) {
 
-  def asCollection(implicit tArrayTag: ArrayTag[T]): IndexedSeq[T] =
+  def asCollection(implicit tArrayTag: ArrayTag[T]): AsCollection[T] =
     new AsCollection[T](this)
 
   def length = elements.length
@@ -28,7 +28,7 @@ class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements
       new ArraySeq[T](temp)
     }
 
-  def mapDirect[U : ArrayTag](f: T => U): ArraySeq[U] =
+  def map[U : ArrayTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f).toArray(ArrayTag[U].classTag))
 
   def filter(p: T => Boolean): ArraySeq[T] =

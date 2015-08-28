@@ -29,6 +29,25 @@ object ArrayTag {
     r
   }
 
+  implicit val anyRefArrayTag: ArrayTag[AnyRef] = new ArrayTag[AnyRef] {
+    override def singleton(e: AnyRef): Array[AnyRef] = {
+      val r = classTag.newArray(1)
+      r(0) = e
+      r
+    }
+
+    override def newArray(n: Int): Array[AnyRef] = classTag.newArray(n)
+
+    override val empty: Array[AnyRef] = new Array[AnyRef](0)
+
+    override def copyOf(a: Array[AnyRef], n: Int): Array[AnyRef] = java.util.Arrays.copyOf(a, n)
+
+    override val classTag: ClassTag[AnyRef] = implicitly[ClassTag[AnyRef]]
+
+    override def eqv(x: Array[AnyRef], y: Array[AnyRef]): Boolean = java.util.Arrays.equals(x, y)
+
+    override def hash(x: Array[AnyRef]): Int = java.util.Arrays.hashCode(x)
+  }
   implicit val byteArrayTag: ArrayTag[Byte] = OrderedArrayTag.byteOrderedArrayTag
   implicit val shortArrayTag: ArrayTag[Short] = OrderedArrayTag.shortOrderedArrayTag
   implicit val intArrayTag: ArrayTag[Int] = OrderedArrayTag.intOrderedArrayTag

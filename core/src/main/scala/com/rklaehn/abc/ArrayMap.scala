@@ -6,7 +6,7 @@ import spire.util.Opt
 import scala.collection.generic.{GenericCompanion, CanBuildFrom}
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, SortedMapLike}
-import scala.collection.immutable.SortedMap
+import scala.collection.immutable.{Iterable, SortedMap}
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized => sp }
 import spire.algebra.Order
@@ -16,13 +16,11 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val values0: Array[V]) { self ⇒
   import ArrayMap._
 
+  def asCollection(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] = AsCollection.wrap(this)
+
   def iterator = keys0.iterator zip values0.iterator
 
   def size: Int = keys0.length
-
-  def lastKey: K = keys0.last
-
-  def firstKey: K = keys0.head
 
   def keys: ArraySet[K] = new ArraySet[K](keys0)
 
@@ -117,9 +115,17 @@ object ArrayMap {
     def iterator = underlying.iterator
 
     override def +[V1 >: V](kv: (K, V1)) = {
-      val u = underlying.asInstanceOf[ArrayMap[K, V1]]
-      implicit val v1ArrayTag = vArrayTag.asInstanceOf[ArrayTag[V1]]
-      wrap(u.merge(ArrayMap.singleton(kv._1, kv._2)))
+      try {
+        val k = kv._1
+        val v = kv._2.asInstanceOf[V]
+        wrap(underlying.merge(ArrayMap.singleton(k, v)))
+      } catch {
+        case _: ClassCastException ⇒
+          val k = kv._1
+          val v = kv._2.asInstanceOf[AnyRef]
+          wrap(underlying.mapValues(_.asInstanceOf[AnyRef]).merge(ArrayMap.singleton(k, v)))
+            .asInstanceOf[SortedMap[K, V1]]
+      }
     }
 
     def -(key: K) = wrap(underlying.exceptKeys(ArraySet.singleton(key)))
@@ -129,13 +135,13 @@ object ArrayMap {
 
   object AsCollection {
 
-    implicit def cbf[CC, @sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag]: CanBuildFrom[CC, (K, V), ArrayMap[K, V]] = new CanBuildFrom[CC, (K, V), ArrayMap[K, V]] {
+    implicit def cbf[CC, @sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag]: CanBuildFrom[CC, (K, V), AsCollection[K, V]] = new CanBuildFrom[CC, (K, V), AsCollection[K, V]] {
       def apply(from: CC) = apply()
 
-      def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMap(x: _*))
+      def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ AsCollection.wrap(ArrayMap(x: _*)))
     }
 
-    def wrap[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] =
+    private[abc] def wrap[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] =
       new AsCollection[K, V](underlying)
   }
 
