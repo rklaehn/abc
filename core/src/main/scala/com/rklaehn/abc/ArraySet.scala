@@ -1,7 +1,5 @@
 package com.rklaehn.abc
 
-import com.rklaehn.abc.ArraySet.AsCollection
-
 import language.implicitConversions
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -11,7 +9,7 @@ import spire.algebra.{Order, Eq}
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
-  def asCollection(implicit tArrayTag: OrderedArrayTag[T]): ArraySet.AsCollection[T] = AsCollection.wrap(this)
+  def asCollection(implicit tArrayTag: OrderedArrayTag[T]): ArraySet.AsCollection[T] = ArraySet.AsCollection.wrap(this)
 
   def contains(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = self.apply(elem)
 
