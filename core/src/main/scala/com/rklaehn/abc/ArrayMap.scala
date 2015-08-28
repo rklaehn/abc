@@ -9,7 +9,7 @@ import scala.collection.{mutable, SortedMapLike}
 import scala.collection.immutable.{Iterable, SortedMap}
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized => sp }
-import spire.algebra.Order
+import spire.algebra.{Eq, Order}
 
 final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
@@ -143,6 +143,10 @@ object ArrayMap {
 
     private[abc] def wrap[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] =
       new AsCollection[K, V](underlying)
+  }
+
+  implicit def eqv[K: OrderedArrayTag, V: ArrayTag]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
   }
 
   private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
@@ -294,8 +298,8 @@ object ArrayMap {
     def fromB(ai: Int, b0: Int, b1: Int) = {}
 
     def collision(ai: Int, bi: Int) = {
-      rk(ri) = ak(bi)
-      rv(ri) = av(bi)
+      rk(ri) = ak(ai)
+      rv(ri) = av(ai)
       ri += 1
     }
 

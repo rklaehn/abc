@@ -1,5 +1,7 @@
 package com.rklaehn.abc
 
+import spire.algebra.lattice.{Lattice, Heyting}
+
 import language.implicitConversions
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -140,8 +142,14 @@ object ArraySet {
     }
   }
 
-  implicit def eqv[T](implicit tArrayTag: OrderedArrayTag[T]): Eq[ArraySet[T]] =
-    tArrayTag.on(_.elements)
+  implicit def eqv[T](implicit tArrayTag: OrderedArrayTag[T]): Eq[ArraySet[T]] = new Eq[ArraySet[T]] {
+    def eqv(x: ArraySet[T], y: ArraySet[T]) = tArrayTag.eqv(x.elements, y.elements)
+  }
+
+//  implicit def lattice[T](implicit tArrayTag: OrderedArrayTag[T]): Lattice[ArraySet[T]] = new Lattice[ArraySet[T]] {
+//    def meet(lhs: ArraySet[T], rhs: ArraySet[T]) = lhs intersect rhs
+//    def join(lhs: ArraySet[T], rhs: ArraySet[T]) = lhs union rhs
+//  }
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
     new ArraySet[T](ArrayTag[T].empty)

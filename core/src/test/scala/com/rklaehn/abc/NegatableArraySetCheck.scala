@@ -30,7 +30,7 @@ object NegatableArraySetLawCheck extends Properties("NegatableArraySet") {
     property(name) = prop
 }
 
-object NegatabArraySetLawCheck extends Properties("NegatableArraySet") {
+object NegatableArraySetSampleCheck extends Properties("NegatableArraySet") {
   import NegatableArraySetArbitrary.arb
 
   def unaryOp(a: NegatableArraySet[Int], r: NegatableArraySet[Int], op: Boolean ⇒ Boolean): Boolean = {
