@@ -9,6 +9,33 @@ object SetCreateAccessBench extends App {
 
   val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
 
+  def createVaryMerge(): Unit = {
+    for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
+      val elements = (0 until n).toArray
+      def s0 = ArraySet.apply(elements:_*)
+      def s1 = ArraySet.apply2(elements:_*)
+      //      def s3 = ArraySet2(elements:_*)
+      th.pbenchOffWarm(s"Create ArraySet[Int].apply vs ArraySet[Int].apply2 $n")(
+        th.Warm(s0.asInstanceOf[AnyRef]))(
+          th.Warm(s1.asInstanceOf[AnyRef]))
+    }
+  }
+
+  def unionVaryMerge(): Unit = {
+    for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
+      val elements = (0 until n).toArray
+      val a = ArraySet.apply(elements:_*)
+      val b = ArraySet(elements.drop(n / 2).take(1):_*)
+      //      def s3 = ArraySet2(elements:_*)
+      th.pbenchOffWarm(s"Union [1,2,3,4] and [2,4] $n union1 union2")(
+        th.Warm(a union b))(
+          th.Warm(a union2 b))
+      th.pbenchOffWarm(s"Union [2,4] and [1,2,3,4] $n union1 union2")(
+        th.Warm(b union a))(
+          th.Warm(b union2 a))
+    }
+  }
+
   def createInt(): Unit = {
     for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
       val elements = (0 until n).toArray
@@ -45,6 +72,8 @@ object SetCreateAccessBench extends App {
     }
   }
 
-  createInt()
-  accessInt()
+//  createInt()
+//  accessInt()
+//  createVaryMerge()
+  unionVaryMerge()
 }

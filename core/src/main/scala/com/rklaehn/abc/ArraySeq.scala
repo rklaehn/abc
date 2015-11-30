@@ -5,6 +5,7 @@ import com.rklaehn.abc.ArraySeq.AsCollection
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, IndexedSeqOptimized}
+import scala.reflect.ClassTag
 import scala.{ specialized => sp }
 
 final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) {
@@ -18,18 +19,18 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
   def isEmpty: Boolean = elements.isEmpty
 
-  def concat(that: ArraySeq[T])(implicit tArrayTag: ArrayTag[T]): ArraySeq[T] =
+  def concat(that: ArraySeq[T])(implicit ev: ClassTag[T]): ArraySeq[T] =
     if (this.isEmpty) that
     else if (that.isEmpty) this
     else {
-      val temp = tArrayTag.newArray(this.elements.length + that.elements.length)
+      val temp = ev.newArray(this.elements.length + that.elements.length)
       System.arraycopy(that.elements, 0, temp, 0, this.elements.length)
       System.arraycopy(that.elements, 0, temp, this.elements.length, that.elements.length)
       new ArraySeq[T](temp)
     }
 
-  def map[U : ArrayTag](f: T => U): ArraySeq[U] =
-    new ArraySeq[U](this.elements.map(f).toArray(ArrayTag[U].classTag))
+  def map[U : ClassTag](f: T => U): ArraySeq[U] =
+    new ArraySeq[U](this.elements.map(f))
 
   def filter(p: T => Boolean): ArraySeq[T] =
     new ArraySeq[T](this.elements.filter(p))
@@ -63,12 +64,12 @@ object ArraySeq {
     }
   }
 
-  def empty[@sp(Int, Long, Double) T: ArrayTag]: ArraySeq[T] =
-    new ArraySeq(ArrayTag[T].empty)
+  def empty[@sp(Int, Long, Double) T](implicit ev:ClassTag[T]): ArraySeq[T] =
+    new ArraySeq(ev.emptyArray)
 
-  def singleton[@sp(Int, Long, Double) T: ArrayTag](e: T): ArraySeq[T] =
-    new ArraySeq[T](ArrayTag[T].singleton(e))
+  def singleton[@sp(Int, Long, Double) T](e: T)(implicit ev:ClassTag[T]): ArraySeq[T] =
+    new ArraySeq[T](ev.singletonArray(e))
 
-  def apply[@sp(Int, Long, Double) T: ArrayTag](elements: T*): ArraySeq[T] =
-    new ArraySeq[T](elements.toArray(ArrayTag[T].classTag))
+  def apply[@sp(Int, Long, Double) T](elements: T*)(implicit ev:ClassTag[T]): ArraySeq[T] =
+    new ArraySeq[T](elements.toArray)
 }

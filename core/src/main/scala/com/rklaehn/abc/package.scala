@@ -5,13 +5,20 @@ import scala.util.hashing.Hashing
 
 package object abc {
 
-  implicit class ClassTagOps[T](underlying: ClassTag[T]) extends AnyVal {
+  implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {
 
-    def singleton(value: T): Array[T] = {
+    def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
+  }
+
+  implicit class ClassTagOps[T](private val underlying: ClassTag[T]) extends AnyVal {
+
+    def singletonArray(value: T): Array[T] = {
       val a = underlying.newArray(1)
       a(0) = value
       a
     }
+
+    def emptyArray: Array[T] = underlying.newArray(0)
   }
 
   implicit class HashingOps(private val underlying: Hashing.type) extends AnyVal {
