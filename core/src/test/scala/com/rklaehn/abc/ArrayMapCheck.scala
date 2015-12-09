@@ -2,7 +2,9 @@ package com.rklaehn.abc
 
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
-import spire.util.Opt
+import algebra.Eq
+import algebra.std.all._
+import Instances._
 
 object ArrayMapArbitrary {
 
@@ -19,14 +21,12 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   import ArraySetArbitrary.arbArraySet
 
   def unaryOp(a: ArrayMap[Int, Int], r: ArrayMap[Int, Int], op: (Int, Option[Int]) ⇒ Option[Int]): Boolean = {
-    import spire.implicits._
     val samples = a.keys0 :+ Int.MinValue
     samples.forall { e ⇒
       r.get(e) === op(e, a.get(e))
     }
   }
   def binaryOp(a: ArrayMap[Int, Int], b: ArrayMap[Int, Int], r: ArrayMap[Int, Int], op: (Int, Option[Int], Option[Int]) ⇒ Option[Int]): Boolean = {
-    import spire.implicits._
     val samples = (a.keys0 ++ b.keys0).distinct :+ Int.MinValue
     samples.forall { e ⇒
       r.get(e) === op(e, a.get(e), b.get(e))
@@ -38,7 +38,6 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   }
 
   property("mergeWith") = forAll { (x: ArrayMap[Int, Int], y: ArrayMap[Int, Int]) ⇒
-    import spire.implicits._
     binaryOp(x, y, x.mergeWith(y, _ + _), (k, vx, vy) ⇒
       (vx + vy) orElse vy orElse vx
     )
@@ -53,22 +52,19 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   }
 
   property("filterKeys") = forAll { (x: ArrayMap[Int, Int], y: ArraySet[Int]) ⇒
-    import spire.implicits._
     val r1 = x filterKeys y.contains
     val r0 = x justKeys y
     r0 === r1
   }
 
   property("filter") = forAll { (x: ArrayMap[Int, Int], y: ArraySet[Int]) ⇒
-    import spire.implicits._
     val r1 = x filter { case (k, v) ⇒ y.contains(k) }
     val r0 = x justKeys y
     r0 === r1
   }
 
   property("except") = forAll { (x: ArrayMap[Int, Int], y: ArrayMap[Int, Int]) ⇒
-    import spire.implicits._
-    binaryOp(x, y, x.except(y, (vx, vy) ⇒ if(vx + vy > 0) Opt(vx + vy) else Opt.empty[Int]), { (k, xv, yv) =>
+    binaryOp(x, y, x.except(y, (vx, vy) ⇒ if(vx + vy > 0) Option(vx + vy) else Option.empty[Int]), { (k, xv, yv) =>
       if(xv.isDefined && yv.isDefined)
         (xv + yv).filter(_ > 0)
       else
@@ -105,7 +101,6 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   }
 
   property("iterator") = forAll { x: ArrayMap[Int, Int] ⇒
-    import spire.implicits._
     x.iterator.toArray === (x.keys0 zip x.values0)
   }
 

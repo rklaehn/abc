@@ -2,9 +2,10 @@ package com.rklaehn.abc
 
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
-import spire.algebra.Bool
-import spire.laws._
-import spire.syntax.eq._
+import algebra.lattice.Bool
+import algebra.laws._
+import algebra.std.all._
+import Instances._
 
 object NegatableArraySetArbitrary {
 

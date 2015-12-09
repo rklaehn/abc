@@ -2,7 +2,8 @@ package com.rklaehn.abc
 
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
-import spire.syntax.eq._
+import algebra.std.all._
+import Instances._
 
 object ArraySetArbitrary {
 
@@ -64,7 +65,6 @@ object ArraySetSampleCheck extends Properties("ArraySet") {
   }
 
   property("iterator") = forAll { x: ArraySet[Int] ⇒
-    import spire.implicits._
     x.iterator.toArray === x.elements
   }
 

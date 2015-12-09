@@ -2,8 +2,6 @@ package com.rklaehn.abc
 
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
-import spire.implicits._
-import spire.math.Rational
 
 object SpecializationBench extends App {
 

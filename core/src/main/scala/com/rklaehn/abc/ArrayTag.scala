@@ -1,10 +1,9 @@
 package com.rklaehn.abc
 
-import spire.algebra.Eq
+import algebra.Eq
 import scala.reflect.ClassTag
 import scala.util.hashing.{MurmurHash3, Hashing}
 import scala.{specialized => sp}
-import spire.implicits._
 
 trait ArrayTag[@sp T] extends Eq[Array[T]] with Hashing[Array[T]] {
   def empty: Array[T]
@@ -87,7 +86,15 @@ object ArrayTag {
 
     override def newArray(n: Int): Array[T] = classTag.newArray(n)
 
-    override def eqv(a: Array[T], b: Array[T]): Boolean = spire.std.array.ArrayEq(tEq).eqv(a, b)
+    override def eqv(a: Array[T], b: Array[T]): Boolean = a.length == b.length && {
+      var i = 0
+      while(i < a.length) {
+        if(tEq.neqv(a(i),b(i)))
+          return false
+        i += 1
+      }
+      true
+    }
 
     override def hash(a: Array[T]): Int = ArrayTag.hash(a)
 

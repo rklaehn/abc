@@ -4,7 +4,6 @@ import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
 
 import scala.collection.immutable.HashMap
-import spire.implicits._
 
 object SubsetOfBench extends App {
   val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)

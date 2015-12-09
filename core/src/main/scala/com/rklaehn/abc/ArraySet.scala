@@ -1,13 +1,14 @@
 package com.rklaehn.abc
 
-import spire.algebra.lattice.{Lattice, Heyting}
+import com.rklaehn.sonicreducer.Reducer
+import algebra.lattice.{Lattice, Heyting}
 
 import language.implicitConversions
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.SortedSet
 import scala.{ specialized => sp }
-import spire.algebra.{Order, Eq}
+import algebra.{Order, Eq}
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
@@ -129,7 +130,7 @@ object ArraySet {
       SetUtils.union(a, b)
     }
 
-    private[this] var reducer = Reducer.create[Array[T]](union)
+    private[this] var reducer = Reducer[Array[T]](union)
 
     def +=(elem: T) = {
       reducer.apply(tag.singleton(elem))
@@ -137,7 +138,7 @@ object ArraySet {
     }
 
     def clear() = {
-      reducer = Reducer.create[Array[T]](union)
+      reducer = Reducer[Array[T]](union)
     }
 
     def result() = {
@@ -151,7 +152,7 @@ object ArraySet {
       SetUtils.union2(a, b)
     }
 
-    private[this] var reducer = Reducer.create[Array[T]](union)
+    private[this] var reducer = Reducer[Array[T]](union)
 
     def +=(elem: T) = {
       reducer.apply(tag.singleton(elem))
@@ -159,7 +160,7 @@ object ArraySet {
     }
 
     def clear() = {
-      reducer = Reducer.create[Array[T]](union)
+      reducer = Reducer[Array[T]](union)
     }
 
     def result() = {

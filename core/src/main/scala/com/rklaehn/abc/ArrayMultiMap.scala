@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import spire.util.Opt
+import com.rklaehn.sonicreducer.Reducer
 
 import scala.{ specialized ⇒ sp }
 
@@ -35,8 +35,8 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
   def except(that: ArrayMultiMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] = {
     val map1 = map.except(that.map, (x,y) ⇒ {
       val r = x diff y
-      if(r.isEmpty) Opt.empty[ArraySet[V]]
-      else Opt(r)
+      if(r.isEmpty) Option.empty[ArraySet[V]]
+      else Option(r)
     })
     new ArrayMultiMap[K, V](map1)
   }
@@ -57,14 +57,14 @@ object ArrayMultiMap {
     new ArrayMultiMap[K, V](ArrayMap.singleton(k, v))
 
   def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, ArraySet[V])*) = {
-    val reducer = Reducer.create[ArrayMultiMap[K, V]](_ merge _)
+    val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer(singleton(k, v))
     reducer.result().getOrElse(empty[K, V])
   }
 
   def fromKVs[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, V)*) = {
-    val reducer = Reducer.create[ArrayMultiMap[K, V]](_ merge _)
+    val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer(singleton(k, ArraySet.singleton(v)))
     reducer.result().getOrElse(empty[K, V])

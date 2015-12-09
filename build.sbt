@@ -44,8 +44,10 @@ lazy val testSettings = {
 lazy val coreSettings = Seq(
   name := "abc",
   // I would prefer just referencing non/algebra at some point
-  libraryDependencies += "org.spire-math" %% "spire" % "0.10.1",
-  libraryDependencies += "org.spire-math" %% "spire-scalacheck-binding" % "0.9.0" % "test",
+  libraryDependencies += "org.spire-math" %% "algebra" % "0.3.1",
+  libraryDependencies += "org.spire-math" %% "algebra-std" % "0.3.1",
+  libraryDependencies += "org.spire-math" %% "algebra-laws" % "0.3.1" % "test",
+  libraryDependencies += "com.rklaehn" %% "sonicreducer" % "0.2.0",
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
   libraryDependencies += "ichi.bench" % "thyme" % "0.1.1" % "test" from "https://github.com/Ichoran/thyme/raw/master/Thyme.jar",
   coverageMinimum := 100,

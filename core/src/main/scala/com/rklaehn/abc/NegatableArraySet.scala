@@ -1,8 +1,11 @@
 package com.rklaehn.abc
 
+import com.rklaehn.sonicreducer.Reducer
+
 import language.implicitConversions
 import scala.{ specialized => sp }
-import spire.algebra.{Eq, Bool}
+import algebra.Eq
+import algebra.lattice.Bool
 
 final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) {
   lhs ⇒
@@ -106,7 +109,7 @@ object NegatableArraySet {
       SetUtils.union(a, b)
     }
 
-    private[this] var reducer = Reducer.create[Array[T]](union)
+    private[this] var reducer = Reducer[Array[T]](union)
 
     def +=(elem: T) = {
       reducer.apply(tag.singleton(elem))
@@ -114,7 +117,7 @@ object NegatableArraySet {
     }
 
     def clear() = {
-      reducer = Reducer.create[Array[T]](union)
+      reducer = Reducer[Array[T]](union)
     }
 
     def result() = {

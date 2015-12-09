@@ -1,7 +1,8 @@
 package com.rklaehn.abc
 
 import scala.collection.immutable.HashMap
-import spire.implicits._
+import algebra.std.all._
+import Instances._
 
 object MapCreateAccessBench extends App {
 

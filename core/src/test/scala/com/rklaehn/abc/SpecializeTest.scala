@@ -1,10 +1,10 @@
 package com.rklaehn.abc
 
-import spire.implicits._
 import org.junit.Assert._
 import org.junit.Test
 import DebugUtil._
-import spire.optional.genericEq._
+import algebra.std.all._
+import Instances._
 
 class SpecializeTest {
 

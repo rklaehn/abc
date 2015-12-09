@@ -1,9 +1,10 @@
-package spire.math
-import spire.algebra.Order
-import scala.{specialized => spec}
+package com.rklaehn.abc
+
+import algebra.Order
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
+import scala.{specialized ⇒ spec}
 
 /**
  *  Interface for a merging strategy object.
