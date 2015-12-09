@@ -69,6 +69,7 @@ abstract class BinaryMerge {
   }
 }
 
+// $COVERAGE-OFF$
 abstract class BinaryMerge2 extends BinaryMerge {
 
   def binarySearchB(ai: Int, b0: Int, b1: Int): Int = {
@@ -97,6 +98,7 @@ abstract class BinaryMerge2 extends BinaryMerge {
   def compare(ai: Int, bi: Int): Int
 
 }
+// $COVERAGE-ON$
 
 /**
  *  Merge that uses binary search to reduce the number of comparisons
@@ -107,9 +109,11 @@ abstract class BinaryMerge2 extends BinaryMerge {
  */
 object BinaryMerge extends Merge {
 
+  // $COVERAGE-OFF$
   def merge[@specialized T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] = {
     new ArrayBinaryMerge(a,b).result
   }
+  // $COVERAGE-ON$
 
   /*
   private[this] def resize[T:ClassTag](x:Array[T], n: Int): Array[T] = {
@@ -122,6 +126,7 @@ object BinaryMerge extends Merge {
     }
   }*/
 
+  // $COVERAGE-OFF$
   private class ArrayBinaryMerge[@specialized T](a: Array[T], b: Array[T])(implicit o: Order[T], c: ClassTag[T]) extends BinaryMerge2 {
 
     def compare(ai: Int, bi: Int) = o.compare(a(ai), b(bi))
@@ -149,48 +154,5 @@ object BinaryMerge extends Merge {
 
     def result = r
   }
-}
-
-/**
- *  Simple linear merge
- */
-object LinearMerge extends Merge {
-
-  def merge[@spec T: Order : ClassTag](a: Array[T], b: Array[T]): Array[T] = {
-    val o = Order[T]
-    val r = Array.ofDim[T](a.length + b.length)
-    var ri = 0
-    var ai = 0
-    var bi = 0
-    while (ai < a.length && bi < b.length) {
-      val c = o.compare(a(ai), b(bi))
-      if (c < 0) {
-        r(ri) = a(ai)
-        ri += 1
-        ai += 1
-      } else if (c > 0) {
-        r(ri) = b(bi)
-        ri += 1
-        bi += 1
-      } else {
-        r(ri) = a(ai)
-        ri += 1
-        r(ri) = b(bi)
-        ri += 1
-        ai += 1
-        bi += 1
-      }
-    }
-    while (ai < a.length) {
-      r(ri) = a(ai)
-      ri += 1
-      ai += 1
-    }
-    while (bi < b.length) {
-      r(ri) = b(bi)
-      ri += 1
-      bi += 1
-    }
-    r
-  }
+  // $COVERAGE-ON$
 }

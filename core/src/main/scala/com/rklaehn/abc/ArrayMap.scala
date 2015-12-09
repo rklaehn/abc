@@ -15,7 +15,9 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val values0: Array[V]) { self ⇒
   import ArrayMap._
 
+  // $COVERAGE-OFF$
   def asCollection(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] = AsCollection.wrap(this)
+  // $COVERAGE-ON$
 
   def iterator = keys0.iterator zip values0.iterator
 
@@ -163,8 +165,21 @@ object ArrayMap {
     def result() =
       reducer.result.getOrElse(empty)
   }
+  // $COVERAGE-ON$
 
-  private class MapMerger[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]) extends BinaryMerge {
+  private class MapMerger
+  [
+    @sp(Int, Long, Double) K,
+    @sp(Int, Long, Double) V
+  ]
+  (
+    a: ArrayMap[K, V],
+    b: ArrayMap[K, V]
+  )
+  ( implicit
+    kArrayTag: OrderedArrayTag[K],
+    vArrayTag: ArrayTag[V]
+  ) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0

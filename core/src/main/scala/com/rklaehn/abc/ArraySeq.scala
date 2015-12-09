@@ -1,5 +1,6 @@
 package com.rklaehn.abc
 
+import algebra.Eq
 import com.rklaehn.abc.ArraySeq.AsCollection
 
 import scala.collection.generic.CanBuildFrom
@@ -10,8 +11,10 @@ import scala.{ specialized => sp }
 
 final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) {
 
+  // $COVERAGE-OFF$
   def asCollection(implicit tArrayTag: ArrayTag[T]): AsCollection[T] =
     new AsCollection[T](this)
+  // $COVERAGE-ON$
 
   def length = elements.length
 

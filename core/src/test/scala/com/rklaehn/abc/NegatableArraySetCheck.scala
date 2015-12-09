@@ -4,7 +4,6 @@ import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 import algebra.lattice.Bool
 import algebra.laws._
-import algebra.std.all._
 import Instances._
 
 object NegatableArraySetArbitrary {
