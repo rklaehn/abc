@@ -12,7 +12,9 @@ import algebra.{Order, Eq}
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
+  // $COVERAGE-OFF$
   def asCollection(implicit tArrayTag: OrderedArrayTag[T]): ArraySet.AsCollection[T] = ArraySet.AsCollection.wrap(this)
+  // $COVERAGE-ON$
 
   def contains(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = self.apply(elem)
 
@@ -37,8 +39,10 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def union(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
+  // $COVERAGE-OFF$
   def union2(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union2(this.elements, that.elements))
+  // $COVERAGE-ON$
 
   def intersect(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
@@ -59,6 +63,9 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySet {
 
+//  implicit def eqv[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+
+  // $COVERAGE-OFF$
   final class AsCollection[T](val underlying: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]) extends SortedSet[T] with SortedSetLike[T, AsCollection[T]] {
     import AsCollection.wrap
     implicit def ordering = Order.ordering(tArrayTag.order)
@@ -167,6 +174,7 @@ object ArraySet {
       reducer.result().map(x ⇒ new ArraySet(x)).getOrElse(empty)
     }
   }
+  // $COVERAGE-ON$
 
   implicit def eqv[T](implicit tArrayTag: OrderedArrayTag[T]): Eq[ArraySet[T]] = new Eq[ArraySet[T]] {
     def eqv(x: ArraySet[T], y: ArraySet[T]) = tArrayTag.eqv(x.elements, y.elements)
@@ -189,10 +197,12 @@ object ArraySet {
     b.result()
   }
 
+  // $COVERAGE-OFF$
   def apply2[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
     val b = new ArraySetBuilder2[T]
     b ++= elements
     b.result()
   }
+  // $COVERAGE-ON$
 
 }

@@ -1,5 +1,7 @@
 package com.rklaehn
 
+import algebra.Eq
+
 import scala.reflect.ClassTag
 import scala.util.hashing.Hashing
 
@@ -50,5 +52,20 @@ package object abc {
         System.arraycopy(underlying, 0, r, 0, n min underlying.length)
         r
       }
+  }
+
+  // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
+  implicit def arrayEq[A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
+    def eqv(x: Array[A], y: Array[A]): Boolean = {
+      x.length == y.length && {
+        var i = 0
+        while(i < x.length) {
+          if(!aEq.eqv(x(i), y(i)))
+            return false
+          i += 1
+        }
+        true
+      }
+    }
   }
 }

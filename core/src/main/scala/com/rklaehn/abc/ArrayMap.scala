@@ -95,6 +95,12 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
 object ArrayMap {
 
+//  implicit def eq[K: ArrayTag, V: ArrayTag]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+//    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) =
+//      ArrayTag[K].eqv(x.keys0, y.keys0) && ArrayTag[V].eqv(x.values0, y.values0)
+//  }
+
+  // $COVERAGE-OFF$
   class AsCollection[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]) extends SortedMap[K, V] with SortedMapLike[K, V, AsCollection[K, V]] {
     import AsCollection._
 
@@ -145,11 +151,13 @@ object ArrayMap {
     private[abc] def wrap[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] =
       new AsCollection[K, V](underlying)
   }
+  // $COVERAGE-ON$
 
-  implicit def eqv[K: OrderedArrayTag, V: ArrayTag]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
     def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
   }
 
+  // $COVERAGE-OFF$
   private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
 
     private[this] var reducer = Reducer[ArrayMap[K, V]](_ merge _)

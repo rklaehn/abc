@@ -32,7 +32,7 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
       new ArraySeq[T](temp)
     }
 
-  def map[U : ClassTag](f: T => U): ArraySeq[U] =
+  def map[@sp(Int, Long, Double) U : ClassTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f))
 
   def filter(p: T => Boolean): ArraySeq[T] =
@@ -41,6 +41,9 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySeq {
 
+  implicit def eqv[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+
+  // $COVERAGE-OFF$
   final class AsCollection[T](val underlying: ArraySeq[T])(implicit tArrayTag: ArrayTag[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {
 
     override protected[this] def newBuilder: mutable.Builder[T, AsCollection[T]] =
@@ -66,6 +69,7 @@ object ArraySeq {
       def apply() = new ArrayBuffer[U].mapResult(x ⇒ new AsCollection(new ArraySeq[U](x.toArray(ArrayTag[U].classTag))))
     }
   }
+  // $COVERAGE-ON$
 
   def empty[@sp(Int, Long, Double) T](implicit ev:ClassTag[T]): ArraySeq[T] =
     new ArraySeq(ev.emptyArray)
