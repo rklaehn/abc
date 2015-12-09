@@ -2,7 +2,6 @@ package com.rklaehn.abc
 
 import DebugUtil._
 import algebra.std.all._
-import Instances._
 import org.scalatest.FunSuite
 
 class SpecializeTest extends FunSuite {
@@ -15,6 +14,8 @@ class SpecializeTest extends FunSuite {
     assert(ArraySeq.singleton(1).isSpecialized)
     assert(ArraySeq(1,2,3).isSpecialized)
     assert(ArraySeq(1,2,3).concat(ArraySeq(1,2,3)).isSpecialized)
+    assert(ArraySeq.singleton(1).map(_ * 2).isSpecialized)
+    assert(ArraySeq.singleton(1).filter(_ < 2).isSpecialized)
   }
 
   test("setSpecialization") {
@@ -37,6 +38,7 @@ class SpecializeTest extends FunSuite {
     assert(ArrayMap(1 → 1, 2 → 2).values.isSpecialized)
     assert(ArrayMap(1 → 1, 2 → 2).justKeys(ArraySet(1)).isSpecialized)
     assert(ArrayMap(1 → 1, 2 → 2).exceptKeys(ArraySet(1)).isSpecialized)
+    assert(ArrayMap(1 → 1, 2 → 2).mapValues(_.toLong).isSpecialized)
 
     // for a mixed primitive/anyref map there is no specialization (partial specialization does not work).
     // but we can still use a primitive array for the key array because we have the class tag
@@ -50,10 +52,15 @@ class SpecializeTest extends FunSuite {
   test("multiMapSpecialization") {
     assert(ArrayMultiMap.empty[Int, Int].isSpecialized)
     assert(ArrayMultiMap.singleton(1, ArraySet(1, 2)).isSpecialized)
-    assert(ArrayMultiMap.fromKVs(1 → 1, 1 → 2).isSpecialized)
-    assert(ArrayMultiMap.fromKVs(1 → 1, 1 → 2).apply(1).isSpecialized)
-    assert(ArrayMultiMap.fromKVs(1 → 1, 1 → 2).apply(1).elements.isIntArray)
-    assert(ArrayMultiMap.fromKVs(1 → 1, 1 → 2).map.keys0.isIntArray)
+    val t = ArrayMultiMap.fromEntries(1 → 1, 1 → 2)
+    assert(t.isSpecialized)
+    assert(t(1).isSpecialized)
+    assert(t.keys.elements.isIntArray)
+    assert(t(1).elements.isIntArray)
+    assert(t.map.keys0.isIntArray)
+    assert(t.justKeys(ArraySet(1)).isSpecialized)
+    assert(t.exceptKeys(ArraySet(1)).isSpecialized)
+    assert(t.filterKeys(_ < 2).isSpecialized)
   }
 
   test("biMapSpecialization") {

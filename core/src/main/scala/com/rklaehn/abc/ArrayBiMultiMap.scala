@@ -59,7 +59,7 @@ object ArrayBiMultiMap {
 
   def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, V)*) = {
     new ArrayBiMultiMap[K, V](
-      ArrayMultiMap.fromKVs(kvs: _*),
-      ArrayMultiMap.fromKVs(kvs.map(_.swap): _*))
+      ArrayMultiMap.fromEntries(kvs: _*),
+      ArrayMultiMap.fromEntries(kvs.map(_.swap): _*))
   }
 }
