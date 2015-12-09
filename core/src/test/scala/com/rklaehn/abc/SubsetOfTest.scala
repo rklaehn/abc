@@ -1,15 +1,12 @@
 package com.rklaehn.abc
 
-import org.junit.Assert._
-import org.junit.Test
+import org.scalatest.FunSuite
 
-class SubsetOfTest {
+class SubsetOfTest extends FunSuite {
 
-  @Test
-  def testSubsetOf(): Unit = {
+  test("subsetOf") {
     val a = ArraySet(0 until 1000 :_*)
     val b = ArraySet(500 until 1500 :_*)
-    val r = a.subsetOf(b)
-    assertFalse(r)
+    assert(! a.subsetOf(b))
   }
 }

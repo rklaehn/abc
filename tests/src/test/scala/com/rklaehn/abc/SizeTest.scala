@@ -1,33 +1,10 @@
 package com.rklaehn.abc
 
 import org.github.jamm.MemoryMeter
-import org.junit.Assert._
-import org.junit.Test
-import algebra.Eq
-
-import scala.io.Source
-import scala.util.hashing.Hashing
 import algebra.std.all._
+import org.scalatest.FunSuite
 
-class SizeTest {
-
-  /*
-
-    val mm = new MemoryMeter()
-
-    val overhead = mm.measure(new java.lang.Object)
-    val pointerSize = (mm.measure(new Array[java.lang.Object](256)) - mm.measure(new Array[java.lang.Object](128))) / 128
-    val segment = new Segment(0L,0L,0L)
-    val segmentSize = mm.measure(new Segment(0L,0L,0L))
-    val branchSize = mm.measure(new Branch(0L, 0, segment, segment))
-    println("Testing constant profile object sizes")
-    println(s"Pointer size is $pointerSize")
-    println(s"Object overhead is $overhead")
-    println(s"Segment size is $segmentSize")
-    println(s"Branch size is $branchSize")
-    assertEquals(24, segmentSize - overhead) // prefix, at and above = 3 * 8 bytes
-    assertEquals(24, branchSize - overhead) // prefix, level, hash, left, right = 8 + 1 + 4 + 4 + 4 = 24 bytes
-   */
+object SizeTest extends FunSuite {
 
   lazy val mm = new MemoryMeter()
   lazy val overhead = mm.measure(new java.lang.Object)
@@ -36,8 +13,7 @@ class SizeTest {
   def measureElements[K](xs: Seq[K]): Long =
     xs.foldLeft(0L) { case (sum, x) ⇒ sum + mm.measureDeep(x) }
 
-  @Test
-  def testIntArraySet(): Unit = {
+  test("intArraySet") {
     val es = (0 until 100).toArray
     val a = ArraySet(es: _*)
     val b = Set(es: _*)
@@ -48,8 +24,7 @@ class SizeTest {
     println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testStringArraySet(): Unit = {
+  test("stringArraySet") {
     val es = (0 until 100).map(_.toString).toArray
     val a = ArraySet(es: _*)
     val b = Set(es: _*)
@@ -60,8 +35,7 @@ class SizeTest {
     println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testIntArrayMap(): Unit = {
+  test("intArrayMap") {
     val ks = (0 until 100).toArray
     val vs = ks
     val a = ArrayMap(ks zip vs: _*)
@@ -74,8 +48,7 @@ class SizeTest {
     println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testIntArrayMapLarge(): Unit = {
+  test("intArrayMapLarge") {
     val ks = (0 until 100000).toArray
     val vs = ks
     val a = ArrayMap(ks zip vs: _*)
@@ -88,8 +61,7 @@ class SizeTest {
     println("Set:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testIntStringArrayMap(): Unit = {
+  test("intStringArrayMap") {
     val ks = (0 until 100).toArray
     val vs = ks.map(_.toString)
     val a = ArrayMap(ks zip vs: _*)
@@ -101,8 +73,7 @@ class SizeTest {
     println("Map:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testStringArrayMap(): Unit = {
+  test("stringArrayMap") {
     val ks = (0 until 100).map(_.toString).toArray
     val vs = (0 until 100).map(_.toString).toArray
     val a = ArrayMap(ks zip vs: _*)
@@ -116,8 +87,7 @@ class SizeTest {
     println("Map:      " + (mm.measureDeep(b) - payload))
   }
 
-  @Test
-  def testIntIntMultiMap(): Unit = {
+  test("intIntMultiMap") {
     val ks = (100000 until 101000).toArray
     val vs = (100000 until 101000).toArray
     val a = ArrayMultiMap[Int, Int](ks zip vs.map(x => ArraySet(0 until 100: _*)): _*)
@@ -129,34 +99,4 @@ class SizeTest {
     println("ArraySet: " + (mm.measureDeep(a) - payload))
     println("Set:      " + (mm.measureDeep(b) - payload))
   }
-
-//
-//  @Test
-//  def testRadixTreeUnit2(): Unit = {
-//    val names = Source.fromURL("http://www-01.sil.org/linguistics/wordlists/english/wordlist/wordsEn.txt").getLines.toArray
-//    val set = Set(names: _*)
-//
-//    val tree1 = RadixTree(names.map(s => s -> (())): _*)
-//    val tree2 = tree1.packed
-//
-//    val tree3 = RadixTree(names.map(s => s.toCharArray -> (())): _*)
-//    val tree4 = tree3.packed
-//
-//    val tree5 = RadixTree(names.map(s => s.getBytes("UTF-8") -> (())): _*)
-//    val tree6 = tree5.packed
-//
-//    println(s"List of ${names.length} english words")
-//    println("Elements:           " + mm.measureDeep(names))
-//
-//    println("RadixTree:          " + mm.measureDeep(tree1))
-//    println("RadixTree (packed): " + mm.measureDeep(tree2))
-//
-//    println("RadixTree (Chars):  " + mm.measureDeep(tree3))
-//    println("RadixTree (packed): " + mm.measureDeep(tree4))
-//
-//    println("RadixTree (Bytes):  " + mm.measureDeep(tree5))
-//    println("RadixTree (packed): " + mm.measureDeep(tree6))
-//
-//    println("Set:                " + mm.measureDeep(set))
-//  }
 }

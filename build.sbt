@@ -1,3 +1,4 @@
+import sbt.Keys._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 lazy val root = project.aggregate(core, tests, benchmarks)
@@ -20,8 +21,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.7",
   version := "0.1-SNAPSHOT",
   organization := "com.rklaehn",
-  libraryDependencies += "junit" % "junit" % "4.11" % "test",
-  libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
 )
 
 lazy val testSettings = {
