@@ -1,16 +1,18 @@
 package com.rklaehn.abc
 
+import algebra.ring.Semiring
 import com.rklaehn.sonicreducer.Reducer
-import algebra.lattice.{Lattice, Heyting}
 
 import language.implicitConversions
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.SortedSet
 import scala.{ specialized => sp }
-import algebra.{Order, Eq}
+import algebra.{PartialOrder, Order, Eq}
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
+
+  def size: Int = elements.length
 
   // $COVERAGE-OFF$
   def asCollection(implicit tArrayTag: OrderedArrayTag[T]): ArraySet.AsCollection[T] = ArraySet.AsCollection.wrap(this)
@@ -63,7 +65,22 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySet {
 
-//  implicit def eqv[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+  implicit def eqv[A: ArrayTag]: Eq[ArraySet[A]] = Eq.by(_.elements)
+
+  implicit def partialOrder[A: OrderedArrayTag]: PartialOrder[ArraySet[A]] = new PartialOrder[ArraySet[A]] {
+    def partialCompare(x: ArraySet[A], y: ArraySet[A]) : Double =
+      if (x.size < y.size) if (x.subsetOf(y)) -1.0 else Double.NaN
+      else if (y.size < x.size) -partialCompare(y, x)
+      else if (x == y) 0.0
+      else Double.NaN
+    override def eqv(x: ArraySet[A], y: ArraySet[A]) = OrderedArrayTag[A].eqv(x.elements, y.elements)
+  }
+
+  implicit def semiring[A: OrderedArrayTag]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
+    def zero = ArraySet.empty[A]
+    def times(x: ArraySet[A], y: ArraySet[A]) = x intersect y
+    def plus(x: ArraySet[A], y: ArraySet[A]) = x union y
+  }
 
   // $COVERAGE-OFF$
   final class AsCollection[T](val underlying: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]) extends SortedSet[T] with SortedSetLike[T, AsCollection[T]] {
@@ -175,13 +192,6 @@ object ArraySet {
     }
   }
   // $COVERAGE-ON$
-
-  implicit def eqv[T: ArrayTag]: Eq[ArraySet[T]] = Eq.by(_.elements)
-
-//  implicit def lattice[T](implicit tArrayTag: OrderedArrayTag[T]): Lattice[ArraySet[T]] = new Lattice[ArraySet[T]] {
-//    def meet(lhs: ArraySet[T], rhs: ArraySet[T]) = lhs intersect rhs
-//    def join(lhs: ArraySet[T], rhs: ArraySet[T]) = lhs union rhs
-//  }
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
     new ArraySet[T](ArrayTag[T].empty)

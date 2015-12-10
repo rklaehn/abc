@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.Eq
+import algebra.{Monoid, Eq}
 import com.rklaehn.abc.ArraySeq.AsCollection
 
 import scala.collection.generic.CanBuildFrom
