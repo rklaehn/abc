@@ -176,9 +176,7 @@ object ArraySet {
   }
   // $COVERAGE-ON$
 
-  implicit def eqv[T](implicit tArrayTag: OrderedArrayTag[T]): Eq[ArraySet[T]] = new Eq[ArraySet[T]] {
-    def eqv(x: ArraySet[T], y: ArraySet[T]) = tArrayTag.eqv(x.elements, y.elements)
-  }
+  implicit def eqv[T: ArrayTag]: Eq[ArraySet[T]] = Eq.by(_.elements)
 
 //  implicit def lattice[T](implicit tArrayTag: OrderedArrayTag[T]): Lattice[ArraySet[T]] = new Lattice[ArraySet[T]] {
 //    def meet(lhs: ArraySet[T], rhs: ArraySet[T]) = lhs intersect rhs

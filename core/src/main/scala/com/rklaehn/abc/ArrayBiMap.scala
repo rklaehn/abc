@@ -1,8 +1,10 @@
 package com.rklaehn.abc
 
+import algebra.Eq
+
 import scala.{ specialized => sp }
 
-class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
+final class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
   val kv: ArrayMap[K, V],
   val vk: ArrayMap[V, K]) {
 
@@ -21,19 +23,13 @@ class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc
     new ArrayBiMap[K, V](kv1, vk1)
   }
 
-  override def equals(that: Any) = that match {
-    case that: ArrayBiMap[K, V] => this.kv == that.kv
-    case _ => false
-  }
-
-  override def hashCode =
-    kv.hashCode
-
   override def toString =
     s"ArrayBiMap($kv)"
 }
 
 object ArrayBiMap {
+
+  implicit def eqv[K: ArrayTag, V: ArrayTag]: Eq[ArrayBiMap[K, V]] = Eq.by(_.kv)
 
   def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayBiMap[K, V] =

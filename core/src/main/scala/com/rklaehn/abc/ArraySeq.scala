@@ -41,7 +41,7 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySeq {
 
-  implicit def eqv[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+  implicit def eqv[A: ArrayTag]: Eq[ArraySeq[A]] = Eq.by(_.elements)
 
   // $COVERAGE-OFF$
   final class AsCollection[T](val underlying: ArraySeq[T])(implicit tArrayTag: ArrayTag[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {

@@ -24,13 +24,12 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
     new ArrayMultiMap[K, V](map.mergeWith(that.map, mergeElements))
   }
 
-  def inverse: ArrayMultiMap[V, K] = {
-    ???
-//    val swappedPairs = for {
-//      (k, vs) ← map
-//      v ← vs
-//    } yield (v, k)
-//    ArrayMultiMap.fromKVs(swappedPairs: _*)
+  def inverse(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[V, K] = {
+    val swappedPairs: Iterator[(V, K)] = for {
+      (k, vs) ← map.iterator
+      v ← vs.iterator
+    } yield (v, k)
+    ArrayMultiMap.fromEntries(swappedPairs.toArray: _*)
   }
 
   def except(that: ArrayMultiMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayMultiMap[K, V] = {
@@ -51,7 +50,7 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
 
 object ArrayMultiMap {
 
-  // implicit def eqv[K: ArrayTag, V: ArrayTag]: Eq[ArrayMultiMap[K, V]] = Eq.by[ArrayMultiMap[K, V], ArrayMap[K, ArraySet[V]]](_.map)(ArrayMap.eqv[K, ArraySet[V]])
+  implicit def eqv[K: ArrayTag, V: ArrayTag]: Eq[ArrayMultiMap[K, V]] = Eq.by(_.map)
 
   def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag]: ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])

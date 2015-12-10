@@ -1,8 +1,13 @@
 package com.rklaehn.abc
 
+import algebra.Eq
 import org.scalatest.FunSuite
 
 class ArraySeqTest extends FunSuite {
+
+  test("instances") {
+    implicitly[Eq[ArraySeq[Int]]]
+  }
 
   test("length") {
     val t = ArraySeq(1, 2, 3)
@@ -28,5 +33,9 @@ class ArraySeqTest extends FunSuite {
     assert(t concat ArraySeq.empty[Int] eq t)
     assert(ArraySeq.empty[Int] concat t eq t)
     assert((t concat u).length === 6)
+  }
+
+  test("toString") {
+    assert(!ArraySeq.empty[Int].toString.isEmpty)
   }
 }

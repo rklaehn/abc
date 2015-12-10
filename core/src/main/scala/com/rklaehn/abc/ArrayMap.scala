@@ -2,11 +2,10 @@ package com.rklaehn.abc
 
 import com.rklaehn.sonicreducer.Reducer
 
-import scala.collection.generic.{GenericCompanion, CanBuildFrom}
+import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, SortedMapLike}
-import scala.collection.immutable.{Iterable, SortedMap}
-import scala.util.hashing.MurmurHash3
+import scala.collection.immutable.SortedMap
 import scala.{ specialized => sp }
 import algebra.{Eq, Order}
 
@@ -95,9 +94,13 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
 object ArrayMap {
 
-//  implicit def eq[K: ArrayTag, V: ArrayTag]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
-//    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) =
-//      ArrayTag[K].eqv(x.keys0, y.keys0) && ArrayTag[V].eqv(x.values0, y.values0)
+  implicit def eq[K: ArrayTag, V: ArrayTag]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) =
+      ArrayTag[K].eqv(x.keys0, y.keys0) && ArrayTag[V].eqv(x.values0, y.values0)
+  }
+
+//  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+//    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
 //  }
 
   // $COVERAGE-OFF$
@@ -153,10 +156,6 @@ object ArrayMap {
   }
   // $COVERAGE-ON$
 
-  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
-    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
-  }
-
   // $COVERAGE-OFF$
   private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
 
@@ -175,16 +174,13 @@ object ArrayMap {
   }
   // $COVERAGE-ON$
 
-  private class MapMerger
-  [
+  private class MapMerger[
     @sp(Int, Long, Double) K,
     @sp(Int, Long, Double) V
-  ]
-  (
+  ](
     a: ArrayMap[K, V],
     b: ArrayMap[K, V]
-  )
-  ( implicit
+  )( implicit
     kArrayTag: OrderedArrayTag[K],
     vArrayTag: ArrayTag[V]
   ) extends BinaryMerge {
