@@ -5,18 +5,8 @@ import org.scalacheck.Prop._
 import algebra.std.all._
 import Instances._
 
-object ArraySetArbitrary {
-
-  implicit val arbArraySet = Arbitrary {
-    for {
-      x ← Arbitrary.arbContainer[Vector, Int].arbitrary
-    } yield
-      ArraySet(x: _*)
-  }
-}
-
 object ArraySetSampleCheck extends Properties("ArraySet") {
-  import ArraySetArbitrary.arbArraySet
+  import arb._
 
   def unaryOp(a: ArraySet[Int], r: ArraySet[Int], op: Boolean ⇒ Boolean): Boolean = {
     val samples = a.elements :+ Int.MinValue

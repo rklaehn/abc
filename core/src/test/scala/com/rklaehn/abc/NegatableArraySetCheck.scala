@@ -1,37 +1,20 @@
 package com.rklaehn.abc
 
-import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.Properties
 import org.scalacheck.Prop._
 import algebra.lattice.Bool
 import algebra.laws._
 import Instances._
+import arb._
+import org.scalatest.FunSuite
+import org.typelevel.discipline.scalatest.Discipline
 
-object NegatableArraySetArbitrary {
+class NegatableArraySetLawCheck extends FunSuite with Discipline {
 
-  implicit val arb = Arbitrary {
-    for {
-      x ← Arbitrary.arbContainer[Vector, Int].arbitrary
-      n ← Arbitrary.arbBool.arbitrary
-    } yield {
-      val r = NegatableArraySet(x: _*)
-      val res = if(n)
-        r.negate
-      else
-        r
-      res
-    }
-  }
-}
-
-object NegatableArraySetLawCheck extends Properties("NegatableArraySet") {
-  import NegatableArraySetArbitrary.arb
-
-  for((name, prop) ← LogicLaws[NegatableArraySet[Int]].bool.all.properties)
-    property(name) = prop
+  checkAll("LogicLaws[NegatableArraySet[Int]].bool", LogicLaws[NegatableArraySet[Int]].bool)
 }
 
 object NegatableArraySetSampleCheck extends Properties("NegatableArraySet") {
-  import NegatableArraySetArbitrary.arb
 
   def unaryOp(a: NegatableArraySet[Int], r: NegatableArraySet[Int], op: Boolean ⇒ Boolean): Boolean = {
     val samples = a.elements :+ Int.MinValue

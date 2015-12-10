@@ -88,7 +88,7 @@ object NegatableArraySet {
     def eqv(x: NegatableArraySet[T], y: NegatableArraySet[T]) = x.negated == y.negated && tag.eqv(x.elements, y.elements)
   }
 
-  implicit def negatableArraySetIsBool[T](implicit tag: OrderedArrayTag[T]): Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
+  implicit def negatableArraySetBool[T](implicit tag: OrderedArrayTag[T]): Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
 
     def complement(a: NegatableArraySet[T]) = a.negate
 
@@ -126,6 +126,9 @@ object NegatableArraySet {
   }
 
   private[abc] def wrap[T](elements: Array[T], negated: Boolean) = new NegatableArraySet[T](elements, negated)
+
+  def fromBoolean[@sp(Int, Long, Double) T: OrderedArrayTag](value: Boolean): NegatableArraySet[T] =
+    if(value) all else empty
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: NegatableArraySet[T] =
     wrap(ArrayTag[T].empty, false)

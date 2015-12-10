@@ -61,7 +61,8 @@ object ArrayMultiMap {
   def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, ArraySet[V])*) = {
     val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
-      reducer(singleton(k, v))
+      if(!v.isEmpty)
+        reducer(singleton(k, v))
     reducer.result().getOrElse(empty[K, V])
   }
 

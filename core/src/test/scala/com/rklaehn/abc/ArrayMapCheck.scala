@@ -4,21 +4,10 @@ import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 import algebra.Eq
 import algebra.std.all._
+import arb._
 import Instances._
 
-object ArrayMapArbitrary {
-
-  implicit def arbArrayMap = Arbitrary {
-    for {
-      x ← Arbitrary.arbContainer[Vector, (Int, Int)].arbitrary
-    } yield
-    ArrayMap(x: _*)
-  }
-}
-
 object ArrayMapSampleCheck extends Properties("ArrayMap") {
-  import ArrayMapArbitrary.arbArrayMap
-  import ArraySetArbitrary.arbArraySet
 
   def unaryOp(a: ArrayMap[Int, Int], r: ArrayMap[Int, Int], op: (Int, Option[Int]) ⇒ Option[Int]): Boolean = {
     val samples = a.keys0 :+ Int.MinValue
