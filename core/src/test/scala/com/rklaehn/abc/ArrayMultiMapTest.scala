@@ -12,6 +12,7 @@ class ArrayMultiMapTest extends FunSuite {
   test("apply") {
     assert(Eq.eqv(ArrayMultiMap.fromEntries(1 → 2, 1 → 3, 2 → 1), ArrayMultiMap(1 → ArraySet(2, 3), 2 → ArraySet(1))))
     assert(Eq.eqv(ArrayMultiMap.fromEntries[Int, Int](), ArrayMultiMap.apply[Int, Int]()))
+    assert(Eq.eqv(ArrayMultiMap(1 → ArraySet.empty[Int]), ArrayMultiMap.empty[Int, Int]))
   }
 
   test("except") {

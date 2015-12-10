@@ -9,7 +9,7 @@ import scala.collection.{mutable, IndexedSeqOptimized}
 import scala.reflect.ClassTag
 import scala.{ specialized => sp }
 
-final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) {
+final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals {
 
   // $COVERAGE-OFF$
   def asCollection(implicit tArrayTag: ArrayTag[T]): AsCollection[T] =

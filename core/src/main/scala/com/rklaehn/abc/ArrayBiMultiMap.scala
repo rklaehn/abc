@@ -6,7 +6,7 @@ import scala.{ specialized => sp }
 
 final class ArrayBiMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
   val kv: ArrayMultiMap[K, V],
-  val vk: ArrayMultiMap[V, K]) {
+  val vk: ArrayMultiMap[V, K]) extends NoEquals {
 
   def swap: ArrayBiMultiMap[V, K] = new ArrayBiMultiMap[V, K](vk, kv)
 

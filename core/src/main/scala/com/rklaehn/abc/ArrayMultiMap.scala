@@ -6,7 +6,7 @@ import com.rklaehn.sonicreducer.Reducer
 import scala.{ specialized ⇒ sp }
 
 final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
-  private[abc] val map: ArrayMap[K, ArraySet[V]]) {
+  private[abc] val map: ArrayMap[K, ArraySet[V]]) extends NoEquals {
 
   def keys: ArraySet[K] = map.keys
 

@@ -7,10 +7,11 @@ import language.implicitConversions
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.SortedSet
+import scala.util.hashing.Hashing
 import scala.{ specialized => sp }
 import algebra.{PartialOrder, Order, Eq}
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
+final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
 
   def size: Int = elements.length
 
@@ -41,11 +42,6 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def union(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  // $COVERAGE-OFF$
-  def union2(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
-    new ArraySet[T](SetUtils.union2(this.elements, that.elements))
-  // $COVERAGE-ON$
-
   def intersect(that: ArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
@@ -66,12 +62,14 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 object ArraySet {
 
   implicit def eqv[A: ArrayTag]: Eq[ArraySet[A]] = Eq.by(_.elements)
+//
+//  implicit def hashing[A: ArrayTag]: Hashing[ArraySet[A]] = Hashing.by(_.elements)
 
   implicit def partialOrder[A: OrderedArrayTag]: PartialOrder[ArraySet[A]] = new PartialOrder[ArraySet[A]] {
     def partialCompare(x: ArraySet[A], y: ArraySet[A]) : Double =
       if (x.size < y.size) if (x.subsetOf(y)) -1.0 else Double.NaN
       else if (y.size < x.size) -partialCompare(y, x)
-      else if (x == y) 0.0
+      else if (eqv(x, y)) 0.0
       else Double.NaN
     override def eqv(x: ArraySet[A], y: ArraySet[A]) = OrderedArrayTag[A].eqv(x.elements, y.elements)
   }
@@ -169,28 +167,6 @@ object ArraySet {
       reducer.result().map(x ⇒ new ArraySet(x)).getOrElse(empty)
     }
   }
-
-  private[this] class ArraySetBuilder2[@sp(Int, Long, Double) T](implicit tag: OrderedArrayTag[T]) extends scala.collection.mutable.Builder[T, ArraySet[T]] {
-
-    private[this] def union(a: Array[T], b: Array[T]) = {
-      SetUtils.union2(a, b)
-    }
-
-    private[this] var reducer = Reducer[Array[T]](union)
-
-    def +=(elem: T) = {
-      reducer.apply(tag.singleton(elem))
-      this
-    }
-
-    def clear() = {
-      reducer = Reducer[Array[T]](union)
-    }
-
-    def result() = {
-      reducer.result().map(x ⇒ new ArraySet(x)).getOrElse(empty)
-    }
-  }
   // $COVERAGE-ON$
 
   def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
@@ -204,13 +180,4 @@ object ArraySet {
     b ++= elements
     b.result()
   }
-
-  // $COVERAGE-OFF$
-  def apply2[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
-    val b = new ArraySetBuilder2[T]
-    b ++= elements
-    b.result()
-  }
-  // $COVERAGE-ON$
-
 }

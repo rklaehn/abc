@@ -25,8 +25,12 @@ package object abc {
 
   implicit class HashingOps(private val underlying: Hashing.type) extends AnyVal {
     def apply[T](implicit ev: Hashing[T]): Hashing[T] = ev
+    def by[@specialized A, @specialized B](f: A ⇒ B)(implicit bh: Hashing[B]): Hashing[A] = new Hashing[A] {
+      override def hash(x: A): Int = bh.hash(f(x))
+    }
   }
 
+  // $COVERAGE-OFF$
   implicit class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
 
     def updated(index: Int, value: T): Array[T] = {
@@ -68,4 +72,5 @@ package object abc {
       }
     }
   }
+  // $COVERAGE-ON$
 }

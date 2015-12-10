@@ -11,7 +11,7 @@ import algebra.{Eq, Order}
 
 final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
-  private[abc] val values0: Array[V]) { self ⇒
+  private[abc] val values0: Array[V]) extends NoEquals { self ⇒
   import ArrayMap._
 
   // $COVERAGE-OFF$

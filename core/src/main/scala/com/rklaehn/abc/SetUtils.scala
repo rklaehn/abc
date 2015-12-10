@@ -17,9 +17,6 @@ private[abc] object SetUtils {
   def union[@sp(Int, Long, Double) T: OrderedArrayTag](a: Array[T], b: Array[T]): Array[T] =
     new UnionMerge[T](a, b).result
 
-  def union2[@sp(Int, Long, Double) T: OrderedArrayTag](a: Array[T], b: Array[T]): Array[T] =
-    new UnionMerge2[T](a, b).result
-
   def intersection[@sp(Int, Long, Double) T: OrderedArrayTag](a: Array[T], b: Array[T]): Array[T] =
     new IntersectionMerge[T](a, b).result
 
@@ -49,7 +46,6 @@ private[abc] object SetUtils {
 
   final class SubsetOf[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t: OrderedArrayTag[T]) extends BinaryMerge {
     def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int) = t.order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       throw abort
@@ -60,67 +56,65 @@ private[abc] object SetUtils {
 
   final class NoIntersect[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t: OrderedArrayTag[T]) extends BinaryMerge {
     def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int) = t.order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = { throw abort }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
     merge0(0, a.length, 0, b.length)
   }
 
-  object UnionMerge2 {
-    final val FromA = 0
-    final val FromB = 1
-  }
-
-  final class UnionMerge2[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
-    import UnionMerge2._
-    val r = t.newArray(a.length + b.length)
-    var ri: Int = 0
-    var mode: Int = -1
-    var start: Int = 0
-    var end: Int = 0
-
-    def exec(): Unit = {
-      mode match {
-        case FromA ⇒
-          val size = end - start
-          System.arraycopy(a, start, r, ri, size)
-          ri += size
-        case FromB ⇒
-          val size = end - start
-          System.arraycopy(b, start, r, ri, size)
-          ri += size
-        case _ ⇒
-      }
-    }
-
-    @inline
-    private[this] final def op(mode: Int, start:Int, end: Int): Unit = {
-      if(this.mode == mode)
-        this.end = end
-      else {
-        exec()
-        this.mode = mode
-        this.start = start
-        this.end = end
-      }
-    }
-
-    def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
-    def collision(ai: Int, bi: Int): Unit = op(FromA, ai, ai + 1)
-    def fromA(a0: Int, a1: Int, bi: Int): Unit = op(FromA, a0, a1)
-    def fromB(ai: Int, b0: Int, b1: Int): Unit = op(FromB, b0, b1)
-    def result: Array[T] = t.resizeInPlace(r, ri)
-    merge0(0, a.length, 0, b.length)
-    exec()
-  }
+//  object UnionMerge2 {
+//    final val FromA = 0
+//    final val FromB = 1
+//  }
+//
+//  final class UnionMerge2[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
+//    import UnionMerge2._
+//    val r = t.newArray(a.length + b.length)
+//    var ri: Int = 0
+//    var mode: Int = -1
+//    var start: Int = 0
+//    var end: Int = 0
+//
+//    def exec(): Unit = {
+//      mode match {
+//        case FromA ⇒
+//          val size = end - start
+//          System.arraycopy(a, start, r, ri, size)
+//          ri += size
+//        case FromB ⇒
+//          val size = end - start
+//          System.arraycopy(b, start, r, ri, size)
+//          ri += size
+//        case _ ⇒
+//      }
+//    }
+//
+//    @inline
+//    private[this] final def op(mode: Int, start:Int, end: Int): Unit = {
+//      if(this.mode == mode)
+//        this.end = end
+//      else {
+//        exec()
+//        this.mode = mode
+//        this.start = start
+//        this.end = end
+//      }
+//    }
+//
+//    def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
+//    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
+//    def collision(ai: Int, bi: Int): Unit = op(FromA, ai, ai + 1)
+//    def fromA(a0: Int, a1: Int, bi: Int): Unit = op(FromA, a0, a1)
+//    def fromB(ai: Int, b0: Int, b1: Int): Unit = op(FromB, b0, b1)
+//    def result: Array[T] = t.resizeInPlace(r, ri)
+//    merge0(0, a.length, 0, b.length)
+//    exec()
+//  }
 
   final class UnionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
     val r = t.newArray(a.length + b.length)
     var ri: Int = 0
     def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
       System.arraycopy(a,ai,r,ri,1)
       // r(ri) = a(ai)
@@ -142,7 +136,6 @@ private[abc] object SetUtils {
     val r = t.newArray(a.length min b.length)
     var ri: Int = 0
     def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
       System.arraycopy(a,ai,r,ri,1)
       // r(ri) = a(ai)
@@ -158,7 +151,6 @@ private[abc] object SetUtils {
     val r = t.newArray(a.length)
     var ri: Int = 0
     def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)
@@ -173,7 +165,6 @@ private[abc] object SetUtils {
     var ri: Int = 0
     val r = t.newArray(a.length + b.length)
     def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)

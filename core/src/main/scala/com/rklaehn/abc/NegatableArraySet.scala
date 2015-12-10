@@ -7,7 +7,7 @@ import scala.{ specialized => sp }
 import algebra.Eq
 import algebra.lattice.Bool
 
-final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) {
+final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) extends NoEquals {
   lhs ⇒
   import NegatableArraySet._
 
