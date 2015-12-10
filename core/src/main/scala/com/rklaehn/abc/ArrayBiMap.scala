@@ -29,7 +29,7 @@ final class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] priva
 
 object ArrayBiMap {
 
-  implicit def eqv[K: ArrayTag, V: ArrayTag]: Eq[ArrayBiMap[K, V]] = Eq.by(_.kv)
+  implicit def hash[K: ArrayTag, V: ArrayTag]: Hash[ArrayBiMap[K, V]] = Hash.by(_.kv)
 
   def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     implicit kArrayTag: OrderedArrayTag[K], vArrayTag: OrderedArrayTag[V]): ArrayBiMap[K, V] =

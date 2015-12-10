@@ -6,6 +6,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, SortedMapLike}
 import scala.collection.immutable.SortedMap
+import scala.util.hashing.MurmurHash3
 import scala.{ specialized => sp }
 import algebra.{Eq, Order}
 
@@ -94,7 +95,10 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
 object ArrayMap {
 
-  implicit def eq[K: ArrayTag, V: ArrayTag]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+  implicit def hash[K: ArrayTag, V: ArrayTag]: Hash[ArrayMap[K, V]] = new Hash[ArrayMap[K, V]] {
+    def hash(x: ArrayMap[K, V]) =
+      MurmurHash3.mix(ArrayTag[K].hash(x.keys0), ArrayTag[V].hash(x.values0))
+
     def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) =
       ArrayTag[K].eqv(x.keys0, y.keys0) && ArrayTag[V].eqv(x.values0, y.values0)
   }

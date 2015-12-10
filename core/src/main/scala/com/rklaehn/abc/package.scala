@@ -3,7 +3,7 @@ package com.rklaehn
 import algebra.Eq
 
 import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
+import scala.util.hashing.MurmurHash3
 
 package object abc {
 
@@ -21,13 +21,6 @@ package object abc {
     }
 
     def emptyArray: Array[T] = underlying.newArray(0)
-  }
-
-  implicit class HashingOps(private val underlying: Hashing.type) extends AnyVal {
-    def apply[T](implicit ev: Hashing[T]): Hashing[T] = ev
-    def by[@specialized A, @specialized B](f: A ⇒ B)(implicit bh: Hashing[B]): Hashing[A] = new Hashing[A] {
-      override def hash(x: A): Int = bh.hash(f(x))
-    }
   }
 
   // $COVERAGE-OFF$
@@ -59,7 +52,7 @@ package object abc {
   }
 
   // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
-  implicit def arrayEq[A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
+  implicit def arrayEq[@specialized A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
     def eqv(x: Array[A], y: Array[A]): Boolean = {
       x.length == y.length && {
         var i = 0
@@ -70,6 +63,30 @@ package object abc {
         }
         true
       }
+    }
+  }
+
+  implicit def arrayHash[@specialized A](implicit aHash: Hash[A]): Hash[Array[A]] = new Hash[Array[A]] {
+    def eqv(x: Array[A], y: Array[A]): Boolean = {
+      x.length == y.length && {
+        var i = 0
+        while(i < x.length) {
+          if(!aHash.eqv(x(i), y(i)))
+            return false
+          i += 1
+        }
+        true
+      }
+    }
+
+    override def hash(a: Array[A]): Int = {
+      var result = MurmurHash3.arraySeed
+      var i = 0
+      while(i < a.length) {
+        result = MurmurHash3.mix(result, aHash.hash(a(i)))
+        i += 1
+      }
+      result
     }
   }
   // $COVERAGE-ON$

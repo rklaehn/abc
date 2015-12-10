@@ -9,8 +9,6 @@ import org.scalatest.prop.Checkers
 import org.typelevel.discipline.scalatest.Discipline
 import arb._
 
-import scala.util.hashing.Hashing
-
 class ArraySetLawCheck extends FunSuite with Discipline {
 
   def checkLaws[T: OrderedArrayTag: Arbitrary](): Unit = {
@@ -29,12 +27,24 @@ class ArraySetLawCheck extends FunSuite with Discipline {
   checkLaws[String]()
 }
 
-//class ArraySetCheck extends FunSuite with Checkers {
-//
-//  val h = implicitly[Hashing[ArraySet[Int]]]
-//  test("foo") {
-//    check { xs: Vector[Int] ⇒
-//      h.hash(ArraySet(xs: _*)) == h.hash(ArraySet(xs.reverse: _*))
-//    }
-//  }
-//}
+class ArraySetCheck extends FunSuite with Checkers {
+
+  def checkHashing[T: OrderedArrayTag: Arbitrary](): Unit = {
+    val name = OrderedArrayTag[T].classTag.runtimeClass.getSimpleName
+    test(s"hashConsistency $name") {
+      check { xs: Vector[T] ⇒
+        Eq.eqv(ArraySet(xs: _*), ArraySet(xs.reverse: _*)) &&
+        Hash.hash(ArraySet(xs: _*)) == Hash.hash(ArraySet(xs.reverse: _*))
+      }
+    }
+  }
+  checkHashing[Byte]()
+  checkHashing[Short]()
+  checkHashing[Int]()
+  checkHashing[Long]()
+  checkHashing[Float]()
+  checkHashing[Double]()
+  checkHashing[Boolean]()
+  checkHashing[Char]()
+  checkHashing[String]()
+}

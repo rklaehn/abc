@@ -12,7 +12,7 @@ import scala.{ specialized => sp }
 final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals {
 
   // $COVERAGE-OFF$
-  def asCollection(implicit tArrayTag: ArrayTag[T]): AsCollection[T] =
+  def asCollection(implicit eq:Eq[T], hash: Hash[T], classTag: ClassTag[T]): AsCollection[T] =
     new AsCollection[T](this)
   // $COVERAGE-ON$
 
@@ -41,29 +41,29 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySeq {
 
-  implicit def eqv[A: ArrayTag]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+  implicit def hash[A: ArrayTag]: Hash[ArraySeq[A]] = Hash.by(_.elements)
 
   // $COVERAGE-OFF$
-  final class AsCollection[T](val underlying: ArraySeq[T])(implicit tArrayTag: ArrayTag[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {
+  final class AsCollection[T : Eq: Hash: ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {
 
     override protected[this] def newBuilder: mutable.Builder[T, AsCollection[T]] =
-      new ArrayBuffer[T].mapResult(x ⇒ new AsCollection(new ArraySeq(x.toArray(tArrayTag.classTag))))
+      new ArrayBuffer[T].mapResult(x ⇒ new AsCollection(new ArraySeq(x.toArray)))
 
     def apply(idx: Int) = underlying.apply(idx)
 
     def length = underlying.length
 
     override def equals(that: Any) = that match {
-      case that: AsCollection[T] => tArrayTag.eqv(this.underlying.elements, that.underlying.elements)
+      case that: AsCollection[T] => Eq.eqv(this.underlying.elements, that.underlying.elements)
       case _ => false
     }
 
-    override def hashCode: Int = tArrayTag.hash(underlying.elements)
+    override def hashCode: Int = Hash.hash(underlying.elements)
   }
 
   object AsCollection {
 
-    implicit def cbf[T, U: ArrayTag]: CanBuildFrom[AsCollection[T], U, AsCollection[U]] = new CanBuildFrom[AsCollection[T], U, AsCollection[U]] {
+    implicit def cbf[T, U: Eq:Hash:ClassTag]: CanBuildFrom[AsCollection[T], U, AsCollection[U]] = new CanBuildFrom[AsCollection[T], U, AsCollection[U]] {
       def apply(from: AsCollection[T]) = apply()
 
       def apply() = new ArrayBuffer[U].mapResult(x ⇒ new AsCollection(new ArraySeq[U](x.toArray(ArrayTag[U].classTag))))

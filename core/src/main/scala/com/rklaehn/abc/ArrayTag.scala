@@ -2,15 +2,15 @@ package com.rklaehn.abc
 
 import algebra.Eq
 import scala.reflect.ClassTag
-import scala.util.hashing.{MurmurHash3, Hashing}
+import scala.util.hashing.MurmurHash3
 import scala.{specialized => sp}
 
-trait ArrayTag[@sp T] extends Eq[Array[T]] with Hashing[Array[T]] {
+trait ArrayTag[@sp T] extends Eq[Array[T]] with Hash[Array[T]] {
   def empty: Array[T]
   def singleton(e: T): Array[T]
   def newArray(n: Int): Array[T]
   def copyOf(a: Array[T], n: Int): Array[T]
-  implicit def classTag: ClassTag[T]
+  def classTag: ClassTag[T]
   final def resizeInPlace(a: Array[T], n: Int): Array[T] = if(n == a.length) a else copyOf(a, n)
 }
 
@@ -18,7 +18,7 @@ object ArrayTag {
 
   @inline final def apply[@sp T](implicit ev: ArrayTag[T]): ArrayTag[T] = ev
 
-  private[abc] def hash[T](a: Array[T])(implicit elementHashing: Hashing[T]): Int =  {
+  private[abc] def hash[T](a: Array[T])(implicit elementHashing: Hash[T]): Int =  {
     var r = MurmurHash3.arraySeed
     var i = 0
     while(i < a.length) {
@@ -56,7 +56,7 @@ object ArrayTag {
   implicit val charArrayTag: ArrayTag[Char] = OrderedArrayTag.charOrderedArrayTag
   implicit val booleanArrayTag: ArrayTag[Boolean] = OrderedArrayTag.booleanOrderedArrayTag
 
-  implicit def generic[T](implicit o: Eq[T], c: ClassTag[T], h: Hashing[T]): ArrayTag[T] =
+  implicit def generic[T](implicit o: Eq[T], c: ClassTag[T], h: Hash[T]): ArrayTag[T] =
     new GenericArrayTag[T]()(o, c, h)
 
   def reference[T <: AnyRef](implicit classTag: ClassTag[T]) = new ReferenceArrayTag[T](classTag)
@@ -70,7 +70,7 @@ object ArrayTag {
     def eqv(x: Array[T], y: Array[T]) = java.util.Arrays.equals(x.asInstanceOf[Array[AnyRef]], y.asInstanceOf[Array[AnyRef]])
   }
 
-  private[abc] class GenericArrayTag[@sp T](implicit val tEq: Eq[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends ArrayTag[T] {
+  private[abc] class GenericArrayTag[@sp T](implicit val tEq: Eq[T], val classTag: ClassTag[T], val tHashing: Hash[T]) extends ArrayTag[T] {
 
     override def singleton(e: T): Array[T] = {
       val r = classTag.newArray(1)

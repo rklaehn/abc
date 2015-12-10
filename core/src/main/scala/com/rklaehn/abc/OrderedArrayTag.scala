@@ -3,13 +3,12 @@ package com.rklaehn.abc
 import algebra.Order
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
 import scala.{specialized => sp}
 import algebra.std.all._
 
 trait OrderedArrayTag[@sp T] extends ArrayTag[T] {
-  implicit def classTag: ClassTag[T]
-  implicit def order: Order[T]
+  def classTag: ClassTag[T]
+  def order: Order[T]
   def sort(as: Array[T]): Unit
   def binarySearch(as: Array[T], a0: Int, a1: Int, a: T): Int
   def compare(a: Array[T], ai: Int, b: Array[T], bi: Int): Int
@@ -19,7 +18,7 @@ object OrderedArrayTag {
 
   @inline final def apply[@sp T](implicit ev: OrderedArrayTag[T]): OrderedArrayTag[T] = ev
 
-  implicit def generic[T](implicit o: Order[T], c: ClassTag[T], h: Hashing[T]): OrderedArrayTag[T] =
+  implicit def generic[T](implicit o: Order[T], c: ClassTag[T], h: Hash[T]): OrderedArrayTag[T] =
     new GenericOrderedArrayTag[T]()(o, c, h)
 
   private def binarySearch[@sp(Int, Long, Double) T](a: Array[T], e: T, from: Int, until: Int)(implicit o: Order[T]): Int = {
@@ -39,7 +38,7 @@ object OrderedArrayTag {
     binarySearch0(from, until - 1)
   }
 
-  private[abc] class GenericOrderedArrayTag[@sp T](implicit val order: algebra.Order[T], val classTag: ClassTag[T], val tHashing: Hashing[T]) extends OrderedArrayTag[T] {
+  private[abc] class GenericOrderedArrayTag[@sp T](implicit val order: algebra.Order[T], val classTag: ClassTag[T], val tHashing: Hash[T]) extends OrderedArrayTag[T] {
     override def compare(a: Array[T], ai: Int, b: Array[T], bi: Int): Int = order.compare(a(ai), b(bi))
     override def singleton(e: T): Array[T] = {
       val r = classTag.newArray(1)

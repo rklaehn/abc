@@ -1,6 +1,5 @@
 package com.rklaehn.abc
 
-import algebra.Eq
 import com.rklaehn.sonicreducer.Reducer
 
 import scala.{ specialized ⇒ sp }
@@ -50,13 +49,16 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
 
 object ArrayMultiMap {
 
-  implicit def eqv[K: ArrayTag, V: ArrayTag]: Eq[ArrayMultiMap[K, V]] = Eq.by(_.map)
+  implicit def hash[K: ArrayTag, V: ArrayTag]: Hash[ArrayMultiMap[K, V]] = Hash.by(_.map)
 
   def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag]: ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])
 
-  def singleton[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](k: K, v: ArraySet[V]) =
+  def singleton[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](k: K, v: ArraySet[V]) = {
+    // val foo = implicitly[ArrayTag[ArraySet[V]]]
+    val bar = ArrayTag.generic[ArraySet[V]]
     new ArrayMultiMap[K, V](ArrayMap.singleton(k, v))
+  }
 
   def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, ArraySet[V])*) = {
     val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)

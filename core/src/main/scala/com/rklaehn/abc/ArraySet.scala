@@ -7,7 +7,6 @@ import language.implicitConversions
 import scala.collection.{GenSet, SortedSetLike, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.SortedSet
-import scala.util.hashing.Hashing
 import scala.{ specialized => sp }
 import algebra.{PartialOrder, Order, Eq}
 
@@ -59,11 +58,7 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   override def toString: String = elements.mkString("Set(", ",", ")")
 }
 
-object ArraySet {
-
-  implicit def eqv[A: ArrayTag]: Eq[ArraySet[A]] = Eq.by(_.elements)
-//
-//  implicit def hashing[A: ArrayTag]: Hashing[ArraySet[A]] = Hashing.by(_.elements)
+trait ArraySetPrio0 {
 
   implicit def partialOrder[A: OrderedArrayTag]: PartialOrder[ArraySet[A]] = new PartialOrder[ArraySet[A]] {
     def partialCompare(x: ArraySet[A], y: ArraySet[A]) : Double =
@@ -73,6 +68,11 @@ object ArraySet {
       else Double.NaN
     override def eqv(x: ArraySet[A], y: ArraySet[A]) = OrderedArrayTag[A].eqv(x.elements, y.elements)
   }
+}
+
+object ArraySet extends ArraySetPrio0 {
+
+  implicit def hash[A: ArrayTag]: Hash[ArraySet[A]] = Hash.by(_.elements)
 
   implicit def semiring[A: OrderedArrayTag]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
     def zero = ArraySet.empty[A]
