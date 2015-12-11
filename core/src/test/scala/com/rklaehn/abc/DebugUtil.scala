@@ -5,7 +5,7 @@ import ichi.bench.Thyme.HowWarm
 
 object DebugUtil {
 
-  val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
+  lazy val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
 
   implicit class IsSpecializedExtension(private val ref: AnyRef) extends AnyVal {
 
