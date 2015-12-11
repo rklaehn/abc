@@ -1,6 +1,6 @@
 package com.rklaehn
 
-import algebra.Eq
+import algebra.{Order, Eq}
 
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
@@ -20,22 +20,26 @@ package object abc {
     def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
   }
 
-  // $COVERAGE-OFF$
-  implicit class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
+  implicit private[abc] class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
 
-    def updated(index: Int, value: T): Array[T] = {
-      val result = underlying.clone
-      result(index) = value
-      result
-    }
-
-    def patched(index: Int, value: T)(implicit c: ClassTag[T]): Array[T] = {
-      val result = new Array[T](underlying.length + 1)
-      System.arraycopy(underlying, 0, result, 0, index)
-      result(index) = value
-      if (index < underlying.length)
-        System.arraycopy(underlying, index, result, index + 1, underlying.length - index)
-      result
+    def sortAndRemoveDuplicatesInPlace()(implicit order: Order[T], classTag: ClassTag[T]): Array[T] = {
+      if(underlying.length <= 1)
+        underlying
+      else {
+        val a = underlying
+        // use mergeSort since it is better if the elements are pre-ordered, which should be common
+        Sorting.sort(a)
+        var j = 1
+        var i = 1
+        while (i < underlying.length) {
+          if (Eq.neqv(a(j - 1), a(j))) {
+            a(j) = a(i)
+            j += 1
+          }
+          i += 1
+        }
+        resizeInPlace(j)
+      }
     }
 
     def resizeInPlace(n: Int)(implicit c: ClassTag[T]): Array[T] =
@@ -48,6 +52,7 @@ package object abc {
       }
   }
 
+  // $COVERAGE-OFF$
   // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
   implicit def arrayEq[@specialized A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
     def eqv(x: Array[A], y: Array[A]): Boolean = {

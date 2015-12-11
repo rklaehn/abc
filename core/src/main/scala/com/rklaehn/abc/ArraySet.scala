@@ -177,8 +177,9 @@ object ArraySet extends ArraySetPrio0 {
     new ArraySet[T](Array.singleton(e))
 
   def apply[@sp(Int, Long, Double) T: Order : ClassTag](elements: T*): ArraySet[T] = {
-    val b = new ArraySetBuilder[T]
-    b ++= elements
-    b.result()
+    val t = new Array[T](elements.length)
+    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
+    elements.copyToArray(t)
+    new ArraySet[T](t.sortAndRemoveDuplicatesInPlace())
   }
 }

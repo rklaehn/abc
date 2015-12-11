@@ -45,8 +45,8 @@ private object SetUtils {
     }
   }
 
-  final class SubsetOf[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit order: Order[T]) extends BinaryMerge {
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+  final class SubsetOf[@sp(Int, Long, Double) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       throw abort
@@ -55,8 +55,8 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class NoIntersect[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit order: Order[T]) extends BinaryMerge {
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+  final class NoIntersect[@sp(Int, Long, Double) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = { throw abort }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
@@ -112,10 +112,10 @@ private object SetUtils {
 //    exec()
 //  }
 
-  final class UnionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit order:Order[T], classTag: ClassTag[T]) extends BinaryMerge {
-    val r = classTag.newArray(a.length + b.length)
+  final class UnionMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    val r = new Array[T](a.length + b.length)
     var ri: Int = 0
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
       System.arraycopy(a,ai,r,ri,1)
       // r(ri) = a(ai)
@@ -133,10 +133,10 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class IntersectionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit order: Order[T], classTag: ClassTag[T]) extends BinaryMerge {
-    val r = classTag.newArray(a.length min b.length)
+  final class IntersectionMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    val r = new Array[T](a.length min b.length)
     var ri: Int = 0
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
       System.arraycopy(a,ai,r,ri,1)
       // r(ri) = a(ai)
@@ -148,10 +148,10 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class DiffMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit order: Order[T], classTag: ClassTag[T]) extends BinaryMerge {
-    val r = classTag.newArray(a.length)
+  final class DiffMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    val r = new Array[T](a.length)
     var ri: Int = 0
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)
@@ -162,10 +162,10 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class XorMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit order: Order[T], classTag: ClassTag[T]) extends BinaryMerge {
+  final class XorMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     var ri: Int = 0
-    val r = classTag.newArray(a.length + b.length)
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+    val r = new Array[T](a.length + b.length)
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)

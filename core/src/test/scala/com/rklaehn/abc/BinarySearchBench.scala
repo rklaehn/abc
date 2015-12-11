@@ -23,21 +23,21 @@ object BinarySearchBench extends App {
         th.Warm(Searching.search(as, 0, as.length, as(17)))
       )
 
-    th.pbenchOffWarm(
-      "java.util.Arrays.equals vs. Eq[Array[Byte]]"
-    )(
-        th.Warm(java.util.Arrays.equals(as, bs))
-      )(
-        th.Warm(eq.eqv(as, bs))
-      )
-
-    th.pbenchOffWarm(
-      "java.util.Arrays.hashCode vs. Hash[Array[Byte]]"
-    )(
-        th.Warm(java.util.Arrays.hashCode(as))
-      )(
-        th.Warm(hash.hash(as))
-      )
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.equals vs. Eq[Array[Byte]]"
+//    )(
+//        th.Warm(java.util.Arrays.equals(as, bs))
+//      )(
+//        th.Warm(eq.eqv(as, bs))
+//      )
+//
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.hashCode vs. Hash[Array[Byte]]"
+//    )(
+//        th.Warm(java.util.Arrays.hashCode(as))
+//      )(
+//        th.Warm(hash.hash(as))
+//      )
   }
   block {
     val as = (0 until 1000).map(_.toShort).toArray
@@ -52,21 +52,21 @@ object BinarySearchBench extends App {
         th.Warm(Searching.search(as, 0, as.length, as(17)))
       )
 
-    th.pbenchOffWarm(
-      "java.util.Arrays.equals vs. Eq[Array[Short]]"
-    )(
-        th.Warm(java.util.Arrays.equals(as, bs))
-      )(
-        th.Warm(eq.eqv(as, bs))
-      )
-
-    th.pbenchOffWarm(
-      "java.util.Arrays.hashCode vs. Hash[Array[Short]]"
-    )(
-        th.Warm(java.util.Arrays.hashCode(as))
-      )(
-        th.Warm(hash.hash(as))
-      )
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.equals vs. Eq[Array[Short]]"
+//    )(
+//        th.Warm(java.util.Arrays.equals(as, bs))
+//      )(
+//        th.Warm(eq.eqv(as, bs))
+//      )
+//
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.hashCode vs. Hash[Array[Short]]"
+//    )(
+//        th.Warm(java.util.Arrays.hashCode(as))
+//      )(
+//        th.Warm(hash.hash(as))
+//      )
   }
   block {
     val as = (0 until 1000).map(_.toInt).toArray
@@ -81,21 +81,21 @@ object BinarySearchBench extends App {
         th.Warm(Searching.search(as, 0, as.length, as(17)))
       )
 
-    th.pbenchOffWarm(
-      "java.util.Arrays.equals vs. Eq[Array[Int]]"
-    )(
-        th.Warm(java.util.Arrays.equals(as, bs))
-      )(
-        th.Warm(eq.eqv(as, bs))
-      )
-
-    th.pbenchOffWarm(
-      "java.util.Arrays.hashCode vs. Hash[Array[Int]]"
-    )(
-        th.Warm(java.util.Arrays.hashCode(as))
-      )(
-        th.Warm(hash.hash(as))
-      )
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.equals vs. Eq[Array[Int]]"
+//    )(
+//        th.Warm(java.util.Arrays.equals(as, bs))
+//      )(
+//        th.Warm(eq.eqv(as, bs))
+//      )
+//
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.hashCode vs. Hash[Array[Int]]"
+//    )(
+//        th.Warm(java.util.Arrays.hashCode(as))
+//      )(
+//        th.Warm(hash.hash(as))
+//      )
   }
   block {
     val as = (0 until 1000).map(_.toLong).toArray
@@ -110,20 +110,20 @@ object BinarySearchBench extends App {
         th.Warm(Searching.search(as, 0, as.length, as(17)))
       )
 
-    th.pbenchOffWarm(
-      "java.util.Arrays.equals vs. Eq[Array[Long]]"
-    )(
-        th.Warm(java.util.Arrays.equals(as, bs))
-      )(
-        th.Warm(eq.eqv(as, bs))
-      )
-
-    th.pbenchOffWarm(
-      "java.util.Arrays.hashCode vs. Hash[Array[Long]]"
-    )(
-        th.Warm(java.util.Arrays.hashCode(as))
-      )(
-        th.Warm(hash.hash(as))
-      )
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.equals vs. Eq[Array[Long]]"
+//    )(
+//        th.Warm(java.util.Arrays.equals(as, bs))
+//      )(
+//        th.Warm(eq.eqv(as, bs))
+//      )
+//
+//    th.pbenchOffWarm(
+//      "java.util.Arrays.hashCode vs. Hash[Array[Long]]"
+//    )(
+//        th.Warm(java.util.Arrays.hashCode(as))
+//      )(
+//        th.Warm(hash.hash(as))
+//      )
   }
 }

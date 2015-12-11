@@ -22,11 +22,11 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
   def isEmpty: Boolean = elements.isEmpty
 
-  def concat(that: ArraySeq[T])(implicit ev: ClassTag[T]): ArraySeq[T] =
+  def concat(that: ArraySeq[T])(implicit classTag: ClassTag[T]): ArraySeq[T] =
     if (this.isEmpty) that
     else if (that.isEmpty) this
     else {
-      val temp = ev.newArray(this.elements.length + that.elements.length)
+      val temp = new Array[T](this.elements.length + that.elements.length)
       System.arraycopy(that.elements, 0, temp, 0, this.elements.length)
       System.arraycopy(that.elements, 0, temp, this.elements.length, that.elements.length)
       new ArraySeq[T](temp)

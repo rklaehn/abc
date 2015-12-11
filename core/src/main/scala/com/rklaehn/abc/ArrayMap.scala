@@ -180,12 +180,9 @@ object ArrayMap {
   }
   // $COVERAGE-ON$
 
-  private class MapMerger[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+  private class MapMerger[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
     a: ArrayMap[K, V],
     b: ArrayMap[K, V]
-  )( implicit
-    kOrder: Order[K], kClassTag: ClassTag[K],
-    vClassTag: ClassTag[V]
   ) extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -197,7 +194,7 @@ object ArrayMap {
     val rv = new Array[V](a.size + b.size)
     var ri = 0
 
-    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -222,8 +219,8 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class MapMerger2[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V])
+  private class MapMerger2[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
     extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -235,7 +232,7 @@ object ArrayMap {
     val rv = new Array[V](a.size + b.size)
     var ri = 0
 
-    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -260,8 +257,8 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class Except[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V])
+  private class Except[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])
     extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -273,7 +270,7 @@ object ArrayMap {
     val rv = new Array[V](a.size)
     var ri = 0
 
-    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -298,7 +295,7 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class JustKeys[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]) extends BinaryMerge {
+  private class JustKeys[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -308,7 +305,7 @@ object ArrayMap {
     val rv = new Array[V](ak.length + bk.length)
     var ri = 0
 
-    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {}
 
@@ -325,7 +322,7 @@ object ArrayMap {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class ExceptKeys[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]) extends BinaryMerge {
+  private class ExceptKeys[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -335,7 +332,7 @@ object ArrayMap {
     val rv = new Array[V](ak.length + bk.length)
     var ri = 0
 
-    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -359,8 +356,13 @@ object ArrayMap {
     new ArrayMap[K, V](Array.singleton(k), Array.singleton(v))
 
   def apply[@sp(Int, Long, Double) K: Order : ClassTag, @sp(Int, Long, Double) V: ClassTag](kvs: (K, V)*): ArrayMap[K, V] = {
-    val b = new ArrayMapBuilder[K, V]
-    b ++= kvs
-    b.result()
+    kvs.length match {
+      case 0 ⇒ empty
+      case 1 ⇒ singleton(kvs.head._1, kvs.head._2)
+      case _ ⇒
+        val b = new ArrayMapBuilder[K, V]
+        b ++= kvs
+        b.result()
+    }
   }
 }

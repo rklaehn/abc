@@ -1,22 +1,21 @@
 package com.rklaehn.abc
 
 import algebra.std.all._
-import ichi.bench.Thyme
-import ichi.bench.Thyme.HowWarm
 
 import scala.collection.immutable.{SortedSet, HashSet}
 
 object SetCreateAccessBench extends App {
 
-  val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
+  import DebugUtil.th
+
+  val ns = Array(1, 10, 100, 1000, 10000, 100000)
 
   def createInt(): Unit = {
-    for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
+    for (n ← ns) {
       val elements = (0 until n).toArray
       def s0 = HashSet(elements:_*)
       def s1 = SortedSet(elements:_*)
       def s2 = ArraySet(elements:_*)
-//      def s3 = ArraySet2(elements:_*)
       th.pbenchOffWarm(s"Create HashSet[Int] vs ArraySet[Int] $n")(
         th.Warm(s0.asInstanceOf[AnyRef]))(
         th.Warm(s2.asInstanceOf[AnyRef]))
@@ -27,12 +26,11 @@ object SetCreateAccessBench extends App {
   }
 
   def accessInt(): Unit = {
-    for (n ← Array(1, 10, 100, 1000, 10000, 100000)) {
+    for (n ← ns) {
       val elements = (0 until n).toArray
       val s0 = HashSet(elements:_*)
       val s1 = SortedSet(elements:_*)
       val s2 = ArraySet(elements:_*)
-//      val s3 = ArraySet2(elements:_*)
       val x = 0
       th.pbenchOffWarm(s"Access HashSet[Int] vs ArraySet[Int] $n")(
         th.Warm(s0(x)))(
