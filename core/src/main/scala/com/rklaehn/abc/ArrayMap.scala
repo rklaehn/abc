@@ -153,7 +153,7 @@ object ArrayMap {
 
   object AsCollection {
 
-    implicit def cbf[CC, @sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag]: CanBuildFrom[CC, (K, V), AsCollection[K, V]] = new CanBuildFrom[CC, (K, V), AsCollection[K, V]] {
+    implicit def cbf[CC, K: Order: ClassTag, V: ClassTag]: CanBuildFrom[CC, (K, V), AsCollection[K, V]] = new CanBuildFrom[CC, (K, V), AsCollection[K, V]] {
       def apply(from: CC) = apply()
 
       def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ AsCollection.wrap(ArrayMap(x: _*)))

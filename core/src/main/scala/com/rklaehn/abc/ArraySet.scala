@@ -140,7 +140,7 @@ object ArraySet extends ArraySetPrio0 {
 
     private[abc] def wrap[U: Order: ClassTag: Hash](underlying: ArraySet[U]) = new AsCollection[U](underlying)
 
-    implicit def cbf[CC, @sp(Int, Long, Double) U: Order: ClassTag: Hash]: CanBuildFrom[CC, U, AsCollection[U]] = new CanBuildFrom[CC, U, AsCollection[U]] {
+    implicit def cbf[CC, U: Order: ClassTag: Hash]: CanBuildFrom[CC, U, AsCollection[U]] = new CanBuildFrom[CC, U, AsCollection[U]] {
       def apply(from: CC) = apply()
 
       def apply(): mutable.Builder[U, AsCollection[U]] = new ArraySetBuilder[U].mapResult(x ⇒ wrap(x))
