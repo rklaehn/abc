@@ -3,8 +3,9 @@ package com.rklaehn.abc
 import com.rklaehn.sonicreducer.Reducer
 
 import language.implicitConversions
+import scala.reflect.ClassTag
 import scala.{ specialized => sp }
-import algebra.Eq
+import algebra.{Order, Eq}
 import algebra.lattice.Bool
 
 final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) extends NoEquals {
@@ -18,13 +19,13 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
 
   def negate: NegatableArraySet[T] = wrap(elements, !negated)
 
-  def apply(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = negated ^ (tArrayTag.binarySearch(elements, 0, elements.length, elem) >= 0)
+  def apply(elem: T)(implicit order: Order[T]) = negated ^ (Searching.search(elements, 0, elements.length, elem) >= 0)
 
-  def +(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = lhs.union(singleton(elem))
+  def +(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.union(singleton(elem))
 
-  def -(elem: T)(implicit tArrayTag: OrderedArrayTag[T]) = lhs.diff(singleton(elem))
+  def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.diff(singleton(elem))
 
-  def subsetOf(rhs: NegatableArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): Boolean =
+  def subsetOf(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): Boolean =
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ SetUtils.subsetOf(lhs.elements, rhs.elements)
       case (false, true)  ⇒ !SetUtils.intersects(lhs.elements, rhs.elements)
@@ -32,7 +33,7 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
       case (true, true)   ⇒ SetUtils.subsetOf(rhs.elements, lhs.elements)
     }
 
-  def intersects(rhs: NegatableArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): Boolean = {
+  def intersects(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): Boolean = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ SetUtils.intersects(lhs.elements, rhs.elements)
       case (false, true)  ⇒ !SetUtils.subsetOf(lhs.elements, rhs.elements)
@@ -41,10 +42,10 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
     }
   }
 
-  def xor(rhs: NegatableArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): NegatableArraySet[T] =
+  def xor(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] =
     wrap(SetUtils.xor(lhs.elements, rhs.elements), lhs.negated ^ rhs.negated)
 
-  def union(rhs: NegatableArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): NegatableArraySet[T] = {
+  def union(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ wrap(SetUtils.union(lhs.elements, rhs.elements), false)
       case (false, true)  ⇒ wrap(SetUtils.diff(rhs.elements, lhs.elements), true)
@@ -53,7 +54,7 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
     }
   }
 
-  def intersect(rhs: NegatableArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): NegatableArraySet[T] = {
+  def intersect(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ wrap(SetUtils.intersection(lhs.elements, rhs.elements), false)
       case (false, true)  ⇒ wrap(SetUtils.diff(lhs.elements, rhs.elements), false)
@@ -62,7 +63,7 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
     }
   }
 
-  def diff(rhs: NegatableArraySet[T])(implicit tArrayTag: OrderedArrayTag[T]): NegatableArraySet[T] = {
+  def diff(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ wrap(SetUtils.diff(lhs.elements, rhs.elements), false)
       case (false, true)  ⇒ wrap(SetUtils.intersection(lhs.elements, rhs.elements), false)
@@ -84,11 +85,11 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
 
 object NegatableArraySet {
 
-  implicit def negatableArraySetEq[T](implicit tag: OrderedArrayTag[T]): Eq[NegatableArraySet[T]] = new Eq[NegatableArraySet[T]] {
-    def eqv(x: NegatableArraySet[T], y: NegatableArraySet[T]) = x.negated == y.negated && tag.eqv(x.elements, y.elements)
+  implicit def negatableArraySetEq[T: Eq]: Eq[NegatableArraySet[T]] = new Eq[NegatableArraySet[T]] {
+    def eqv(x: NegatableArraySet[T], y: NegatableArraySet[T]) = x.negated == y.negated && Eq.eqv(x.elements, y.elements)
   }
 
-  implicit def negatableArraySetBool[T](implicit tag: OrderedArrayTag[T]): Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
+  implicit def negatableArraySetBool[T : Order: ClassTag]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
 
     def complement(a: NegatableArraySet[T]) = a.negate
 
@@ -103,7 +104,8 @@ object NegatableArraySet {
     def one = NegatableArraySet.all[T]
   }
 
-  private[this] class NegatableArraySetBuilder[@sp(Int, Long, Double) T](implicit tag: OrderedArrayTag[T]) extends scala.collection.mutable.Builder[T, NegatableArraySet[T]] {
+  // $COVERAGE-OFF$
+  private[this] class NegatableArraySetBuilder[@sp(Int, Long, Double) T](implicit order: Order[T], classTag: ClassTag[T]) extends scala.collection.mutable.Builder[T, NegatableArraySet[T]] {
 
     private[this] def union(a: Array[T], b: Array[T]) = {
       SetUtils.union(a, b)
@@ -112,7 +114,7 @@ object NegatableArraySet {
     private[this] var reducer = Reducer[Array[T]](union)
 
     def +=(elem: T) = {
-      reducer.apply(tag.singleton(elem))
+      reducer.apply(Array.singleton(elem))
       this
     }
 
@@ -124,22 +126,23 @@ object NegatableArraySet {
       reducer.result().map(x ⇒ wrap(x, false)).getOrElse(empty)
     }
   }
+  // $COVERAGE-ON$
 
   private[abc] def wrap[T](elements: Array[T], negated: Boolean) = new NegatableArraySet[T](elements, negated)
 
-  def fromBoolean[@sp(Int, Long, Double) T: OrderedArrayTag](value: Boolean): NegatableArraySet[T] =
+  def fromBoolean[@sp(Int, Long, Double) T: ClassTag](value: Boolean): NegatableArraySet[T] =
     if(value) all else empty
 
-  def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: NegatableArraySet[T] =
-    wrap(ArrayTag[T].empty, false)
+  def empty[@sp(Int, Long, Double) T: ClassTag]: NegatableArraySet[T] =
+    wrap(Array.empty[T], false)
 
-  def all[@sp(Int, Long, Double) T: OrderedArrayTag]: NegatableArraySet[T] =
-    wrap(ArrayTag[T].empty, true)
+  def all[@sp(Int, Long, Double) T: ClassTag]: NegatableArraySet[T] =
+    wrap(Array.empty[T], true)
 
-  def singleton[@sp(Int, Long, Double) T: OrderedArrayTag](e: T): NegatableArraySet[T] =
-    wrap(ArrayTag[T].singleton(e), false)
+  def singleton[@sp(Int, Long, Double) T: ClassTag](e: T): NegatableArraySet[T] =
+    wrap(Array.singleton(e), false)
 
-  def apply[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): NegatableArraySet[T] = {
+  def apply[@sp(Int, Long, Double) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
     val b = new NegatableArraySetBuilder[T]
     b ++= elements
     b.result()

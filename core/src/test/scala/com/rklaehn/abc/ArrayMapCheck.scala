@@ -61,6 +61,12 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
     })
   }
 
+  property("hash") = forAll { (x: Map[Int, Int]) ⇒
+    val a = ArrayMap(x.toSeq: _*)
+    val b = ArrayMap(x.toSeq.reverse: _*)
+    Eq.eqv(a, b) && Hash.hash(a) == Hash.hash(b)
+  }
+
 //  property("or") = forAll { (x: ArraySet[Int], y: ArraySet[Int]) ⇒
 //    binaryOp(x, y, x union y, _ | _)
 //  }

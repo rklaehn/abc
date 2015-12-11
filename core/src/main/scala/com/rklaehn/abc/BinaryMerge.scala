@@ -1,12 +1,37 @@
 package com.rklaehn.abc
 
+import scala.annotation.tailrec
+
 /**
  * Abstract class that can be used to implement custom binary merges with e.g. special collision behavior or an ordering
  * that is not defined via an Order[T] typeclass
  */
-abstract class BinaryMerge {
+private abstract class BinaryMerge {
 
-  def binarySearchB(ai: Int, b0: Int, b1: Int): Int
+  private[this] final def binarySearchB(ai: Int, b0: Int, b1: Int): Int = {
+
+    @tailrec
+    def binarySearch0(low: Int, high: Int): Int =
+      if (low <= high) {
+        val mid = (low + high) >>> 1
+        val c = compare(ai, mid)
+        if (c > 0)
+          binarySearch0(mid + 1, high)
+        else if (c < 0)
+          binarySearch0(low, mid - 1)
+        else
+          mid
+      } else -(low + 1)
+    binarySearch0(b0, b1 - 1)
+  }
+
+  /**
+    * Compare element ai of the first sequence with element bi of the second sequence
+    * @param ai an index into the first sequence
+    * @param bi an index into the second sequence
+    * @return -1 if a(ai) &lt; b(bi), 0 if a(ai) == b(bi), 1 if a(ai) &gt; b(bi)
+    */
+  def compare(ai: Int, bi: Int): Int
 
   /**
    * Called when elements a(ai) and b(bi) are equal according to compare

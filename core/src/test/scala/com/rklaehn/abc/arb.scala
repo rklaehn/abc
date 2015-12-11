@@ -1,5 +1,6 @@
 package com.rklaehn.abc
 
+import algebra.Order
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 
@@ -14,28 +15,28 @@ object arb {
     ArraySeq(xs: _*)
   }
 
-  implicit def arbArraySet[T: Arbitrary: OrderedArrayTag] = Arbitrary {
+  implicit def arbArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[T]]
     } yield
     ArraySet(xs: _*)
   }
 
-  implicit def arbArrayMap[K: Arbitrary: OrderedArrayTag, V: Arbitrary: ArrayTag] = Arbitrary {
+  implicit def arbArrayMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[(K, V)]]
     } yield
     ArrayMap(xs: _*)
   }
 
-  implicit def arbArrayMultiMap[K: Arbitrary: OrderedArrayTag, V: Arbitrary: OrderedArrayTag] = Arbitrary {
+  implicit def arbArrayMultiMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: Order: ClassTag] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[(K, ArraySet[V])]]
     } yield
     ArrayMultiMap(xs: _*)
   }
 
-  implicit def arbNegatableArraySet[T: Arbitrary: OrderedArrayTag] = Arbitrary {
+  implicit def arbNegatableArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
     for {
       xs ← arbitrary[Vector[T]]
       n ← arbitrary[Boolean]

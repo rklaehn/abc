@@ -7,20 +7,17 @@ import scala.util.hashing.MurmurHash3
 
 package object abc {
 
+  implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
+    def singleton[@specialized T](value: T)(implicit classTag: ClassTag[T]) = {
+      val result = classTag.newArray(1)
+      result(0) = value
+      result
+    }
+  }
+
   implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {
 
     def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
-  }
-
-  implicit class ClassTagOps[T](private val underlying: ClassTag[T]) extends AnyVal {
-
-    def singletonArray(value: T): Array[T] = {
-      val a = underlying.newArray(1)
-      a(0) = value
-      a
-    }
-
-    def emptyArray: Array[T] = underlying.newArray(0)
   }
 
   // $COVERAGE-OFF$

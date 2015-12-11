@@ -1,5 +1,6 @@
 package com.rklaehn.abc
 
+import algebra.std.all._
 import algebra.Eq
 import org.scalatest.FunSuite
 

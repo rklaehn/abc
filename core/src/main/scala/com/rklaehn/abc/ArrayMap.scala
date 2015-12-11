@@ -6,6 +6,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, SortedMapLike}
 import scala.collection.immutable.SortedMap
+import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized => sp }
 import algebra.{Eq, Order}
@@ -16,7 +17,7 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   import ArrayMap._
 
   // $COVERAGE-OFF$
-  def asCollection(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] = AsCollection.wrap(this)
+  def asCollection(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): AsCollection[K, V] = AsCollection.wrap(this)
   // $COVERAGE-ON$
 
   def iterator = keys0.iterator zip values0.iterator
@@ -27,29 +28,29 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   def values: ArraySeq[V] = new ArraySeq[V](values0)
 
-  def apply(k: K)(implicit kArrayTag: OrderedArrayTag[K]): V = {
-    val i = kArrayTag.binarySearch(keys0, 0, keys0.length, k)
+  def apply(k: K)(implicit kOrder: Order[K]): V = {
+    val i = Searching.search(keys0, 0, keys0.length, k)
     if (i >= 0) values0(i)
     else throw new NoSuchElementException
   }
 
-  def get(k: K)(implicit kArrayTag: OrderedArrayTag[K]): Option[V] = {
-    val i = kArrayTag.binarySearch(keys0, 0, keys0.length, k)
+  def get(k: K)(implicit kOrder: Order[K], kClassTag: ClassTag[K]): Option[V] = {
+    val i = Searching.search(keys0, 0, keys0.length, k)
     if (i < 0) None else Some(values0(i))
   }
 
-  def merge(that: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] =
+  def merge(that: ArrayMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new MapMerger[K, V](this, that).result
 
-  def mergeWith(that: ArrayMap[K, V], f: (V, V) => V)(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] =
+  def mergeWith(that: ArrayMap[K, V], f: (V, V) => V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new MapMerger2[K, V](this, that, f).result
 
-  def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] =
+  def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new Except[K, V](this, that, f).result
 
-  def filterKeys(f: K ⇒ Boolean)(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] = {
-    val rk = kArrayTag.newArray(keys0.length)
-    val rv = vArrayTag.newArray(values0.length)
+  def filterKeys(f: K ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
+    val rk = kClassTag.newArray(keys0.length)
+    val rv = vClassTag.newArray(values0.length)
     var ri = 0
     var i = 0
     while(i < keys0.length) {
@@ -60,12 +61,12 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
       }
       i += 1
     }
-    new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def filter(f: ((K, V)) ⇒ Boolean)(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] = {
-    val rk = kArrayTag.newArray(keys0.length)
-    val rv = vArrayTag.newArray(values0.length)
+  def filter(f: ((K, V)) ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
+    val rk = kClassTag.newArray(keys0.length)
+    val rv = vClassTag.newArray(values0.length)
     var ri = 0
     var i = 0
     while(i < keys0.length) {
@@ -76,17 +77,17 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
       }
       i += 1
     }
-    new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def justKeys(keys: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] =
+  def justKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new JustKeys[K, V](this, keys).result
 
-  def exceptKeys(keys: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): ArrayMap[K, V] =
+  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new ExceptKeys[K, V](this, keys).result
 
-  def mapValues[@sp(Int, Long, Double) V2: ArrayTag](f: V => V2): ArrayMap[K, V2] = {
-    new ArrayMap(keys0, values0.map(f).toArray(ArrayTag[V2].classTag))
+  def mapValues[@sp(Int, Long, Double) V2: ClassTag](f: V => V2): ArrayMap[K, V2] = {
+    new ArrayMap(keys0, values0.map(f))
   }
 
   override def toString: String =
@@ -95,12 +96,13 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
 object ArrayMap {
 
-  implicit def hash[K: ArrayTag, V: ArrayTag]: Hash[ArrayMap[K, V]] = new Hash[ArrayMap[K, V]] {
+  implicit def hash[K: Hash, V: Hash]: Hash[ArrayMap[K, V]] = new Hash[ArrayMap[K, V]] {
     def hash(x: ArrayMap[K, V]) =
-      MurmurHash3.mix(ArrayTag[K].hash(x.keys0), ArrayTag[V].hash(x.values0))
+      MurmurHash3.mix(Hash.hash(x.keys0), Hash.hash(x.values0))
 
-    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) =
-      ArrayTag[K].eqv(x.keys0, y.keys0) && ArrayTag[V].eqv(x.values0, y.values0)
+    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = {
+      Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0)
+    }
   }
 
 //  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
@@ -108,10 +110,10 @@ object ArrayMap {
 //  }
 
   // $COVERAGE-OFF$
-  class AsCollection[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]) extends SortedMap[K, V] with SortedMapLike[K, V, AsCollection[K, V]] {
+  class AsCollection[K: Order: ClassTag, V: ClassTag](underlying: ArrayMap[K, V]) extends SortedMap[K, V] with SortedMapLike[K, V, AsCollection[K, V]] {
     import AsCollection._
 
-    implicit def ordering = Order.ordering(kArrayTag.order)
+    implicit def ordering = Order.ordering[K]
 
     override def newBuilder : mutable.Builder[(K, V), AsCollection[K, V]] =
       new ArrayMapBuilder[K, V].mapResult(x ⇒ wrap(x))
@@ -149,19 +151,19 @@ object ArrayMap {
 
   object AsCollection {
 
-    implicit def cbf[CC, @sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag]: CanBuildFrom[CC, (K, V), AsCollection[K, V]] = new CanBuildFrom[CC, (K, V), AsCollection[K, V]] {
+    implicit def cbf[CC, @sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag]: CanBuildFrom[CC, (K, V), AsCollection[K, V]] = new CanBuildFrom[CC, (K, V), AsCollection[K, V]] {
       def apply(from: CC) = apply()
 
       def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ AsCollection.wrap(ArrayMap(x: _*)))
     }
 
-    private[abc] def wrap[K, V](underlying: ArrayMap[K, V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]): AsCollection[K, V] =
+    private[abc] def wrap[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[K, V]): AsCollection[K, V] =
       new AsCollection[K, V](underlying)
   }
   // $COVERAGE-ON$
 
   // $COVERAGE-OFF$
-  private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
+  private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
 
     private[this] var reducer = Reducer[ArrayMap[K, V]](_ merge _)
 
@@ -178,15 +180,12 @@ object ArrayMap {
   }
   // $COVERAGE-ON$
 
-  private class MapMerger[
-    @sp(Int, Long, Double) K,
-    @sp(Int, Long, Double) V
-  ](
+  private class MapMerger[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     a: ArrayMap[K, V],
     b: ArrayMap[K, V]
   )( implicit
-    kArrayTag: OrderedArrayTag[K],
-    vArrayTag: ArrayTag[V]
+    kOrder: Order[K], kClassTag: ClassTag[K],
+    vClassTag: ClassTag[V]
   ) extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -194,11 +193,11 @@ object ArrayMap {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rk = kArrayTag.newArray(a.size + b.size)
-    val rv = vArrayTag.newArray(a.size + b.size)
+    val rk = new Array[K](a.size + b.size)
+    val rv = new Array[V](a.size + b.size)
     var ri = 0
 
-    def binarySearchB(ai: Int, b0: Int, b1: Int) = kArrayTag.binarySearch(bk, b0, b1, ak(ai))
+    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -220,11 +219,11 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
   private class MapMerger2[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V])
+    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V])
     extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -232,13 +231,11 @@ object ArrayMap {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rk = kArrayTag.newArray(a.size + b.size)
-
-    val rv = vArrayTag.newArray(a.size + b.size)
-
+    val rk = new Array[K](a.size + b.size)
+    val rv = new Array[V](a.size + b.size)
     var ri = 0
 
-    def binarySearchB(ai: Int, b0: Int, b1: Int) = kArrayTag.binarySearch(bk, b0, b1, ak(ai))
+    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -260,11 +257,11 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
   private class Except[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V])
+      a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V])
     extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -272,13 +269,11 @@ object ArrayMap {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rk = kArrayTag.newArray(a.size)
-
-    val rv = vArrayTag.newArray(a.size)
-
+    val rk = new Array[K](a.size)
+    val rv = new Array[V](a.size)
     var ri = 0
 
-    def binarySearchB(ai: Int, b0: Int, b1: Int) = kArrayTag.binarySearch(bk, b0, b1, ak(ai))
+    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -300,20 +295,20 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class JustKeys[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]) extends BinaryMerge {
+  private class JustKeys[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
     @inline def bk = b.elements
 
-    val rk = kArrayTag.newArray(ak.length + bk.length)
-    val rv = vArrayTag.newArray(ak.length + bk.length)
+    val rk = new Array[K](ak.length + bk.length)
+    val rv = new Array[V](ak.length + bk.length)
     var ri = 0
 
-    def binarySearchB(ai: Int, b0: Int, b1: Int) = kArrayTag.binarySearch(bk, b0, b1, ak(ai))
+    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {}
 
@@ -327,20 +322,20 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class ExceptKeys[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K])(implicit kArrayTag: OrderedArrayTag[K], vArrayTag: ArrayTag[V]) extends BinaryMerge {
+  private class ExceptKeys[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](a: ArrayMap[K, V], b: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
     @inline def bk = b.elements
 
-    val rk = kArrayTag.newArray(ak.length + bk.length)
-    val rv = vArrayTag.newArray(ak.length + bk.length)
+    val rk = new Array[K](ak.length + bk.length)
+    val rv = new Array[V](ak.length + bk.length)
     var ri = 0
 
-    def binarySearchB(ai: Int, b0: Int, b1: Int) = kArrayTag.binarySearch(bk, b0, b1, ak(ai))
+    def compare(ai: Int, bi: Int) = kOrder.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
       System.arraycopy(ak, a0, rk, ri, a1 - a0)
@@ -354,17 +349,16 @@ object ArrayMap {
 
     merge0(0, ak.length, 0, bk.length)
 
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](kArrayTag.resizeInPlace(rk, ri), vArrayTag.resizeInPlace(rv, ri))
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def empty[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
-    implicit kArrayTag: OrderedArrayTag[K], vArrayTag:ArrayTag[V]): ArrayMap[K, V] = new ArrayMap(kArrayTag.empty, vArrayTag.empty)
+  def empty[@sp(Int, Long, Double) K: ClassTag, @sp(Int, Long, Double) V: ClassTag]: ArrayMap[K, V] =
+    new ArrayMap(Array.empty[K], Array.empty[V])
 
-  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: V)(
-    implicit kArrayTag: OrderedArrayTag[K], vArrayTag:ArrayTag[V]): ArrayMap[K, V] =
-    new ArrayMap[K, V](kArrayTag.singleton(k), vArrayTag.singleton(v))
+  def singleton[@sp(Int, Long, Double) K: ClassTag, @sp(Int, Long, Double) V: ClassTag](k: K, v: V): ArrayMap[K, V] =
+    new ArrayMap[K, V](Array.singleton(k), Array.singleton(v))
 
-  def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: ArrayTag](kvs: (K, V)*): ArrayMap[K, V] = {
+  def apply[@sp(Int, Long, Double) K: Order : ClassTag, @sp(Int, Long, Double) V: ClassTag](kvs: (K, V)*): ArrayMap[K, V] = {
     val b = new ArrayMapBuilder[K, V]
     b ++= kvs
     b.result()

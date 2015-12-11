@@ -6,6 +6,7 @@ import scala.{specialized => sp}
 
 import scala.util.hashing.Hashing
 
+// $COVERAGE-OFF$
 /**
  * This is typeclass extends Eq to provide a method hash with the law:
  * if eqv(a, b) then hash(a) == hash(b).
@@ -71,3 +72,4 @@ object Hash extends HashFunctions {
       def hash(a: A) = h.hash(a)
     }
 }
+// $COVERAGE-ON$

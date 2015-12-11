@@ -1,5 +1,6 @@
 package com.rklaehn.abc
 
+import algebra.Eq
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 import algebra.std.all._
@@ -75,5 +76,11 @@ object ArraySetSampleCheck extends Properties("ArraySet") {
 
   property("filter") = forAll { (x: ArraySet[Int], y: ArraySet[Int]) ⇒
     (x diff y) === (x filter(e ⇒ !y.contains(e)))
+  }
+
+  property("hash") = forAll { (x: Set[Int]) ⇒
+    val a = ArraySet(x.toSeq: _*)
+    val b = ArraySet(x.toSeq.reverse: _*)
+    Eq.eqv(a, b) && Hash.hash(a) == Hash.hash(b)
   }
 }

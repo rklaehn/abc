@@ -1,5 +1,6 @@
 package com.rklaehn.abc
 
+import algebra.std.all._
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
 

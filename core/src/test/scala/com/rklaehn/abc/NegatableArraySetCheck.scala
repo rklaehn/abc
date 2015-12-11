@@ -4,6 +4,7 @@ import org.scalacheck.Properties
 import org.scalacheck.Prop._
 import algebra.lattice.Bool
 import algebra.laws._
+import algebra.std.all._
 import Instances._
 import arb._
 import org.scalatest.FunSuite

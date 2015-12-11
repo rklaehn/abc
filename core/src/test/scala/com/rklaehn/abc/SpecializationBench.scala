@@ -2,6 +2,7 @@ package com.rklaehn.abc
 
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
+import algebra.std.all._
 
 object SpecializationBench extends App {
 
@@ -23,7 +24,7 @@ object SpecializationBench extends App {
     java.util.Arrays.binarySearch(aa, 0, aa.length, ae)
 
   def search2: Int =
-    OrderedArrayTag[Int].binarySearch(aa, 0, aa.length, ae)
+    Searching.search(aa, 0, aa.length, ae)
 
   def search3: Int =
     if(as(ae)) 1 else 0

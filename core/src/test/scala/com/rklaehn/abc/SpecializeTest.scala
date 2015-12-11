@@ -6,9 +6,6 @@ import org.scalatest.FunSuite
 
 class SpecializeTest extends FunSuite {
 
-  import scala.util.hashing.Hashing._
-  import OrderedArrayTag.generic
-
   test("seqSpecialization") {
     assert(ArraySeq.empty[Int].isSpecialized)
     assert(ArraySeq.singleton(1).isSpecialized)

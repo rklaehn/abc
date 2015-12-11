@@ -38,4 +38,12 @@ class ArraySeqTest extends FunSuite {
   test("toString") {
     assert(!ArraySeq.empty[Int].toString.isEmpty)
   }
+  test("equals/hashCode") {
+    intercept[UnsupportedOperationException] {
+      ArraySeq.empty.hashCode()
+    }
+    intercept[UnsupportedOperationException] {
+      ArraySeq.empty.equals("Foo")
+    }
+  }
 }

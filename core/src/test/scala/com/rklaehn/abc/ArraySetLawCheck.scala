@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.Eq
+import algebra.{Order, Eq}
 import algebra.laws._
 import algebra.std.all._
 import org.scalacheck.Arbitrary
@@ -9,10 +9,12 @@ import org.scalatest.prop.Checkers
 import org.typelevel.discipline.scalatest.Discipline
 import arb._
 
+import scala.reflect.ClassTag
+
 class ArraySetLawCheck extends FunSuite with Discipline {
 
-  def checkLaws[T: OrderedArrayTag: Arbitrary](): Unit = {
-    val name = OrderedArrayTag[T].classTag.runtimeClass.getSimpleName
+  def checkLaws[T: Order: ClassTag: Arbitrary](): Unit = {
+    val name = implicitly[ClassTag[T]].runtimeClass.getSimpleName
     checkAll(s"OrderLaws[ArraySet[$name]].partialOrder", OrderLaws[ArraySet[T]].partialOrder)
     checkAll(s"RingLaws[ArraySet[$name]].semiring", RingLaws[ArraySet[T]].semiring)
   }
@@ -29,8 +31,8 @@ class ArraySetLawCheck extends FunSuite with Discipline {
 
 class ArraySetCheck extends FunSuite with Checkers {
 
-  def checkHashing[T: OrderedArrayTag: Arbitrary](): Unit = {
-    val name = OrderedArrayTag[T].classTag.runtimeClass.getSimpleName
+  def checkHashing[T: Order: ClassTag: Arbitrary](): Unit = {
+    val name = implicitly[ClassTag[T]].runtimeClass.getSimpleName
     test(s"hashConsistency $name") {
       check { xs: Vector[T] ⇒
         Eq.eqv(ArraySet(xs: _*), ArraySet(xs.reverse: _*)) &&

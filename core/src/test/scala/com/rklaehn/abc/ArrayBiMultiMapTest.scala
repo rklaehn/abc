@@ -1,6 +1,7 @@
 package com.rklaehn.abc
 
 import algebra.Eq
+import algebra.std.all._
 import org.scalatest.FunSuite
 
 class ArrayBiMultiMapTest extends FunSuite {

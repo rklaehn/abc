@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.{Monoid, Eq}
+import algebra.Eq
 import com.rklaehn.abc.ArraySeq.AsCollection
 
 import scala.collection.generic.CanBuildFrom
@@ -41,7 +41,7 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 
 object ArraySeq {
 
-  implicit def hash[A: ArrayTag]: Hash[ArraySeq[A]] = Hash.by(_.elements)
+  implicit def hash[A: Hash]: Hash[ArraySeq[A]] = Hash.by(_.elements)
 
   // $COVERAGE-OFF$
   final class AsCollection[T : Eq: Hash: ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {
@@ -66,17 +66,17 @@ object ArraySeq {
     implicit def cbf[T, U: Eq:Hash:ClassTag]: CanBuildFrom[AsCollection[T], U, AsCollection[U]] = new CanBuildFrom[AsCollection[T], U, AsCollection[U]] {
       def apply(from: AsCollection[T]) = apply()
 
-      def apply() = new ArrayBuffer[U].mapResult(x ⇒ new AsCollection(new ArraySeq[U](x.toArray(ArrayTag[U].classTag))))
+      def apply() = new ArrayBuffer[U].mapResult(x ⇒ new AsCollection(new ArraySeq[U](x.toArray)))
     }
   }
   // $COVERAGE-ON$
 
-  def empty[@sp(Int, Long, Double) T](implicit ev:ClassTag[T]): ArraySeq[T] =
-    new ArraySeq(ev.emptyArray)
+  def empty[@sp(Int, Long, Double) T: ClassTag]: ArraySeq[T] =
+    new ArraySeq(Array.empty[T])
 
-  def singleton[@sp(Int, Long, Double) T](e: T)(implicit ev:ClassTag[T]): ArraySeq[T] =
-    new ArraySeq[T](ev.singletonArray(e))
+  def singleton[@sp(Int, Long, Double) T: ClassTag](e: T): ArraySeq[T] =
+    new ArraySeq[T](Array.singleton(e))
 
-  def apply[@sp(Int, Long, Double) T](elements: T*)(implicit ev:ClassTag[T]): ArraySeq[T] =
+  def apply[@sp(Int, Long, Double) T: ClassTag](elements: T*): ArraySeq[T] =
     new ArraySeq[T](elements.toArray)
 }

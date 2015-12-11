@@ -1,12 +1,10 @@
 package com.rklaehn.abc
 
 import algebra.Order
+
 import scala.{specialized ⇒ sp}
 
-
-object Searching {
-  final def search[@sp A: Order](as: Array[A], item: A): Int =
-    search(as, 0, as.length, item)
+private object Searching {
 
   final def search[@sp A](as: Array[A], from: Int, until: Int, item: A)(implicit order: Order[A]): Int = {
     var first = from
