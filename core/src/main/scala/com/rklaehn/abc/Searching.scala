@@ -6,6 +6,7 @@ import scala.{specialized ⇒ sp}
 
 private object Searching {
 
+  // scalastyle:off return
   final def search[@sp A: Order](as: Array[A], from: Int, until: Int, item: A): Int = {
     var first = from
     var last = until - 1
@@ -19,4 +20,5 @@ private object Searching {
     }
     -first - 1
   }
+  // scalastyle:on return
 }

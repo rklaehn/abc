@@ -48,6 +48,26 @@ object Hash extends HashFunctions {
     override def hash(a: Long): Int = a.hashCode()
     override def eqv(x: Long, y: Long): Boolean = x == y
   }
+  implicit val floatHash: Hash[Float] = new Hash[Float] {
+    override def hash(a: Float): Int = a.hashCode()
+    override def eqv(x: Float, y: Float): Boolean = x == y
+  }
+  implicit val doubleHash: Hash[Double] = new Hash[Double] {
+    override def hash(a: Double): Int = a.hashCode()
+    override def eqv(x: Double, y: Double): Boolean = x == y
+  }
+  implicit val charHash: Hash[Char] = new Hash[Char] {
+    override def hash(a: Char): Int = a.hashCode()
+    override def eqv(x: Char, y: Char): Boolean = x == y
+  }
+  implicit val booleanHash: Hash[Boolean] = new Hash[Boolean] {
+    override def hash(a: Boolean): Int = a.hashCode()
+    override def eqv(x: Boolean, y: Boolean): Boolean = x == y
+  }
+  implicit val stringHash: Hash[String] = new Hash[String] {
+    override def hash(a: String): Int = a.hashCode()
+    override def eqv(x: String, y: String): Boolean = x == y
+  }
 
   /**
    * Access an implicit `Hash[A]`.
@@ -61,6 +81,7 @@ object Hash extends HashFunctions {
   def by[@sp A, @sp B](f: A => B)(implicit ev: Hash[B]): Hash[A] =
     ev.on(f)
 
+  /*
   /**
    * This gives compatibility with scala's Hashing trait
    */
@@ -71,5 +92,6 @@ object Hash extends HashFunctions {
 
       def hash(a: A) = h.hash(a)
     }
+    */
 }
 // $COVERAGE-ON$

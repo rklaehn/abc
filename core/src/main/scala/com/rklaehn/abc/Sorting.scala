@@ -39,12 +39,14 @@ private object QuickSort {
 
   final def qsort[@sp A](data:Array[A], left: Int, right: Int)(implicit o:Order[A], ct:ClassTag[A]): Unit = {
 
-    if (right - left < limit) return InsertionSort.sort(data, left, right + 1)
-
-    val pivot = left + (right - left) / 2
-    val next = partition(data, left, right, pivot)
-    qsort(data, left, next - 1)
-    qsort(data, next + 1, right)
+    if (right - left < limit)
+      InsertionSort.sort(data, left, right + 1)
+    else {
+      val pivot = left + (right - left) / 2
+      val next = partition(data, left, right, pivot)
+      qsort(data, left, next - 1)
+      qsort(data, next + 1, right)
+    }
   }
 
   final def partition[@sp A](data:Array[A], left:Int, right:Int, pivot:Int)(implicit o:Order[A], ct:ClassTag[A]): Int = {

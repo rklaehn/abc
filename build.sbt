@@ -46,6 +46,8 @@ lazy val coreSettings = Seq(
   // I would prefer just referencing non/algebra at some point
   libraryDependencies += "org.spire-math" %% "algebra" % "0.3.1",
   libraryDependencies += "org.spire-math" %% "algebra-std" % "0.3.1",
+  libraryDependencies += "org.spire-math" %% "cats" % "0.3.0",
+  libraryDependencies += "org.spire-math" %% "cats-laws" % "0.3.0" % "test",
   libraryDependencies += "org.spire-math" %% "algebra-laws" % "0.3.1" % "test",
   libraryDependencies += "com.rklaehn" %% "sonicreducer" % "0.2.0",
   libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",

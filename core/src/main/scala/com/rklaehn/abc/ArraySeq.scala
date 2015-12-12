@@ -1,6 +1,8 @@
 package com.rklaehn.abc
 
-import algebra.Eq
+import algebra.{Monoid, Eq}
+import cats.Show
+import cats.syntax.show._
 import com.rklaehn.abc.ArraySeq.AsCollection
 
 import scala.collection.generic.CanBuildFrom
@@ -27,7 +29,7 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
     else if (that.isEmpty) this
     else {
       val temp = new Array[T](this.elements.length + that.elements.length)
-      System.arraycopy(that.elements, 0, temp, 0, this.elements.length)
+      System.arraycopy(this.elements, 0, temp, 0, this.elements.length)
       System.arraycopy(that.elements, 0, temp, this.elements.length, that.elements.length)
       new ArraySeq[T](temp)
     }
@@ -35,13 +37,27 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   def map[@sp(Int, Long, Double) U : ClassTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f))
 
+  def flatMap[@sp(Int, Long, Double) U : ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
+    new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
+
   def filter(p: T => Boolean): ArraySeq[T] =
     new ArraySeq[T](this.elements.filter(p))
 }
 
-object ArraySeq {
+private[abc] trait ArraySeq0 {
+  implicit def eq[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+}
+
+object ArraySeq extends ArraySeq0 {
+
+  implicit def show[A: Show]: Show[ArraySeq[A]] = Show.show(_.elements.map(_.show).mkString("ArraySeq(", ",", ")"))
 
   implicit def hash[A: Hash]: Hash[ArraySeq[A]] = Hash.by(_.elements)
+
+  implicit def monoid[A: ClassTag]: Monoid[ArraySeq[A]] = new Monoid[ArraySeq[A]] {
+    override def empty: ArraySeq[A] = ArraySeq.empty[A]
+    override def combine(x: ArraySeq[A], y: ArraySeq[A]): ArraySeq[A] = x concat y
+  }
 
   // $COVERAGE-OFF$
   final class AsCollection[T : Eq: Hash: ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, AsCollection[T]] {

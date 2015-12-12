@@ -1,6 +1,8 @@
 package com.rklaehn.abc
 
 import algebra.ring.Semiring
+import cats.Show
+import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
 
 import language.implicitConversions
@@ -59,8 +61,13 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
   override def toString: String = elements.mkString("Set(", ",", ")")
 }
 
-trait ArraySetPrio0 {
+private[abc] trait ArraySet0 {
 
+  implicit def eqv[A: Eq]: Eq[ArraySet[A]] = Eq.by(_.elements)
+}
+
+private[abc] trait ArraySet1 extends ArraySet0 {
+  
   implicit def partialOrder[A: Order]: PartialOrder[ArraySet[A]] = new PartialOrder[ArraySet[A]] {
     def partialCompare(x: ArraySet[A], y: ArraySet[A]) : Double =
       if (x.size < y.size) if (x.subsetOf(y)) -1.0 else Double.NaN
@@ -71,7 +78,9 @@ trait ArraySetPrio0 {
   }
 }
 
-object ArraySet extends ArraySetPrio0 {
+object ArraySet extends ArraySet1 {
+
+  implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.elements.map(_.show).mkString("ArraySet(", ",", ")"))
 
   implicit def hash[A: Hash]: Hash[ArraySet[A]] = Hash.by(_.elements)
 

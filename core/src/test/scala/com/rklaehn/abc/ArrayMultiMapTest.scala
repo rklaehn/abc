@@ -1,19 +1,25 @@
 package com.rklaehn.abc
 
-import algebra.std.all._
+import cats.implicits._
 import algebra.Eq
+import cats.Show
 import org.scalatest.FunSuite
 
 class ArrayMultiMapTest extends FunSuite {
 
   test("instances") {
     implicitly[Eq[ArrayMultiMap[Int, Int]]]
+    implicitly[Show[ArrayMultiMap[Int, Int]]]
   }
 
   test("apply") {
     assert(Eq.eqv(ArrayMultiMap.fromEntries(1 → 2, 1 → 3, 2 → 1), ArrayMultiMap(1 → ArraySet(2, 3), 2 → ArraySet(1))))
     assert(Eq.eqv(ArrayMultiMap.fromEntries[Int, Int](), ArrayMultiMap.apply[Int, Int]()))
     assert(Eq.eqv(ArrayMultiMap(1 → ArraySet.empty[Int]), ArrayMultiMap.empty[Int, Int]))
+  }
+
+  test("entries") {
+    assert(ArrayMultiMap.fromEntries(1 → 2, 1 → 3, 2 → 3).entries.toSet == Set(1 → 2, 1 → 3, 2 → 3))
   }
 
   test("except") {
@@ -31,5 +37,6 @@ class ArrayMultiMapTest extends FunSuite {
 
   test("toString") {
     assert(!ArrayMultiMap.empty[Int, Int].toString.isEmpty)
+    assert(!ArrayMultiMap.empty[Int, Int].show.isEmpty)
   }
 }

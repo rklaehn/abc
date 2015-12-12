@@ -1,6 +1,7 @@
 package com.rklaehn.abc
 
-import algebra.Order
+import algebra.{Eq, Order}
+import cats.Show
 import com.rklaehn.sonicreducer.Reducer
 
 import scala.reflect.ClassTag
@@ -10,6 +11,9 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
   private[abc] val map: ArrayMap[K, ArraySet[V]]) extends NoEquals {
 
   def keys: ArraySet[K] = map.keys
+
+  def entries: Iterator[(K, V)] =
+    map.iterator.flatMap { case (k, vs) ⇒ vs.iterator.map(v ⇒ k → v) }
 
   def justKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.justKeys(keys))
@@ -49,7 +53,14 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
   override def toString: String = map.toString
 }
 
-object ArrayMultiMap {
+private[abc] trait ArrayMultiMap0 {
+
+  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMultiMap[K, V]] = Eq.by(_.map)
+}
+
+object ArrayMultiMap extends ArrayMultiMap0 {
+
+  implicit def show[K: Show, V: Show]: Show[ArrayMultiMap[K, V]] = Show.show(_.map.iterator.mkString("ArrayMultiMap(",",",")"))
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayMultiMap[K, V]] = Hash.by(_.map)
 

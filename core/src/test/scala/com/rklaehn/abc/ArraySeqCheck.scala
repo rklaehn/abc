@@ -14,4 +14,8 @@ object ArraySeqSampleCheck extends Properties("ArraySet") {
     val b = ArraySeq(x: _*)
     Eq.eqv(a, b) && Hash.hash(a) == Hash.hash(b)
   }
+
+  property("flatMap") = forAll { as: ArraySeq[Int] ⇒
+    as.flatMap(x ⇒ ArraySeq(x, x + 1)).length == as.length * 2
+  }
 }

@@ -1,15 +1,17 @@
 package com.rklaehn.abc
 
+import cats.Show
 import com.rklaehn.sonicreducer.Reducer
 
+import cats.syntax.show._
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{mutable, SortedMapLike}
 import scala.collection.immutable.SortedMap
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
-import scala.{ specialized => sp }
-import algebra.{Eq, Order}
+import scala.{ specialized ⇒ sp }
+import algebra.{Monoid, Semigroup, Eq, Order}
 
 final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
@@ -96,7 +98,26 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     keys0.indices.map(i => s"${keys0(i)}->${values0(i)}").mkString("Map(", ",", ")")
 }
 
-object ArrayMap {
+private[abc] trait ArrayMap1 {
+
+  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
+    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
+  }
+
+  implicit def monoid[K: ClassTag : Order, V: ClassTag: Semigroup]: Monoid[ArrayMap[K, V]] = new Monoid[ArrayMap[K, V]] {
+    override def empty: ArrayMap[K, V] = ArrayMap.empty[K, V]
+
+    override def combine(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] = {
+      x.mergeWith(y, (x,y) ⇒ Semigroup.combine(x, y))
+    }
+  }
+}
+
+object ArrayMap extends ArrayMap1 {
+
+  implicit def show[K: Show, V: Show]: Show[ArrayMap[K, V]] = Show.show(
+    _.iterator.map { case (k,v) ⇒ s"${k.show}->${v.show}" }.mkString("ArrayMap(", ",", ")")
+  )
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayMap[K, V]] = new Hash[ArrayMap[K, V]] {
     def hash(x: ArrayMap[K, V]) =
@@ -106,10 +127,6 @@ object ArrayMap {
       Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0)
     }
   }
-
-//  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayMap[K, V]] = new Eq[ArrayMap[K, V]] {
-//    def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
-//  }
 
   // $COVERAGE-OFF$
   class AsCollection[K: Order: ClassTag, V: ClassTag](underlying: ArrayMap[K, V]) extends SortedMap[K, V] with SortedMapLike[K, V, AsCollection[K, V]] {

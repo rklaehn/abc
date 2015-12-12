@@ -53,6 +53,7 @@ package object abc {
   }
 
   // $COVERAGE-OFF$
+  // scalastyle:off return
   // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
   implicit def arrayEq[@specialized A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
     def eqv(x: Array[A], y: Array[A]): Boolean = {
@@ -92,4 +93,5 @@ package object abc {
     }
   }
   // $COVERAGE-ON$
+  // scalastyle:on return
 }
