@@ -1,15 +1,11 @@
 sudo: false
 language: scala
-install:
-  - pip install --user codecov
 scala:
 - "2.11.7"
 script:
   - sbt clean coverage coreJVM/test
 after_success:
-  - codecov
-  # - bash <(curl -s https://codecov.io/bash)
-  - sbt coveralls
+  - pip install --user codecov && codecov
 branches:
   only:
     - master
