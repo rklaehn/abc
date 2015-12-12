@@ -4,47 +4,98 @@
 
 # Array-based collections
 
-Array-based immutable collections for scala. These collections use spire typeclasses such as Eq and Order instead of relying on the equals method of the element objects, which sometimes does not work (e.g. Array[Byte]).
+Array-based immutable collections for scala. These collections use [algebra](https://github.com/non/algebra) and [cats](https://github.com/non/cats) typeclasses such as Eq and Order instead of relying on the equals method of the element objects, which sometimes does not work (e.g. Array[Byte]).
 
 They also are effectively specialized, so e.g. an ArraySet[Byte] will use an Array[Byte] internally instead of boxing like normal scala collections do.
 
 ## Design goals
 
-### Typeclasses
+### Compact in memory representation
 
-The main purpose of this library is to explore how a collection library could be set up to rely mostly on
-typeclasses instead of using inheritance.
+On modern CPUs, cache concerns are *very* important. So a compact in-memory representation is often more 
+important for good overall performance than optimal big-O behavior. So compact in-memory representation
+will ***always*** be given priority over optimal big-O behavior.
 
-An optional interface to scala collections will be provided, but the collections itself are not integrated
-into the scala collections hierarchy. They do not even implement methods such as equals and hashcode.
-They implement toString on a best-effort basis, but formatting should be done using a Show typeclass.
+This yields very good results regarding compactness and performance. The downside is that you have to provide ClassTag instances in many places.
 
 ### Bulk operations
 
-The existing scala collections mostly implement collection/collection operations in terms of
+The scala collections in the standard library mostly implement collection/collection operations in terms of
 collection/element operations. The approach taken in this library is to focus on collection/collection
 operations and to implement collection/element operations in terms of collection/collection operations
 whenever possible. E.g. adding an element *e* to a set *a* will be done by merging *a* with a
 single-element set created from *e*.
 
-### Compact in memory representation
+Using flat arrays internally is ***very*** inefficient when e.g. adding elements one by one. But when working with collections in a functional way, this is a pretty rare operation. Usually you apply transformations to the collection as a whole. For that use case, the array-based internal representation is very efficient.
 
-On modern CPUs, cache concerns are *very* important. So a compact in-memory representation is often more 
-important for good overall performance than optimal big-O behavior. So compact in-memory representation
-will be given priority over optimal big-O behavior.
+### Compatibility with scala collections
+
+An optional interface to scala collections will be provided, but the collections itself are not integrated
+into the scala collections hierarchy. They do not even implement methods such as equals and hashcode. ***In fact they will throw an UnsupportedOperationException when you use == or hashCode***
+They implement toString on a best-effort basis, but formatting should be done using a Show typeclass from cats.
 
 ## Implemented collections
 
 ### ArraySeq[A]
 
+Basically just a wrapped array. Specialized for fast primitive access.
+
+Provided typeclasses:
+
+- Eq
+- Hash
+- Show
+- Monoid (empty / concat)
+
 ### ArraySet[A]
+
+A set backed by a sorted array. The internal representation is extremely compact, especially when using primitives. All boolean operations (union, intersect, diff, xor, subsetOf, intersects) are implemented efficiently.
+
+Provided typeclasses:
+
+- Eq
+- Hash
+- Show
+- PartialOrder
+- Semiring
 
 ### ArrayMap[K, V]
 
+A map backed by a sorted array of keys and a corresponding array of values. The internal representation is extremely compact, especially when using primitives. 
+
+Provided typeclasses:
+
+- Eq
+- Hash
+- Show
+- Monoid
+- AdditiveMonoid
+
 ### NegatableArraySet[K, V]
+
+A set by a sorted array, with an additional flag to allow negation. The additional flag allows implementing the full Bool typeclass. The internal representation is extremely compact, especially when using primitives.
+
+Provided typeclasses:
+
+- Eq
+- Bool
 
 ### ArrayBiMap[K, V]
 
+Provided typeclasses:
+
+- Hash
+
 ### ArrayMultiMap[K, V]
 
+Provided typeclasses:
+
+- Eq
+- Show
+- Hash
+
 ### ArrayBiMultiMap[K, V]
+
+Provided typeclasses:
+
+- Eq
