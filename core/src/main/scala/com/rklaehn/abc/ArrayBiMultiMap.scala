@@ -1,14 +1,17 @@
 package com.rklaehn.abc
 
+import algebra.{Order, Eq}
+
+import scala.reflect.ClassTag
 import scala.{ specialized => sp }
 
-class ArrayBiMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] private[abc] (
+final class ArrayBiMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
   val kv: ArrayMultiMap[K, V],
-  val vk: ArrayMultiMap[V, K]) {
+  val vk: ArrayMultiMap[V, K]) extends NoEquals {
 
   def swap: ArrayBiMultiMap[V, K] = new ArrayBiMultiMap[V, K](vk, kv)
 
-  def merge(that: ArrayBiMultiMap[K, V]): ArrayBiMultiMap[K, V] =
+  def merge(that: ArrayBiMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] =
     new ArrayBiMultiMap(
       kv.merge(that.kv),
       vk.merge(that.vk))
@@ -17,41 +20,43 @@ class ArrayBiMultiMap[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, 
   //
   //  def -(k: K) = removeKeys(ArraySet(k)(vk.f.vSetFamily))
 
-  def exceptKeys(keys: ArraySet[K]): ArrayBiMultiMap[K, V] = {
-    val removedKeys = keys intersection kv.keys
+  def except(that: ArrayBiMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] = {
+    val kv1 = kv.except(that.kv)
+    ArrayBiMultiMap.fromMultiMap(kv1)
+  }
+
+  def exceptValues(values: ArraySet[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] = {
+    swap.exceptKeys(values).swap
+  }
+
+  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] = {
+    val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
-    var s = ArraySet.empty[V]
-    for (k <- removedKeys.elements)
-      s = s.union(kv.apply(k))
-    val vk1 = vk.exceptKeys(s)
-    new ArrayBiMultiMap[K, V](kv1, vk1)
+    ArrayBiMultiMap.fromMultiMap(kv1)
   }
-
-  override def equals(that: Any) = that match {
-    case that: ArrayBiMultiMap[K, V] => this.kv == that.kv
-    case _ => false
-  }
-
-  override def hashCode =
-    kv.hashCode
 
   override def toString =
-    s"ArrayBiMultiMap($kv)"
+    s"ArrayBiMultiMap($kv, $vk)"
 }
 
 object ArrayBiMultiMap {
 
-  def empty[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag] =
+  implicit def eqv[K: Eq, V: Eq]: Eq[ArrayBiMultiMap[K, V]] = Eq.by(_.kv)
+
+  def fromMultiMap[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](kv: ArrayMultiMap[K, V]) =
+    new ArrayBiMultiMap[K,V](kv, kv.inverse)
+
+  def empty[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag] =
     new ArrayBiMultiMap[K, V](ArrayMultiMap.empty[K, V], ArrayMultiMap.empty[V, K])
 
-  def singleton[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](k: K, v: V) =
+  def singleton[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](k: K, v: V) =
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.singleton[K, V](k, ArraySet.singleton(v)),
       ArrayMultiMap.singleton[V, K](v, ArraySet.singleton(k)))
 
-  def apply[@sp(Int, Long, Double) K: OrderedArrayTag, @sp(Int, Long, Double) V: OrderedArrayTag](kvs: (K, V)*) = {
+  def apply[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](kvs: (K, V)*) = {
     new ArrayBiMultiMap[K, V](
-      ArrayMultiMap.fromKVs(kvs: _*),
-      ArrayMultiMap.fromKVs(kvs.map(_.swap): _*))
+      ArrayMultiMap.fromEntries(kvs: _*),
+      ArrayMultiMap.fromEntries(kvs.map(_.swap): _*))
   }
 }

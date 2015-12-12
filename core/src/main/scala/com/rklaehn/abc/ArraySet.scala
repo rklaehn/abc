@@ -1,81 +1,95 @@
 package com.rklaehn.abc
 
-import language.implicitConversions
-import scala.util.hashing.Hashing
-import scala.{ specialized => sp }
-import spire.algebra.{Eq, Order}
-import spire.implicits._
-
+import algebra.ring.Semiring
+import algebra.{PartialOrder, Order, Eq}
+import cats.Show
+import cats.syntax.show._
 import scala.reflect.ClassTag
+import scala.{ specialized => sp }
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T])(implicit tArrayTag: OrderedArrayTag[T]) { self ⇒
-  import tArrayTag._
+final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
 
-  def asSet: Set[T] = new Set[T] {
+  def size: Int = elements.length
 
-    def contains(elem: T) = self.apply(elem)
+  def contains(elem: T)(implicit order: Order[T]) = self.apply(elem)
 
-    def +(elem: T) = self.union(ArraySet.singleton(elem)).asSet
+  def +(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = self.union(ArraySet.singleton(elem))
 
-    def -(elem: T) = self.diff(ArraySet.singleton(elem)).asSet
+  def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = self.diff(ArraySet.singleton(elem))
 
-    def iterator = elements.iterator
-  }
+  def iterator = elements.iterator
 
   def asArraySeq: ArraySeq[T] =
-    new ArraySeq[T](elements)(tArrayTag)
+    new ArraySeq[T](elements)
 
-  def apply(e: T): Boolean =
-    SetUtils.contains(elements, e)
+  def apply(e: T)(implicit order: Order[T]): Boolean =
+    Searching.search(elements, 0, elements.length, e) >= 0
 
-  def subsetOf(that: ArraySet[T]): Boolean =
-    SetUtils.subsetOf(that.elements, this.elements)
+  def subsetOf(that: ArraySet[T])(implicit order: Order[T]): Boolean =
+    SetUtils.subsetOf(this.elements, that.elements)
 
-  def intersects(that: ArraySet[T]): Boolean =
+  def intersects(that: ArraySet[T])(implicit order: Order[T]): Boolean =
     SetUtils.intersects(this.elements, that.elements)
 
-  def union(that: ArraySet[T]): ArraySet[T] =
+  def union(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  def intersection(that: ArraySet[T]): ArraySet[T] =
+  def intersect(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
-  def diff(that: ArraySet[T]): ArraySet[T] =
+  def diff(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
 
   def filter(p: T => Boolean): ArraySet[T] =
     new ArraySet[T](this.elements.filter(p))
 
-  def xor(that: ArraySet[T]): ArraySet[T] =
+  def xor(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
   def isEmpty: Boolean = elements.isEmpty
 
-  override def equals(that: Any) = that match {
-    case that: ArraySet[T] => this.elements === that.elements
-    case _ => false
-  }
-
-  override def hashCode: Int = ArrayHashing.arrayHashCode(elements)
-
   override def toString: String = elements.mkString("Set(", ",", ")")
 }
 
-object ArraySet {
+private[abc] trait ArraySet0 {
 
-  implicit def eqv[T]: Eq[ArraySet[T]] =
-    spire.optional.genericEq.generic[ArraySet[T]]
+  implicit def eqv[A: Eq]: Eq[ArraySet[A]] = Eq.by(_.elements)
+}
 
-  def empty[@sp(Int, Long, Double) T: OrderedArrayTag]: ArraySet[T] =
-    new ArraySet[T](implicitly[ArrayTag[T]].empty)
+private[abc] trait ArraySet1 extends ArraySet0 {
+  
+  implicit def partialOrder[A: Order]: PartialOrder[ArraySet[A]] = new PartialOrder[ArraySet[A]] {
+    def partialCompare(x: ArraySet[A], y: ArraySet[A]) : Double =
+      if (x.size < y.size) if (x.subsetOf(y)) -1.0 else Double.NaN
+      else if (y.size < x.size) -partialCompare(y, x)
+      else if (eqv(x, y)) 0.0
+      else Double.NaN
+    override def eqv(x: ArraySet[A], y: ArraySet[A]) = Eq.eqv(x.elements, y.elements)
+  }
+}
 
-  def apply[@sp(Int, Long, Double) T: OrderedArrayTag](elements: T*): ArraySet[T] = {
-    val reducer = Reducer.create[ArraySet[T]](_ union _)
-    for (e <- elements)
-      reducer(singleton(e))
-    reducer.result().getOrElse(empty)
+object ArraySet extends ArraySet1 {
+
+  implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.elements.map(_.show).mkString("ArraySet(", ",", ")"))
+
+  implicit def hash[A: Hash]: Hash[ArraySet[A]] = Hash.by(_.elements)
+
+  implicit def semiring[A: Order: ClassTag]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
+    def zero = ArraySet.empty[A]
+    def times(x: ArraySet[A], y: ArraySet[A]) = x intersect y
+    def plus(x: ArraySet[A], y: ArraySet[A]) = x union y
   }
 
-  def singleton[@sp(Int, Long, Double) T: OrderedArrayTag](e: T): ArraySet[T] =
-    new ArraySet[T](implicitly[ArrayTag[T]].singleton(e))
+  def empty[@sp(Int, Long, Double) T: ClassTag]: ArraySet[T] =
+    new ArraySet[T](Array.empty[T])
+
+  def singleton[@sp(Int, Long, Double) T: ClassTag](e: T): ArraySet[T] =
+    new ArraySet[T](Array.singleton(e))
+
+  def apply[@sp(Int, Long, Double) T: Order : ClassTag](elements: T*): ArraySet[T] = {
+    val t = new Array[T](elements.length)
+    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
+    elements.copyToArray(t)
+    new ArraySet[T](t.sortAndRemoveDuplicatesInPlace())
+  }
 }

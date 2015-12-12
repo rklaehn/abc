@@ -2,8 +2,6 @@ package com.rklaehn.abc
 
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
-import spire.implicits._
-import spire.math.Rational
 
 import scala.reflect.ClassTag
 
@@ -16,7 +14,7 @@ object ArrayResizeBench extends App {
   val t = Array(1)
 
   def alloc1: Array[Int] =
-    t.resizeInPlace0(10)
+    t.resizeInPlace(10)
 
   def alloc2: Array[Int] =
     java.lang.reflect.Array.newInstance(t.getClass.getComponentType, 10).asInstanceOf[Array[Int]]

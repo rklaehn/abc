@@ -1,57 +1,35 @@
 package com.rklaehn.abc
 
 import scala.annotation.tailrec
+import scala.reflect.ClassTag
 import scala.util.control.ControlThrowable
 import scala.{ specialized => sp }
-import spire.algebra.Order
+import algebra.Order
 
 /**
  * Set operations. Some of them can be used for both sets and ordered sequences, as well as from inside the radix tree
  */
-private[abc] object SetUtils {
+private object SetUtils {
 
   private class AbortControl extends ControlThrowable
 
   private[this] val abort = new AbortControl
 
-  def binarySearch[@sp(Int, Long, Double) T](a: Array[T], e: T, from: Int, until: Int)(implicit o: Order[T]): Int = {
+  def union[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+    new UnionMerge[T](a, b).result
 
-    @tailrec
-    def binarySearch0(low: Int, high: Int): Int =
-      if (low <= high) {
-        val mid = (low + high) >>> 1
-        val c = o.compare(e, a(mid))
-        if (c > 0)
-          binarySearch0(mid + 1, high)
-        else if (c < 0)
-          binarySearch0(low, mid - 1)
-        else
-          mid
-      } else -(low + 1)
-    binarySearch0(from, until - 1)
-  }
+  def intersection[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+    new IntersectionMerge[T](a, b).result
 
-  def contains[@sp(Int, Long, Double) T: Order](a: Array[T], e: T): Boolean =
-    binarySearch(a, e, 0, a.length) >= 0
+  def diff[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+    new DiffMerge[T](a, b).result
 
-  def indexOf[@sp(Int, Long, Double) T: Order](a: Array[T], e: T): Int =
-    binarySearch(a, e, 0, a.length)
-
-  def union[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new UnionMerge[T](a, b, a.newArray(a.length + b.length), implicitly[Order[T]]).result
-
-  def intersection[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new IntersectionMerge[T](a, b, a.newArray(a.length min b.length), implicitly[Order[T]]).result
-
-  def diff[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new DiffMerge[T](a, b, a.newArray(a.length), implicitly[Order[T]]).result
-
-  def xor[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Array[T] =
-    new XorMerge[T](a, b, a.newArray(a.length + b.length), implicitly[Order[T]]).result
+  def xor[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+    new XorMerge[T](a, b).result
 
   def subsetOf[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
-      new SubsetOf[T](a, b, implicitly[Order[T]])
+      new SubsetOf[T](a, b)
       true
     } catch {
       case x: AbortControl => false
@@ -60,34 +38,87 @@ private[abc] object SetUtils {
 
   def intersects[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
-      new NoIntersect[T](a, b, implicitly[Order[T]])
+      new NoIntersect[T](a, b)
       false
     } catch {
       case x: AbortControl => true
     }
   }
 
-  final class SubsetOf[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val order: Order[T]) extends spire.math.BinaryMerge {
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+  final class SubsetOf[@sp(Int, Long, Double) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
-    def fromA(a0: Int, a1: Int, bi: Int): Unit = { throw abort }
+    def fromA(a0: Int, a1: Int, bi: Int): Unit = {
+      throw abort
+    }
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
     merge0(0, a.length, 0, b.length)
   }
 
-  final class NoIntersect[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val order: Order[T]) extends spire.math.BinaryMerge {
-    def compare(ai: Int, bi: Int) = order.compare(a(ai), b(bi))
+  final class NoIntersect[@sp(Int, Long, Double) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = { throw abort }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
     merge0(0, a.length, 0, b.length)
   }
 
-  final class UnionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends spire.math.BinaryMerge {
+//  object UnionMerge2 {
+//    final val FromA = 0
+//    final val FromB = 1
+//  }
+//
+//  final class UnionMerge2[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
+//    import UnionMerge2._
+//    val r = t.newArray(a.length + b.length)
+//    var ri: Int = 0
+//    var mode: Int = -1
+//    var start: Int = 0
+//    var end: Int = 0
+//
+//    def exec(): Unit = {
+//      mode match {
+//        case FromA ⇒
+//          val size = end - start
+//          System.arraycopy(a, start, r, ri, size)
+//          ri += size
+//        case FromB ⇒
+//          val size = end - start
+//          System.arraycopy(b, start, r, ri, size)
+//          ri += size
+//        case _ ⇒
+//      }
+//    }
+//
+//    @inline
+//    private[this] final def op(mode: Int, start:Int, end: Int): Unit = {
+//      if(this.mode == mode)
+//        this.end = end
+//      else {
+//        exec()
+//        this.mode = mode
+//        this.start = start
+//        this.end = end
+//      }
+//    }
+//
+//    def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
+//    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
+//    def collision(ai: Int, bi: Int): Unit = op(FromA, ai, ai + 1)
+//    def fromA(a0: Int, a1: Int, bi: Int): Unit = op(FromA, a0, a1)
+//    def fromB(ai: Int, b0: Int, b1: Int): Unit = op(FromB, b0, b1)
+//    def result: Array[T] = t.resizeInPlace(r, ri)
+//    merge0(0, a.length, 0, b.length)
+//    exec()
+//  }
+
+  final class UnionMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    val r = new Array[T](a.length + b.length)
     var ri: Int = 0
-    def compare(ai: Int, bi: Int): Int = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
-      r(ri) = a(ai)
+      System.arraycopy(a,ai,r,ri,1)
+      // r(ri) = a(ai)
       ri += 1
     }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
@@ -98,39 +129,43 @@ private[abc] object SetUtils {
       System.arraycopy(b, b0, r, ri, b1 - b0)
       ri += b1 - b0
     }
-    def result: Array[T] = r.resizeInPlace0(ri)
+    def result: Array[T] = r.resizeInPlace(ri)
     merge0(0, a.length, 0, b.length)
   }
 
-  final class IntersectionMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends spire.math.BinaryMerge {
+  final class IntersectionMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    val r = new Array[T](a.length min b.length)
     var ri: Int = 0
-    def compare(ai: Int, bi: Int): Int = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
-      r(ri) = a(ai)
+      System.arraycopy(a,ai,r,ri,1)
+      // r(ri) = a(ai)
       ri += 1
     }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
-    def result: Array[T] = r.resizeInPlace0(ri)
+    def result: Array[T] = r.resizeInPlace(ri)
     merge0(0, a.length, 0, b.length)
   }
 
-  final class DiffMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends spire.math.BinaryMerge {
+  final class DiffMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+    val r = new Array[T](a.length)
     var ri: Int = 0
-    def compare(ai: Int, bi: Int): Int = order.compare(a(ai), b(bi))
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)
       ri += a1 - a0
     }
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
-    def result: Array[T] = r.resizeInPlace0(ri)
+    def result: Array[T] = r.resizeInPlace(ri)
     merge0(0, a.length, 0, b.length)
   }
 
-  final class XorMerge[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T], val r: Array[T], val order: Order[T]) extends spire.math.BinaryMerge {
+  final class XorMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     var ri: Int = 0
-    def compare(ai: Int, bi: Int): Int = order.compare(a(ai), b(bi))
+    val r = new Array[T](a.length + b.length)
+    def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
       System.arraycopy(a, a0, r, ri, a1 - a0)
@@ -140,7 +175,7 @@ private[abc] object SetUtils {
       System.arraycopy(b, b0, r, ri, b1 - b0)
       ri += b1 - b0
     }
-    def result: Array[T] = r.resizeInPlace0(ri)
+    def result: Array[T] = r.resizeInPlace(ri)
     merge0(0, a.length, 0, b.length)
   }
 }
