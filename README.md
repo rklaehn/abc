@@ -13,8 +13,8 @@ They also are effectively specialized, so e.g. an ArraySet[Byte] will use an Arr
 ### Compact in memory representation
 
 On modern CPUs, cache concerns are *very* important. So a compact in-memory representation is often more 
-important for good overall performance than optimal big-O behavior. So compact in-memory representation
-will ***always*** be given priority over optimal big-O behavior.
+important for good overall performance than optimal big-O behavior. So in this library, compact in-memory representation
+is ***always*** given priority over optimal big-O behavior.
 
 This yields very good results regarding compactness and performance. The downside is that you have to provide ClassTag instances in many places.
 
@@ -26,7 +26,7 @@ operations and to implement collection/element operations in terms of collection
 whenever possible. E.g. adding an element *e* to a set *a* will be done by merging *a* with a
 single-element set created from *e*.
 
-Using flat arrays internally is ***very*** inefficient when e.g. adding elements one by one. But when working with collections in a functional way, this is a pretty rare operation. Usually you apply transformations to the collection as a whole. For that use case, the array-based internal representation is very efficient.
+Using flat arrays internally is ***very*** inefficient when e.g. adding elements one by one to a large collection. But when working with collections in a functional way, this is a pretty rare operation. Usually you apply transformations to the collection as a whole. For that use case, the array-based internal representation is very efficient.
 
 ### Compatibility with scala collections
 
