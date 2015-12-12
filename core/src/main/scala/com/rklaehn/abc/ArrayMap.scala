@@ -1,5 +1,6 @@
 package com.rklaehn.abc
 
+import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
 import cats.Show
 import com.rklaehn.sonicreducer.Reducer
 
@@ -11,7 +12,7 @@ import scala.collection.immutable.SortedMap
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized ⇒ sp }
-import algebra.{Monoid, Semigroup, Eq, Order}
+import algebra._
 
 final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
@@ -32,16 +33,19 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     else throw new NoSuchElementException
   }
 
-  def get(k: K)(implicit kOrder: Order[K], kClassTag: ClassTag[K]): Option[V] = {
+  def get(k: K)(implicit kOrder: Order[K]): Option[V] = {
     val i = Searching.search(keys0, 0, keys0.length, k)
     if (i < 0) None else Some(values0(i))
   }
 
   def merge(that: ArrayMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
-    new MapMerger[K, V](this, that).result
+    new Merge[K, V](this, that).result
 
-  def mergeWith(that: ArrayMap[K, V], f: (V, V) => V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
-    new MapMerger2[K, V](this, that, f).result
+  def unionWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
+    new UnionWith[K, V](this, that, f).result
+
+  def intersectWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
+    new IntersectWith[K, V](this, that, f).result
 
   def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new Except[K, V](this, that, f).result
@@ -53,6 +57,23 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     var i = 0
     while(i < keys0.length) {
       if (f(keys0(i))) {
+        rk(ri) = keys0(i)
+        rv(ri) = values0(i)
+        ri += 1
+      }
+      i += 1
+    }
+    if(ri == rk.length) this
+    else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
+  }
+
+  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
+    val rk = new Array[K](keys0.length)
+    val rv = new Array[V](values0.length)
+    var ri = 0
+    var i = 0
+    while(i < keys0.length) {
+      if (f(values0(i))) {
         rk(ri) = keys0(i)
         rv(ri) = values0(i)
         ri += 1
@@ -100,13 +121,45 @@ private[abc] trait ArrayMap1 {
     def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
   }
 
-  implicit def monoid[K: ClassTag : Order, V: ClassTag: Semigroup]: Monoid[ArrayMap[K, V]] = new Monoid[ArrayMap[K, V]] {
-    override def empty: ArrayMap[K, V] = ArrayMap.empty[K, V]
+  implicit def monoid[K: ClassTag : Order, V: ClassTag: Semigroup]: Monoid[ArrayMap[K, V]] =
+    new MapMonoid[K, V]
 
-    override def combine(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] = {
-      x.mergeWith(y, (x,y) ⇒ Semigroup.combine(x, y))
-    }
-  }
+  implicit def additiveMonoid[K: ClassTag: Order, V: ClassTag: AdditiveSemigroup]: AdditiveMonoid[ArrayMap[K, V]] =
+    new MapAdditiveMonoid[K, V]
+
+//  implicit def group[K: ClassTag: Order, V: ClassTag: Group: Eq]: Group[ArrayMap[K, V]] =
+//    new MapGroup[K, V]
+}
+
+private class MapMonoid[K: ClassTag : Order, V: ClassTag: Semigroup] extends Monoid[ArrayMap[K, V]] {
+  override def empty: ArrayMap[K, V] = ArrayMap.empty[K, V]
+
+  override def combine(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] =
+    x.unionWith(y, (x, y) ⇒ Semigroup.combine(x, y))
+}
+
+//private final class MapGroup[K: ClassTag : Order, V: ClassTag : Eq: Group] extends MapMonoid[K, V] with Group[ArrayMap[K, V]] {
+//
+//  def inverse(x: ArrayMap[K, V]): ArrayMap[K, V] =
+//    x.mapValues(v ⇒ Group.inverse(v)).filterValues(x ⇒ Eq.neqv(x, Group.empty))
+//
+//  override def remove(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] = {
+//    // everything that is in y but not in x must be inverted
+//    val justY = y.exceptKeys(x.keys).mapValues(x ⇒ Group.inverse(x))
+//    // everything that is in x but not in y can be kept
+//    val justX = x.exceptKeys(y.keys)
+//    // everything that is in both needs to be removed
+//    val intersection = x.intersectWith(y, (x, y) ⇒ Group.remove(x, y))
+//    // merge the results (they do not overlap)
+//    (justX merge justY merge intersection).filterValues(x ⇒ Eq.neqv(x, Group.empty))
+//  }
+//}
+
+private final class MapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveSemigroup] extends AdditiveMonoid[ArrayMap[K, V]] {
+  override def zero: ArrayMap[K, V] = ArrayMap.empty[K, V]
+
+  override def plus(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] =
+    x.unionWith(y, (x, y) ⇒ AdditiveSemigroup.plus(x, y))
 }
 
 object ArrayMap extends ArrayMap1 {
@@ -124,7 +177,7 @@ object ArrayMap extends ArrayMap1 {
     }
   }
 
-  private class MapMerger[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+  private final class Merge[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
     a: ArrayMap[K, V],
     b: ArrayMap[K, V]
   ) extends BinaryMerge {
@@ -163,7 +216,7 @@ object ArrayMap extends ArrayMap1 {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class MapMerger2[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+  private final class UnionWith[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
     a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
     extends BinaryMerge {
 
@@ -201,7 +254,37 @@ object ArrayMap extends ArrayMap1 {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class Except[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+  private final class IntersectWith[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
+    extends BinaryMerge {
+
+    @inline def ak = a.keys0
+    @inline def av = a.values0
+    @inline def bk = b.keys0
+    @inline def bv = b.values0
+
+    val rk = new Array[K](a.size min b.size)
+    val rv = new Array[V](a.size min b.size)
+    var ri = 0
+
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
+
+    def fromA(a0: Int, a1: Int, bi: Int) = {}
+
+    def fromB(ai: Int, b0: Int, b1: Int) = {}
+
+    def collision(ai: Int, bi: Int) = {
+      rk(ri) = bk(bi)
+      rv(ri) = f(av(ai), bv(bi))
+      ri += 1
+    }
+
+    merge0(0, ak.length, 0, bk.length)
+
+    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
+  }
+
+  private final class Except[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
       a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])
     extends BinaryMerge {
 
@@ -239,7 +322,7 @@ object ArrayMap extends ArrayMap1 {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class JustKeys[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
+  private final class JustKeys[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0
@@ -268,7 +351,7 @@ object ArrayMap extends ArrayMap1 {
       else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private class ExceptKeys[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
+  private final class ExceptKeys[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](a: ArrayMap[K, V], b: ArraySet[K]) extends BinaryMerge {
 
     @inline def ak = a.keys0
     @inline def av = a.values0

@@ -26,7 +26,7 @@ final class ArrayMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] pr
 
   def merge(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] = {
     def mergeElements(a: ArraySet[V], b: ArraySet[V]): ArraySet[V] = a.union(b)
-    new ArrayMultiMap[K, V](map.mergeWith(that.map, mergeElements))
+    new ArrayMultiMap[K, V](map.unionWith(that.map, mergeElements))
   }
 
   def inverse(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[V, K] = {

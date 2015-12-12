@@ -1,17 +1,11 @@
 package com.rklaehn.abc
 
 import algebra.ring.Semiring
+import algebra.{PartialOrder, Order, Eq}
 import cats.Show
 import cats.syntax.show._
-import com.rklaehn.sonicreducer.Reducer
-
-import language.implicitConversions
-import scala.collection.{GenSet, SortedSetLike, mutable}
-import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.SortedSet
 import scala.reflect.ClassTag
 import scala.{ specialized => sp }
-import algebra.{PartialOrder, Order, Eq}
 
 final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
 

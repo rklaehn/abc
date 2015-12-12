@@ -26,7 +26,7 @@ object ScalaCollectionConverters {
   }
 }
 
-final class ArraySeqCollection[T : Eq: Hash: ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, ArraySeqCollection[T]] {
+final class ArraySeqCollection[T:Hash:ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, ArraySeqCollection[T]] {
 
   override protected[this] def newBuilder: mutable.Builder[T, ArraySeqCollection[T]] =
     new ArrayBuffer[T].mapResult(x ⇒ new ArraySeqCollection(new ArraySeq(x.toArray)))
@@ -52,9 +52,9 @@ object ArraySeqCollection {
   }
 }
 
-final class ArraySetCollection[T](val underlying: ArraySet[T])(implicit tOrder: Order[T], tClassTag: ClassTag[T], tHash: Hash[T]) extends SortedSet[T] with SortedSetLike[T, ArraySetCollection[T]] {
+final class ArraySetCollection[T:Order:Hash:ClassTag](val underlying: ArraySet[T]) extends SortedSet[T] with SortedSetLike[T, ArraySetCollection[T]] {
   import ArraySetCollection.wrap
-  implicit def ordering = Order.ordering(tOrder)
+  implicit def ordering = Order.ordering(Order[T])
 
   def +(elem: T) = wrap(underlying + elem)
 
@@ -145,7 +145,7 @@ class ArrayMapCollection[K: Order: ClassTag, V: ClassTag](underlying: ArrayMap[K
   implicit def ordering = Order.ordering[K]
 
   override def newBuilder : mutable.Builder[(K, V), ArrayMapCollection[K, V]] =
-    new ArrayMapBuilder[K, V].mapResult(x ⇒ wrap(x))
+    new Builder[K, V].mapResult(x ⇒ wrap(x))
 
   override def empty = wrap(ArrayMap.empty[K, V])
 
@@ -189,7 +189,7 @@ object ArrayMapCollection {
   private[abc] def wrap[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[K, V]): ArrayMapCollection[K, V] =
     new ArrayMapCollection[K, V](underlying)
 
-  private class ArrayMapBuilder[@specialized(Int, Long, Double) K: Order: ClassTag, @specialized(Int, Long, Double) V: ClassTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
+  private class Builder[@specialized(Int, Long, Double) K: Order: ClassTag, @specialized(Int, Long, Double) V: ClassTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
 
     private[this] var reducer = Reducer[ArrayMap[K, V]](_ merge _)
 

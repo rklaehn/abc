@@ -27,7 +27,7 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   }
 
   property("mergeWith") = forAll { (x: ArrayMap[Int, Int], y: ArrayMap[Int, Int]) ⇒
-    binaryOp(x, y, x.mergeWith(y, _ + _), (k, vx, vy) ⇒
+    binaryOp(x, y, x.unionWith(y, _ + _), (k, vx, vy) ⇒
       (vx + vy) orElse vy orElse vx
     )
   }
