@@ -30,3 +30,17 @@ important for good overall performance than optimal big-O behavior. So compact i
 will be given priority over optimal big-O behavior.
 
 ## Implemented collections
+
+### ArraySeq[A]
+
+### ArraySet[A]
+
+### ArrayMap[K, V]
+
+### NegatableArraySet[K, V]
+
+### ArrayBiMap[K, V]
+
+### ArrayMultiMap[K, V]
+
+### ArrayBiMultiMap[K, V]
