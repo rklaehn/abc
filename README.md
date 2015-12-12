@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/rklaehn/abc.png)](https://travis-ci.org/rklaehn/abc)
 [![codecov.io](http://codecov.io/github/rklaehn/abc/coverage.svg?branch=master)](http://codecov.io/github/rklaehn/abc?branch=master)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rklaehn/sonicreducer_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rklaehn/abc_2.11)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rklaehn/abc_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rklaehn/abc_2.11)
 
 # Array-based collections
 
