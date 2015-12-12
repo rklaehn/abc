@@ -76,13 +76,13 @@ object ArrayMultiMap extends ArrayMultiMap0 {
     for ((k, v) <- kvs)
       if(!v.isEmpty)
         reducer(singleton(k, v))
-    reducer.result().getOrElse(empty[K, V])
+    reducer.resultOrElse(empty[K, V])
   }
 
   def fromEntries[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](kvs: (K, V)*) = {
     val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer(singleton(k, ArraySet.singleton(v)))
-    reducer.result().getOrElse(empty[K, V])
+    reducer.resultOrElse(empty[K, V])
   }
 }

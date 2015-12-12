@@ -123,7 +123,7 @@ object NegatableArraySet {
     }
 
     def result() = {
-      reducer.result().map(x ⇒ wrap(x, false)).getOrElse(empty)
+      wrap(reducer.resultOrElse(Array.empty), false)
     }
   }
   // $COVERAGE-ON$

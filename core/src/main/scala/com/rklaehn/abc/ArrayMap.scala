@@ -394,7 +394,7 @@ object ArrayMap extends ArrayMap1 {
         val reducer = Reducer[ArrayMap[K, V]](_ merge _)
         for((k,v) ← kvs)
           reducer(singleton(k, v))
-        reducer.result().get
+        reducer.result
     }
   }
 }

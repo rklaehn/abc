@@ -134,7 +134,7 @@ object ArraySetCollection {
     }
 
     def result() = {
-      reducer.result().map(x ⇒ new ArraySet(x)).getOrElse(ArraySet.empty)
+      new ArraySet(reducer.resultOrElse(Array.empty))
     }
   }
 }
@@ -202,7 +202,7 @@ object ArrayMapCollection {
       reducer = Reducer[ArrayMap[K, V]](_ merge _)
 
     def result() =
-      reducer.result.getOrElse(ArrayMap.empty)
+      reducer.resultOrElse(ArrayMap.empty)
   }
 }
 // $COVERAGE-ON$
