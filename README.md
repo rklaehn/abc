@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/rklaehn/abc.png)](https://travis-ci.org/rklaehn/abc)
+[![codecov.io](http://codecov.io/github/rklaehn/abc/coverage.svg?branch=master)](http://codecov.io/github/rklaehn/abc?branch=master)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rklaehn/sonicreducer_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rklaehn/abc_2.11)
+
 # Array-based collections
 
 Array-based immutable collections for scala. These collections use spire typeclasses such as Eq and Order instead of relying on the equals method of the element objects, which sometimes does not work (e.g. Array[Byte]).
