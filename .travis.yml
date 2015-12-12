@@ -5,8 +5,7 @@ scala:
 script:
   - sbt clean coverage coreJVM/test
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
-  - sbt coveralls
+  - pip install --user codecov && codecov
 branches:
   only:
     - master
