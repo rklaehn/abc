@@ -30,9 +30,3 @@ important for good overall performance than optimal big-O behavior. So compact i
 will be given priority over optimal big-O behavior.
 
 ## Implemented collections
-
-
-
-### RadixTree
-
-A fast immutable radix tree. Very useful for large string sets or maps. [RadixTree](RadixTree.md)
