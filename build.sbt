@@ -1,64 +1,107 @@
-import sbt.Keys._
-import scoverage.ScoverageSbtPlugin.ScoverageKeys._
-
-lazy val root = project.aggregate(core, tests, benchmarks)
-
-lazy val core = project.in(file("core"))
-  .settings(commonSettings:_*)
-  .settings(coreSettings:_*)
-
-lazy val tests = project.in(file("tests"))
-  .settings(commonSettings:_*)
-  .settings(testSettings:_*)
-  .dependsOn(core)
-
-lazy val benchmarks = project.in(file("benchmarks"))
-  .settings(commonSettings:_*)
-  .dependsOn(core)
-  .enablePlugins(JmhPlugin)
+import ReleaseTransformations._
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.7",
-  version := "0.1-SNAPSHOT",
   organization := "com.rklaehn",
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
-)
+  scalaVersion := "2.11.7",
+  crossScalaVersions := Seq("2.10.5", "2.11.7"),
+  libraryDependencies ++= Seq(
+    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+    "org.scalatest" %%% "scalatest" % "3.0.0-M7" % "test",
+    "org.spire-math" %%% "algebra" % "0.3.1",
+    "org.spire-math" %%% "cats" % "0.3.0",
+    "org.spire-math" %%% "algebra-std" % "0.3.1" % "test",
+    "org.spire-math" %%% "algebra-laws" % "0.3.1" % "test",
+    "com.rklaehn" %%% "sonicreducer" % "0.2.0",
 
-lazy val testSettings = {
+    // thyme
+    "ichi.bench" % "thyme" % "0.1.1" % "test" from "https://github.com/Ichoran/thyme/raw/9ff531411e10c698855ade2e5bde77791dd0869a/Thyme.jar"
+  ),
+  scalacOptions ++= Seq(
+    "-deprecation",
+    "-unchecked",
+    "-feature"
+  ),
+  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+  homepage := Some(url("http://github.com/rklaehn/radixtree")),
+
+  // release stuff
+  credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
+  releaseCrossBuild := true,
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  publishMavenStyle := true,
+  publishArtifact in Test := false,
+  pomIncludeRepository := Function.const(false),
+  publishTo <<= version { v =>
+    val nexus = "https://oss.sonatype.org/"
+    if (v.trim.endsWith("SNAPSHOT"))
+      Some("Snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("Releases" at nexus + "service/local/staging/deploy/maven2")
+  },
+  pomExtra :=
+    <scm>
+      <url>git@github.com:rklaehn/radixtree.git</url>
+      <connection>scm:git:git@github.com:rklaehn/radixtree.git</connection>
+    </scm>
+      <developers>
+        <developer>
+          <id>r_k</id>
+          <name>R&#xFC;diger Klaehn</name>
+          <url>http://github.com/rklaehn/</url>
+        </developer>
+      </developers>
+  ,
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    ReleaseStep(action = Command.process("package", _)),
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    ReleaseStep(action = Command.process("publishSigned", _)),
+    setNextVersion,
+    commitNextVersion,
+    ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+    pushChanges))
+
+lazy val noPublish = Seq(
+  publish := {},
+  publishLocal := {},
+  publishArtifact := false)
+
+lazy val root = project.in(file("."))
+  .aggregate(coreJVM, coreJS)
+  .settings(name := "root")
+  .settings(commonSettings: _*)
+  .settings(noPublish: _*)
+
+lazy val core = crossProject.crossType(CrossType.Pure).in(file("core"))
+  .settings(name := "abc")
+  .settings(commonSettings: _*)
+
+lazy val instrumentedTests = project.in(file("instrumentedTests"))
+  .settings(name := "instrumentedTests")
+  .settings(commonSettings: _*)
+  .settings(instrumentedTestSettings: _*)
+  .dependsOn(coreJVM)
+
+lazy val jmhBenchmarks = project.in(file("jmhBenchmarks"))
+  .settings(commonSettings:_*)
+  .dependsOn(coreJVM)
+  .enablePlugins(JmhPlugin)
+
+lazy val instrumentedTestSettings = {
   def makeAgentOptions(classpath:Classpath) : String = {
     val jammJar = classpath.map(_.data).filter(_.toString.contains("jamm")).head
-    val result = s"-javaagent:$jammJar"
-    println(s"Using JVM options $result")
-    result
+    s"-javaagent:$jammJar"
   }
   Seq(
     javaOptions in Test <+= (dependencyClasspath in Test).map(makeAgentOptions),
-    libraryDependencies ++= Seq(
-      "com.google.code.java-allocation-instrumenter" % "java-allocation-instrumenter" % "3.0" % "test",
-      "com.github.jbellis" % "jamm" % "0.3.0" % "test"
-    ),
-    fork := true
-  )
+      libraryDependencies += "com.github.jbellis" % "jamm" % "0.3.0" % "test",
+      fork := true
+    )
 }
 
-lazy val coreSettings = Seq(
-  name := "abc",
-  // I would prefer just referencing non/algebra at some point
-  libraryDependencies += "org.spire-math" %% "algebra" % "0.3.1",
-  libraryDependencies += "org.spire-math" %% "algebra-std" % "0.3.1",
-  libraryDependencies += "org.spire-math" %% "cats" % "0.3.0",
-  libraryDependencies += "org.spire-math" %% "cats-laws" % "0.3.0" % "test",
-  libraryDependencies += "org.spire-math" %% "algebra-laws" % "0.3.1" % "test",
-  libraryDependencies += "com.rklaehn" %% "sonicreducer" % "0.2.0",
-  libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.11.6" % "test",
-  libraryDependencies += "ichi.bench" % "thyme" % "0.1.1" % "test" from "https://github.com/Ichoran/thyme/raw/master/Thyme.jar",
-  coverageMinimum := 100,
-  coverageFailOnMinimum := true,
-  scalacOptions ++= Seq("-unchecked", "-feature"),
-  // scalacOptions ++= Seq("-no-specialization"),
-  initialCommands in console +=
-    """import com.rklaehn.abc._
-      |import spire.math._
-      |import spire.implicits._
-    """.stripMargin
-)
+lazy val coreJVM = core.jvm
+lazy val coreJS = core.js

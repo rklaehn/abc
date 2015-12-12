@@ -4,7 +4,7 @@ import org.github.jamm.MemoryMeter
 import algebra.std.all._
 import org.scalatest.FunSuite
 
-object SizeTest extends FunSuite {
+class SizeTest extends FunSuite {
 
   lazy val mm = new MemoryMeter()
   lazy val overhead = mm.measure(new java.lang.Object)
