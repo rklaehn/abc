@@ -1,9 +1,9 @@
 package com.rklaehn.abc
 
-import algebra.{Order, Eq}
+import algebra.Eq
+import algebra.std.all._
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
-import algebra.std.all._
 
 object BinarySearchBench extends App {
 

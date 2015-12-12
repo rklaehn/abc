@@ -1,12 +1,14 @@
 package com.rklaehn.abc
 
 import algebra.std.all._
+import ichi.bench.Thyme
+import ichi.bench.Thyme.HowWarm
 
-import scala.collection.immutable.{SortedSet, HashSet}
+import scala.collection.immutable.{HashSet, SortedSet}
 
 object SetCreateAccessBench extends App {
 
-  import DebugUtil.th
+  val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
 
   val ns = Array(1, 10, 100, 1000, 10000, 100000)
 

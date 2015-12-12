@@ -1,10 +1,8 @@
 package com.rklaehn.abc
 
+import algebra.std.all._
 import ichi.bench.Thyme
 import ichi.bench.Thyme.HowWarm
-import algebra.std.all._
-
-import scala.collection.immutable.HashMap
 
 object SubsetOfBench extends App {
   val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)

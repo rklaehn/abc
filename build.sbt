@@ -6,15 +6,12 @@ lazy val commonSettings = Seq(
   crossScalaVersions := Seq("2.10.5", "2.11.7"),
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-    "org.scalatest" %%% "scalatest" % "3.0.0-M7" % "test",
+    "com.rklaehn" %%% "sonicreducer" % "0.2.0",
     "org.spire-math" %%% "algebra" % "0.3.1",
     "org.spire-math" %%% "cats" % "0.3.0",
+    "org.scalatest" %%% "scalatest" % "3.0.0-M7" % "test",
     "org.spire-math" %%% "algebra-std" % "0.3.1" % "test",
-    "org.spire-math" %%% "algebra-laws" % "0.3.1" % "test",
-    "com.rklaehn" %%% "sonicreducer" % "0.2.0",
-
-    // thyme
-    "ichi.bench" % "thyme" % "0.1.1" % "test" from "https://github.com/Ichoran/thyme/raw/9ff531411e10c698855ade2e5bde77791dd0869a/Thyme.jar"
+    "org.spire-math" %%% "algebra-laws" % "0.3.1" % "test"
   ),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -71,7 +68,7 @@ lazy val noPublish = Seq(
   publishArtifact := false)
 
 lazy val root = project.in(file("."))
-  .aggregate(coreJVM, coreJS)
+  .aggregate(coreJVM, coreJS, instrumentedTests, jmhBenchmarks)
   .settings(name := "root")
   .settings(commonSettings: _*)
   .settings(noPublish: _*)
@@ -84,12 +81,21 @@ lazy val instrumentedTests = project.in(file("instrumentedTests"))
   .settings(name := "instrumentedTests")
   .settings(commonSettings: _*)
   .settings(instrumentedTestSettings: _*)
+  .settings(noPublish: _*)
   .dependsOn(coreJVM)
 
 lazy val jmhBenchmarks = project.in(file("jmhBenchmarks"))
   .settings(commonSettings:_*)
   .dependsOn(coreJVM)
+  .settings(noPublish: _*)
   .enablePlugins(JmhPlugin)
+
+lazy val thymeBenchmarks = project.in(file("thymeBenchmarks"))
+  .settings(commonSettings:_*)
+  .dependsOn(coreJVM)
+  .settings(libraryDependencies +=
+    "ichi.bench" % "thyme" % "0.1.1" from "https://github.com/Ichoran/thyme/raw/9ff531411e10c698855ade2e5bde77791dd0869a/Thyme.jar")
+  .settings(noPublish: _*)
 
 lazy val instrumentedTestSettings = {
   def makeAgentOptions(classpath:Classpath) : String = {

@@ -1,11 +1,14 @@
 package com.rklaehn.abc
 
-import scala.collection.immutable.HashMap
 import algebra.std.all._
+import ichi.bench.Thyme
+import ichi.bench.Thyme.HowWarm
+
+import scala.collection.immutable.HashMap
 
 object MapCreateAccessBench extends App {
 
-  import DebugUtil.th
+  val th = Thyme.warmed(verbose = println, warmth = HowWarm.BenchOff)
 
   def create(): Unit = {
     for (n ← Array(1, 10, 100, 1000, 10000, 100000, 1000000)) {
