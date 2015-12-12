@@ -18,10 +18,6 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val values0: Array[V]) extends NoEquals { self ⇒
   import ArrayMap._
 
-  // $COVERAGE-OFF$
-  def asCollection(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): AsCollection[K, V] = AsCollection.wrap(this)
-  // $COVERAGE-ON$
-
   def iterator = keys0.iterator zip values0.iterator
 
   def size: Int = keys0.length
@@ -127,77 +123,6 @@ object ArrayMap extends ArrayMap1 {
       Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0)
     }
   }
-
-  // $COVERAGE-OFF$
-  class AsCollection[K: Order: ClassTag, V: ClassTag](underlying: ArrayMap[K, V]) extends SortedMap[K, V] with SortedMapLike[K, V, AsCollection[K, V]] {
-    import AsCollection._
-
-    implicit def ordering = Order.ordering[K]
-
-    override def newBuilder : mutable.Builder[(K, V), AsCollection[K, V]] =
-      new ArrayMapBuilder[K, V].mapResult(x ⇒ wrap(x))
-
-    override def empty = wrap(ArrayMap.empty[K, V])
-
-    def valuesIteratorFrom(start: K) = ???
-
-    def rangeImpl(from: Option[K], until: Option[K]) = ???
-
-    def iteratorFrom(start: K) = ???
-
-    def get(key: K) = underlying.get(key)
-
-    def iterator = underlying.iterator
-
-    override def +[V1 >: V](kv: (K, V1)) = {
-      try {
-        val k = kv._1
-        val v = kv._2.asInstanceOf[V]
-        wrap(underlying.merge(ArrayMap.singleton(k, v)))
-      } catch {
-        case _: ClassCastException ⇒
-          val k = kv._1
-          val v = kv._2.asInstanceOf[AnyRef]
-          wrap(underlying.mapValues(_.asInstanceOf[AnyRef]).merge(ArrayMap.singleton(k, v)))
-            .asInstanceOf[SortedMap[K, V1]]
-      }
-    }
-
-    def -(key: K) = wrap(underlying.exceptKeys(ArraySet.singleton(key)))
-
-    def keysIteratorFrom(start: K) = ???
-  }
-
-  object AsCollection {
-
-    implicit def cbf[CC, K: Order: ClassTag, V: ClassTag]: CanBuildFrom[CC, (K, V), AsCollection[K, V]] = new CanBuildFrom[CC, (K, V), AsCollection[K, V]] {
-      def apply(from: CC) = apply()
-
-      def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ AsCollection.wrap(ArrayMap(x: _*)))
-    }
-
-    private[abc] def wrap[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[K, V]): AsCollection[K, V] =
-      new AsCollection[K, V](underlying)
-  }
-  // $COVERAGE-ON$
-
-  // $COVERAGE-OFF$
-  private[this] class ArrayMapBuilder[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
-
-    private[this] var reducer = Reducer[ArrayMap[K, V]](_ merge _)
-
-    def +=(elem: (K, V)) = {
-      reducer.apply(singleton(elem._1, elem._2))
-      this
-    }
-
-    def clear() =
-      reducer = Reducer[ArrayMap[K, V]](_ merge _)
-
-    def result() =
-      reducer.result.getOrElse(empty)
-  }
-  // $COVERAGE-ON$
 
   private class MapMerger[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
     a: ArrayMap[K, V],
@@ -383,9 +308,10 @@ object ArrayMap extends ArrayMap1 {
       case 0 ⇒ empty
       case 1 ⇒ singleton(kvs.head._1, kvs.head._2)
       case _ ⇒
-        val b = new ArrayMapBuilder[K, V]
-        b ++= kvs
-        b.result()
+        val reducer = Reducer[ArrayMap[K, V]](_ merge _)
+        for((k,v) ← kvs)
+          reducer(singleton(k, v))
+        reducer.result().getOrElse(empty)
     }
   }
 }

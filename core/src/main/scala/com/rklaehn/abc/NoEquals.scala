@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-abstract class NoEquals {
+private[abc] abstract class NoEquals {
   final override def hashCode(): Int =
     throw new UnsupportedOperationException("Use Hashing[T] typeclass")
   final override def equals(that: Any): Boolean =

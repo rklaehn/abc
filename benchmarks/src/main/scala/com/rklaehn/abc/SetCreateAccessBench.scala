@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 import algebra.std.all._
+import ScalaCollectionConverters._
 
 import scala.collection.immutable.{HashSet, SortedSet}
 
