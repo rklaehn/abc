@@ -44,8 +44,8 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   def unionWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new UnionWith[K, V](this, that, f).result
 
-  def intersectWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
-    new IntersectWith[K, V](this, that, f).result
+//  def intersectWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
+//    new IntersectWith[K, V](this, that, f).result
 
   def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new Except[K, V](this, that, f).result
@@ -67,22 +67,22 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
-    val rk = new Array[K](keys0.length)
-    val rv = new Array[V](values0.length)
-    var ri = 0
-    var i = 0
-    while(i < keys0.length) {
-      if (f(values0(i))) {
-        rk(ri) = keys0(i)
-        rv(ri) = values0(i)
-        ri += 1
-      }
-      i += 1
-    }
-    if(ri == rk.length) this
-    else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
-  }
+//  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
+//    val rk = new Array[K](keys0.length)
+//    val rv = new Array[V](values0.length)
+//    var ri = 0
+//    var i = 0
+//    while(i < keys0.length) {
+//      if (f(values0(i))) {
+//        rk(ri) = keys0(i)
+//        rv(ri) = values0(i)
+//        ri += 1
+//      }
+//      i += 1
+//    }
+//    if(ri == rk.length) this
+//    else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
+//  }
 
   def filter(f: ((K, V)) ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
     val rk = kClassTag.newArray(keys0.length)
@@ -254,35 +254,35 @@ object ArrayMap extends ArrayMap1 {
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  private final class IntersectWith[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
-    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
-    extends BinaryMerge {
-
-    @inline def ak = a.keys0
-    @inline def av = a.values0
-    @inline def bk = b.keys0
-    @inline def bv = b.values0
-
-    val rk = new Array[K](a.size min b.size)
-    val rv = new Array[V](a.size min b.size)
-    var ri = 0
-
-    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
-
-    def fromA(a0: Int, a1: Int, bi: Int) = {}
-
-    def fromB(ai: Int, b0: Int, b1: Int) = {}
-
-    def collision(ai: Int, bi: Int) = {
-      rk(ri) = bk(bi)
-      rv(ri) = f(av(ai), bv(bi))
-      ri += 1
-    }
-
-    merge0(0, ak.length, 0, bk.length)
-
-    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
-  }
+//  private final class IntersectWith[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+//    a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => V)
+//    extends BinaryMerge {
+//
+//    @inline def ak = a.keys0
+//    @inline def av = a.values0
+//    @inline def bk = b.keys0
+//    @inline def bv = b.values0
+//
+//    val rk = new Array[K](a.size min b.size)
+//    val rv = new Array[V](a.size min b.size)
+//    var ri = 0
+//
+//    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
+//
+//    def fromA(a0: Int, a1: Int, bi: Int) = {}
+//
+//    def fromB(ai: Int, b0: Int, b1: Int) = {}
+//
+//    def collision(ai: Int, bi: Int) = {
+//      rk(ri) = bk(bi)
+//      rv(ri) = f(av(ai), bv(bi))
+//      ri += 1
+//    }
+//
+//    merge0(0, ak.length, 0, bk.length)
+//
+//    def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
+//  }
 
   private final class Except[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
       a: ArrayMap[K, V], b: ArrayMap[K, V], f: (V, V) => Option[V])
