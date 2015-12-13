@@ -1,12 +1,13 @@
 package com.rklaehn.abc
 
-import com.rklaehn.sonicreducer.Reducer
+import cats.Show
 
 import language.implicitConversions
 import scala.reflect.ClassTag
 import scala.{ specialized => sp }
-import algebra.{Order, Eq}
+import algebra.{PartialOrder, Order, Eq}
 import algebra.lattice.Bool
+import cats.implicits._
 
 final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) extends NoEquals {
   lhs ⇒
@@ -71,62 +72,44 @@ final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[ab
       case (true, true)   ⇒ wrap(SetUtils.diff(rhs.elements, lhs.elements), false)
     }
   }
-
-  override def toString: String =
-    if(negated) {
-      if (elements.isEmpty) "All"
-      else elements.mkString("Except(", ",", ")")
-    }
-    else {
-      if(elements.isEmpty) "Empty"
-      else elements.mkString("Set(", ",", ")")
-    }
 }
 
-object NegatableArraySet {
-
-  implicit def negatableArraySetEq[T: Eq]: Eq[NegatableArraySet[T]] = new Eq[NegatableArraySet[T]] {
+private[abc] trait NegatableArraySet0 {
+  implicit def eqv[T: Eq]: Eq[NegatableArraySet[T]] = new Eq[NegatableArraySet[T]] {
     def eqv(x: NegatableArraySet[T], y: NegatableArraySet[T]) = x.negated == y.negated && Eq.eqv(x.elements, y.elements)
   }
+}
 
-  implicit def negatableArraySetBool[T : Order: ClassTag]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
+object NegatableArraySet extends NegatableArraySet0 {
 
+  implicit def show[T: Show]: Show[NegatableArraySet[T]] = Show.show { s ⇒
+    if(s.negated) {
+      if (s.elements.isEmpty) "All"
+      else s.elements.map(_.show).mkString("Except(", ",", ")")
+    }
+    else {
+      if(s.elements.isEmpty) "Empty"
+      else s.elements.map(_.show).mkString("Set(", ",", ")")
+    }
+  }
+
+  implicit def partialOrder[T: Order: ClassTag]: PartialOrder[NegatableArraySet[T]] = PartialOrder.from { (x, y) ⇒
+    (x subsetOf y, y subsetOf x) match {
+      case (true, true)   ⇒ 0.0
+      case (true, false)  ⇒ -1.0
+      case (false, true)  ⇒ +1.0
+      case (false, false) ⇒ Double.NaN
+    }
+  }
+
+  implicit def bool[T : Order: ClassTag]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
     def complement(a: NegatableArraySet[T]) = a.negate
-
     def or(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a union b
-
     def and(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a intersect b
-
     override def xor(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a xor b
-
     def zero = NegatableArraySet.empty[T]
-
     def one = NegatableArraySet.all[T]
   }
-
-  // $COVERAGE-OFF$
-  private[this] class NegatableArraySetBuilder[@sp(Int, Long, Double) T](implicit order: Order[T], classTag: ClassTag[T]) extends scala.collection.mutable.Builder[T, NegatableArraySet[T]] {
-
-    private[this] def union(a: Array[T], b: Array[T]) = {
-      SetUtils.union(a, b)
-    }
-
-    private[this] var reducer = Reducer[Array[T]](union)
-
-    def +=(elem: T) = {
-      reducer.apply(Array.singleton(elem))
-      this
-    }
-
-    def clear() = {
-      reducer = Reducer[Array[T]](union)
-    }
-
-    def result() = {
-      wrap(reducer.resultOrElse(Array.empty), false)
-    }
-  }
-  // $COVERAGE-ON$
 
   private[abc] def wrap[T](elements: Array[T], negated: Boolean) = new NegatableArraySet[T](elements, negated)
 
@@ -143,8 +126,9 @@ object NegatableArraySet {
     wrap(Array.singleton(e), false)
 
   def apply[@sp(Int, Long, Double) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
-    val b = new NegatableArraySetBuilder[T]
-    b ++= elements
-    b.result()
+    val t = new Array[T](elements.length)
+    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
+    elements.copyToArray(t)
+    new NegatableArraySet[T](t.sortAndRemoveDuplicatesInPlace(), false)
   }
 }

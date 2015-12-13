@@ -13,6 +13,7 @@ import org.typelevel.discipline.scalatest.Discipline
 class NegatableArraySetLawCheck extends FunSuite with Discipline {
 
   checkAll("LogicLaws[NegatableArraySet[Int]].bool", LogicLaws[NegatableArraySet[Int]].bool)
+  checkAll("OrderLaws[NegatableArraySet[Int]].partialOrder", OrderLaws[NegatableArraySet[Int]].partialOrder)
 }
 
 object NegatableArraySetSampleCheck extends Properties("NegatableArraySet") {

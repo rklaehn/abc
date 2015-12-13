@@ -52,12 +52,10 @@ final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
 }
 
 private[abc] trait ArraySet0 {
-
   implicit def eqv[A: Eq]: Eq[ArraySet[A]] = Eq.by(_.elements)
 }
 
 private[abc] trait ArraySet1 extends ArraySet0 {
-  
   implicit def partialOrder[A: Order]: PartialOrder[ArraySet[A]] = new PartialOrder[ArraySet[A]] {
     def partialCompare(x: ArraySet[A], y: ArraySet[A]) : Double =
       if (x.size < y.size) if (x.subsetOf(y)) -1.0 else Double.NaN
