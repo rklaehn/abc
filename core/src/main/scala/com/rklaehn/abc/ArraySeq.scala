@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.{Monoid, Eq}
+import algebra.{Order, Monoid, Eq}
 import cats.Show
 import cats.syntax.show._
 
@@ -39,7 +39,11 @@ private[abc] trait ArraySeq0 {
   implicit def eq[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
 }
 
-object ArraySeq extends ArraySeq0 {
+private[abc] trait ArraySeq1 extends ArraySeq0 {
+  implicit def order[A: Order]: Order[ArraySeq[A]] = Order.by(_.elements)
+}
+
+object ArraySeq extends ArraySeq1 {
 
   implicit def show[A: Show]: Show[ArraySeq[A]] = Show.show(_.elements.map(_.show).mkString("ArraySeq(", ",", ")"))
 

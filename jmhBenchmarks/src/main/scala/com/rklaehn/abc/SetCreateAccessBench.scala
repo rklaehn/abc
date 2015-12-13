@@ -33,7 +33,6 @@ class SetCreateAccessBench {
       case "arrayset" ⇒ ArraySet(elements: _*).asCollection
       case "hashset" ⇒ HashSet(elements: _*)
       case "sortedset" ⇒ SortedSet(elements: _*)
-      case _ ⇒ ???
     }
     k = (offset * size).toInt
     a = make(0 until size)
