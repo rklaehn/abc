@@ -7,7 +7,9 @@ import org.scalatest.FunSuite
 class ArraySeqTest extends FunSuite {
 
   test("instances") {
-    implicitly[Eq[ArraySeq[Int]]]
+    case class Foo(x: Int)
+    implicit val x: Eq[Foo] = Eq.by(_.x)
+    assert(Eq.eqv(ArraySeq(Foo(1)), ArraySeq(Foo(1))))
   }
 
   test("length") {
