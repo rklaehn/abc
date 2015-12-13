@@ -96,7 +96,8 @@ class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {
 
   def checkLaws[T: Order: ClassTag: Arbitrary](): Unit = {
     val name = typeName[T]
-    checkAll(s"OrderLaws[ArraySet[$name]].eqv", OrderLaws[ArraySeq[T]].eqv)
+    checkAll(s"OrderLaws[ArraySeq[$name]].eqv", OrderLaws[ArraySeq[T]].eqv)
+    checkAll(s"OrderLaws[ArraySeq[$name]].order", OrderLaws[ArraySeq[T]].order)
     checkAll(s"GroupLaws[ArraySeq[$name]].monoid", GroupLaws[ArraySeq[T]].monoid)
   }
   checkLaws[Byte]()
