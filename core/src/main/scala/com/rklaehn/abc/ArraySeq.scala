@@ -1,13 +1,15 @@
 package com.rklaehn.abc
 
-import algebra.{Order, Monoid, Eq}
-import cats.Show
+import algebra.Order
+import algebra.{Monoid, Eq}
+import cats._
 import cats.syntax.show._
+import com.rklaehn.sonicreducer.Reducer
 
 import scala.reflect.ClassTag
 import scala.{ specialized => sp }
 
-final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals {
+final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals {
 
   def length = elements.length
 
@@ -25,10 +27,10 @@ final class ArraySeq[@sp(Int, Long, Double) T] private[abc] (private[abc] val el
       new ArraySeq[T](temp)
     }
 
-  def map[@sp(Int, Long, Double) U : ClassTag](f: T => U): ArraySeq[U] =
+  def map[@sp U : ClassTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f))
 
-  def flatMap[@sp(Int, Long, Double) U : ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
+  def flatMap[@sp U : ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
     new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
 
   def filter(p: T => Boolean): ArraySeq[T] =
@@ -45,6 +47,15 @@ private[abc] trait ArraySeq1 extends ArraySeq0 {
 
 object ArraySeq extends ArraySeq1 {
 
+  implicit val foldable: Foldable[ArraySeq] = new Foldable[ArraySeq] {
+    def foldLeft[A, B](fa: ArraySeq[A], b: B)(f: (B, A) ⇒ B): B = fa.elements.foldLeft[B](b)(f)
+    def foldRight[A, B](fa: ArraySeq[A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) = {
+      def loop(i: Int): Eval[B] =
+        if (i < fa.elements.length) f(fa.elements(i), Eval.defer(loop(i + 1))) else lb
+      Eval.defer(loop(0))
+    }
+  }
+
   implicit def show[A: Show]: Show[ArraySeq[A]] = Show.show(_.elements.map(_.show).mkString("ArraySeq(", ",", ")"))
 
   implicit def hash[A: Hash]: Hash[ArraySeq[A]] = Hash.by(_.elements)
@@ -52,14 +63,15 @@ object ArraySeq extends ArraySeq1 {
   implicit def monoid[A: ClassTag]: Monoid[ArraySeq[A]] = new Monoid[ArraySeq[A]] {
     override def empty: ArraySeq[A] = ArraySeq.empty[A]
     override def combine(x: ArraySeq[A], y: ArraySeq[A]): ArraySeq[A] = x concat y
+    override def combineAll(as: TraversableOnce[ArraySeq[A]]) = Reducer.reduce(as)(combine).getOrElse(empty)
   }
 
-  def empty[@sp(Int, Long, Double) T: ClassTag]: ArraySeq[T] =
+  def empty[@sp T: ClassTag]: ArraySeq[T] =
     new ArraySeq(Array.empty[T])
 
-  def singleton[@sp(Int, Long, Double) T: ClassTag](e: T): ArraySeq[T] =
+  def singleton[@sp T: ClassTag](e: T): ArraySeq[T] =
     new ArraySeq[T](Array.singleton(e))
 
-  def apply[@sp(Int, Long, Double) T: ClassTag](elements: T*): ArraySeq[T] =
+  def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] =
     new ArraySeq[T](elements.toArray)
 }

@@ -4,6 +4,8 @@ import algebra.ring.{AdditiveGroup, AdditiveSemigroup, AdditiveMonoid}
 import algebra._
 import algebra.laws._
 import algebra.std.all._
+import cats.laws.FoldableLaws
+import cats.laws.discipline.FoldableTests
 import org.scalacheck.Arbitrary
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
@@ -109,6 +111,10 @@ class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {
   checkLaws[Boolean]()
   checkLaws[Char]()
   checkLaws[String]()
+  scope {
+    implicit val intMonoid = AdditiveMonoid[Int].additive
+    checkAll(s"FoldableTests[ArraySeq[T]]", FoldableTests[ArraySeq].foldable[Int, Int])
+  }
 }
 
 class ArraySetLawCheck extends FunSuite with Discipline with Helpers {
@@ -127,6 +133,10 @@ class ArraySetLawCheck extends FunSuite with Discipline with Helpers {
   checkLaws[Boolean]()
   checkLaws[Char]()
   checkLaws[String]()
+  scope {
+    implicit val intMonoid = AdditiveMonoid[Int].additive
+    checkAll(s"FoldableTests[ArraySet[T]]", FoldableTests[ArraySet].foldable[Int, Int])
+  }
 }
 
 class ArraySetCheck extends FunSuite with Checkers with Helpers {
