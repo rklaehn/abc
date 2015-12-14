@@ -5,10 +5,6 @@ import cats.Show
 import com.rklaehn.sonicreducer.Reducer
 
 import cats.syntax.show._
-import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.{mutable, SortedMapLike}
-import scala.collection.immutable.SortedMap
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
 import scala.{ specialized ⇒ sp }
@@ -18,6 +14,12 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   private[abc] val keys0: Array[K],
   private[abc] val values0: Array[V]) extends NoEquals { self ⇒
   import ArrayMap._
+
+  def withDefaultValue(default: V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vEq: Eq[V], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
+    val keep = (x: V) ⇒ vEq.neqv(x, default)
+    val filtered = self.filterValues(keep)
+    new TotalArrayMap[K, V](filtered.keys0, filtered.values0, default)
+  }
 
   def iterator = keys0.iterator zip values0.iterator
 
@@ -67,22 +69,22 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-//  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
-//    val rk = new Array[K](keys0.length)
-//    val rv = new Array[V](values0.length)
-//    var ri = 0
-//    var i = 0
-//    while(i < keys0.length) {
-//      if (f(values0(i))) {
-//        rk(ri) = keys0(i)
-//        rv(ri) = values0(i)
-//        ri += 1
-//      }
-//      i += 1
-//    }
-//    if(ri == rk.length) this
-//    else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
-//  }
+  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
+    val rk = new Array[K](keys0.length)
+    val rv = new Array[V](values0.length)
+    var ri = 0
+    var i = 0
+    while(i < keys0.length) {
+      if (f(values0(i))) {
+        rk(ri) = keys0(i)
+        rv(ri) = values0(i)
+        ri += 1
+      }
+      i += 1
+    }
+    if(ri == rk.length) this
+    else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
+  }
 
   def filter(f: ((K, V)) ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] = {
     val rk = kClassTag.newArray(keys0.length)
@@ -107,9 +109,8 @@ final class ArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
   def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): ArrayMap[K, V] =
     new ExceptKeys[K, V](this, keys).result
 
-  def mapValues[@sp(Int, Long, Double) V2: ClassTag](f: V => V2): ArrayMap[K, V2] = {
+  def mapValues[@sp(Int, Long, Double) V2: ClassTag](f: V => V2): ArrayMap[K, V2] =
     new ArrayMap(keys0, values0.map(f))
-  }
 
   override def toString: String =
     keys0.indices.map(i => s"${keys0(i)}->${values0(i)}").mkString("Map(", ",", ")")

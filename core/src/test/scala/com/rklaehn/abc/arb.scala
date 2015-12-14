@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.Order
+import algebra.{Eq, Order}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 
@@ -27,6 +27,14 @@ object arb {
       xs ← arbitrary[IndexedSeq[(K, V)]]
     } yield
     ArrayMap(xs: _*)
+  }
+
+  implicit def arbArrayTotalMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag: Eq] = Arbitrary {
+    for {
+      m ← arbitrary[ArrayMap[K, V]]
+      default ← arbitrary[V]
+    } yield
+      m.withDefaultValue(default)
   }
 
   implicit def arbArrayMultiMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: Order: ClassTag] = Arbitrary {
