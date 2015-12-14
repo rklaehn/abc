@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.Eq
+import algebra.{Monoid, Eq}
 import cats.implicits._
 import org.scalatest.FunSuite
 
@@ -53,5 +53,12 @@ class ArraySeqTest extends FunSuite {
     intercept[UnsupportedOperationException] {
       ArraySeq.empty.equals("Foo")
     }
+  }
+
+  test("monoid") {
+    assert(Eq.eqv(
+      Monoid.combineAll(Seq(ArraySeq(1), ArraySeq(2))),
+      Monoid.combine(ArraySeq(1),ArraySeq(2))
+      ))
   }
 }

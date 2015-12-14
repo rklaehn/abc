@@ -18,3 +18,20 @@ class ArraySetTest extends FunSuite {
     assert(!ArraySet.empty[Int].show.isEmpty)
   }
 }
+
+class NegatableArraySetTest extends FunSuite {
+
+  test("show") {
+    assert(!NegatableArraySet.empty[Int].show.isEmpty)
+    assert(!NegatableArraySet.all[Int].show.isEmpty)
+    assert(!NegatableArraySet(1).show.isEmpty)
+    assert(!NegatableArraySet(1).negate.show.isEmpty)
+  }
+
+  test("Eq") {
+    def eqv[T: Eq](a: NegatableArraySet[T], b: NegatableArraySet[T]) =
+      Eq.eqv(a, b)
+    assert(eqv(NegatableArraySet(1), NegatableArraySet(1)))
+    assert(!eqv(NegatableArraySet(1), NegatableArraySet(2)))
+  }
+}

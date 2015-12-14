@@ -110,6 +110,13 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
     checkMonoidLaws[Long, Long]()
     checkMonoidLaws[Boolean, Boolean]()
   }
+  scope {
+    implicit def groupFromAdditiveGroup[T: AdditiveGroup]: Group[T] = AdditiveGroup[T].additive
+    checkGroupLaws[Byte, Byte]()
+    checkGroupLaws[Short, Short]()
+    checkGroupLaws[Int, Int]()
+    checkGroupLaws[Long, Long]()
+  }
   checkMonoidLaws[String, String]()
 }
 
