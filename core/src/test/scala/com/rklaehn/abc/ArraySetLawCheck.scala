@@ -19,6 +19,54 @@ trait Helpers {
   def scope[T](f: ⇒ T) = f
 }
 
+class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
+
+  def checkEqLaws[K: Order: ClassTag: Arbitrary, V: Eq: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"OrderLaws[TotalArrayMap[$keyName,$valueName]].eqv", OrderLaws[TotalArrayMap[K, V]].eqv)
+  }
+
+  def checkMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: Monoid: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].monoid", GroupLaws[TotalArrayMap[K, V]].monoid)
+  }
+
+  def checkAdditiveMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveMonoid: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[TotalArrayMap[K, V]].additiveMonoid)
+  }
+  checkEqLaws[Byte, Byte]()
+  checkEqLaws[Short, Short]()
+  checkEqLaws[Int, Int]()
+  checkEqLaws[Long, Long]()
+  checkEqLaws[Float, Float]()
+  checkEqLaws[Double, Double]()
+  checkEqLaws[Boolean, Boolean]()
+  checkEqLaws[Char, Char]()
+  checkEqLaws[String, String]()
+  checkAdditiveMonoidLaws[Byte, Byte]()
+  checkAdditiveMonoidLaws[Short, Short]()
+  checkAdditiveMonoidLaws[Int, Int]()
+  checkAdditiveMonoidLaws[Long, Long]()
+  checkAdditiveMonoidLaws[Float, Float]()
+  checkAdditiveMonoidLaws[Double, Double]()
+  checkAdditiveMonoidLaws[Boolean, Boolean]()
+  scope {
+    implicit def monoidFromAdditiveMonoid[T: AdditiveMonoid]: Monoid[T] = AdditiveMonoid[T].additive
+    checkMonoidLaws[Byte, Byte]()
+    checkMonoidLaws[Short, Short]()
+    checkMonoidLaws[Int, Int]()
+    checkMonoidLaws[Long, Long]()
+    checkMonoidLaws[Float, Float]()
+    checkMonoidLaws[Double, Double]()
+    checkMonoidLaws[Boolean, Boolean]()
+  }
+  checkMonoidLaws[String, String]()
+}
+
 class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
 
   def checkEqLaws[K: Order: ClassTag: Arbitrary, V: Eq: ClassTag: Arbitrary](): Unit = {
@@ -38,12 +86,6 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
     val valueName = typeName[V]
     checkAll(s"GroupLaws[ArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[ArrayMap[K, V]].additiveMonoid)
   }
-
-//  def checkGroupLaws[K: Order: ClassTag: Arbitrary, V: Eq: Group: ClassTag: Arbitrary](): Unit = {
-//    val keyName = typeName[K]
-//    val valueName = typeName[V]
-//    checkAll(s"GroupLaws[ArrayMap[$keyName,$valueName]].group", GroupLaws[ArrayMap[K, V]].group)
-//  }
   checkEqLaws[Byte, Byte]()
   checkEqLaws[Short, Short]()
   checkEqLaws[Int, Int]()
@@ -71,25 +113,6 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
     checkMonoidLaws[Boolean, Boolean]()
   }
   checkMonoidLaws[String, String]()
-  scope {
-    implicit def groupFromAdditiveGroup[T: AdditiveGroup]: Group[T] = AdditiveGroup[T].additive
-//    checkGroupLaws[Byte, Byte]()
-//    checkGroupLaws[Short, Short]()
-//    checkGroupLaws[Int, Int]()
-//    checkGroupLaws[Long, Long]()
-//    checkGroupLaws[Float, Float]()
-//    checkGroupLaws[Double, Double]()
-//
-//    val g = algebra.std.map.mapGroup[Int, Int]
-//    val m = Map(1 → 2)
-//    val r = g.combine(m, g.inverse(m))
-//    val r1 = g.empty
-//    val same = Eq.eqv(r, r1)
-//    val eqv = Eq[Map[Int, Int]]
-//    val same2 = eqv.eqv(r, r1)
-//    val same3 = Eq.eqv(Map(1 → 0), Map.empty[Int, Int])
-//    checkAll(s"GroupLaws[Map[Int, Int]].group", GroupLaws[Map[Int, Int]].group)
-  }
 }
 
 class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {

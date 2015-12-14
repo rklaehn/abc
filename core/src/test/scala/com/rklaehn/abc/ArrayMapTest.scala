@@ -26,4 +26,8 @@ class ArrayMapTest extends FunSuite {
   test("show") {
     assert(!ArrayMap.empty[Int, Int].show.isEmpty)
   }
+
+  test("withDefaultValue") {
+    assert(ArrayMap(1 → 1).withDefaultValue(2).apply(-1) == 2)
+  }
 }
