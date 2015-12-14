@@ -1,12 +1,14 @@
 package com.rklaehn.abc
 
-import algebra.ring.{AdditiveGroup, AdditiveSemigroup, AdditiveMonoid}
+import algebra.ring._
 import algebra._
 import algebra.laws._
+import algebra.std.Rat
 import algebra.std.all._
 import org.scalacheck.Arbitrary
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
+import org.typelevel.discipline.Predicate
 import org.typelevel.discipline.scalatest.Discipline
 import arb._
 
@@ -21,6 +23,19 @@ trait Helpers {
 
 class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
 
+  implicit val nonZeroRatArbitrary =
+    Arbitrary(for {
+      (n, d) <- Arbitrary.arbitrary[(BigInt, BigInt)]
+    } yield {
+      val n1 = if(n.signum != 0) n else BigInt(1)
+      val d1 = if(d.signum != 0) d else BigInt(1)
+      Rat(n1, d1)
+    })
+
+  implicit def allNonZero[K, V: AdditiveMonoid : Eq] = Predicate { x: TotalArrayMap[K, V] ⇒
+    !AdditiveMonoid.isZero(x.default) && !x.values.elements.exists(e ⇒ AdditiveMonoid.isZero(e))
+  }
+
   def checkEqLaws[K: Order: ClassTag: Arbitrary, V: Eq: ClassTag: Arbitrary](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
@@ -33,11 +48,36 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
     checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].monoid", GroupLaws[TotalArrayMap[K, V]].monoid)
   }
 
+  def checkGroupLaws[K: Order: ClassTag: Arbitrary, V: Eq: Group: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].group", GroupLaws[TotalArrayMap[K, V]].group)
+  }
+
   def checkAdditiveMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveMonoid: ClassTag: Arbitrary](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
     checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[TotalArrayMap[K, V]].additiveMonoid)
   }
+
+  def checkAdditiveGroupLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveGroup: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[TotalArrayMap[K, V]].additiveGroup)
+  }
+
+  def checkMultiplicativeMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveMonoid: MultiplicativeMonoid: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"RingLaws[TotalArrayMap[$keyName,$valueName]].multiplicativeMonoid", RingLaws[TotalArrayMap[K, V]].multiplicativeMonoid)
+  }
+
+  def checkMultiplicativeGroupLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveMonoid: MultiplicativeGroup: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"RingLaws[TotalArrayMap[$keyName,$valueName]].multiplicativeGroup", RingLaws[TotalArrayMap[K, V]].multiplicativeGroup)
+  }
+
   checkEqLaws[Byte, Byte]()
   checkEqLaws[Short, Short]()
   checkEqLaws[Int, Int]()
@@ -47,21 +87,25 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
   checkEqLaws[Boolean, Boolean]()
   checkEqLaws[Char, Char]()
   checkEqLaws[String, String]()
+
   checkAdditiveMonoidLaws[Byte, Byte]()
   checkAdditiveMonoidLaws[Short, Short]()
   checkAdditiveMonoidLaws[Int, Int]()
   checkAdditiveMonoidLaws[Long, Long]()
-  checkAdditiveMonoidLaws[Float, Float]()
-  checkAdditiveMonoidLaws[Double, Double]()
   checkAdditiveMonoidLaws[Boolean, Boolean]()
+  checkAdditiveGroupLaws[Byte, Byte]()
+  checkAdditiveGroupLaws[Short, Short]()
+  checkAdditiveGroupLaws[Int, Int]()
+  checkAdditiveGroupLaws[Long, Long]()
+
+  checkMultiplicativeMonoidLaws[Int, Rat]()
+  checkMultiplicativeGroupLaws[Int, Rat]()
   scope {
     implicit def monoidFromAdditiveMonoid[T: AdditiveMonoid]: Monoid[T] = AdditiveMonoid[T].additive
     checkMonoidLaws[Byte, Byte]()
     checkMonoidLaws[Short, Short]()
     checkMonoidLaws[Int, Int]()
     checkMonoidLaws[Long, Long]()
-    checkMonoidLaws[Float, Float]()
-    checkMonoidLaws[Double, Double]()
     checkMonoidLaws[Boolean, Boolean]()
   }
   checkMonoidLaws[String, String]()

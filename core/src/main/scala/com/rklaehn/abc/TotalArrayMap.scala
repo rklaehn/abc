@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
+import algebra.ring._
 import cats.Show
 
 import cats.syntax.show._
@@ -31,74 +31,33 @@ final class TotalArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     else default
   }
 
-  def merge(that: TotalArrayMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] =
-    new Merge[K, V](this, that).result
+  def combine(that: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
+    new Combine[K, V](this, that, f).result
 
-  def unionWith(that: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] =
-    new UnionWith[K, V](this, that, f).result
-
-  def filterKeys(f: K ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
-    val rk = new Array[K](keys0.length)
-    val rv = new Array[V](values0.length)
-    var ri = 0
+  def mapValues(f: V ⇒ V)(implicit kClassTag: ClassTag[K], vEq: Eq[V], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
+    val rk = new Array[K](size)
+    val rv = new Array[V](size)
+    val rd = f(default)
     var i = 0
+    var ri = 0
     while(i < keys0.length) {
-      if (f(keys0(i))) {
+      val r = f(values0(i))
+      if(Eq.neqv(r, rd)) {
         rk(ri) = keys0(i)
-        rv(ri) = values0(i)
+        rv(ri) = r
         ri += 1
       }
       i += 1
     }
-    if(ri == rk.length) this
-    else new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri), default)
+    val keys1 = if(ri == keys0.length) keys0 else rk.resizeInPlace(ri)
+    val values1 = rv.resizeInPlace(ri)
+    new TotalArrayMap[K, V](keys1, values1, rd)
   }
-
-//  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
-//    val rk = new Array[K](keys0.length)
-//    val rv = new Array[V](values0.length)
-//    var ri = 0
-//    var i = 0
-//    while(i < keys0.length) {
-//      if (f(values0(i))) {
-//        rk(ri) = keys0(i)
-//        rv(ri) = values0(i)
-//        ri += 1
-//      }
-//      i += 1
-//    }
-//    if(ri == rk.length) this
-//    else new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
-//  }
-
-  def filter(f: ((K, V)) ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
-    val rk = kClassTag.newArray(keys0.length)
-    val rv = vClassTag.newArray(values0.length)
-    var ri = 0
-    var i = 0
-    while(i < keys0.length) {
-      if (f((keys0(i), values0(i)))) {
-        rk(ri) = keys0(i)
-        rv(ri) = values0(i)
-        ri += 1
-      }
-      i += 1
-    }
-    if(ri == rk.length) this
-    else new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri), default)
-  }
-
-  def justKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] =
-    new JustKeys[K, V](this, keys).result
-
-  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V]): TotalArrayMap[K, V] =
-    new ExceptKeys[K, V](this, keys).result
-
-  def mapValues[@sp(Int, Long, Double) V2: ClassTag](f: V => V2): TotalArrayMap[K, V2] =
-    new TotalArrayMap(keys0, values0.map(f), f(default))
 
   override def toString: String =
-    keys0.indices.map(i => s"${keys0(i)}->${values0(i)}").mkString("Map(", ",", ")")
+    iterator
+      .map { case (k, v) ⇒ s"$k->$v"}
+      .mkString(s"ArrayMap(", ",", s").withDefaultValue($default)")
 }
 
 private[abc] trait TotalArrayMap1 {
@@ -108,43 +67,59 @@ private[abc] trait TotalArrayMap1 {
       Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0) && Eq.eqv(x.default, y.default)
   }
 
-  implicit def monoid[K: ClassTag : Order, V: ClassTag: Monoid]: Monoid[TotalArrayMap[K, V]] =
+  implicit def monoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]: Monoid[TotalArrayMap[K, V]] =
     new ArrayTotalMapMonoid[K, V]
 
-  implicit def additiveMonoid[K: ClassTag: Order, V: ClassTag: AdditiveMonoid]: AdditiveMonoid[TotalArrayMap[K, V]] =
+  implicit def group[K: ClassTag: Order, V: ClassTag: Group: Eq]: Group[TotalArrayMap[K, V]] =
+    new ArrayTotalMapGroup[K, V]
+
+  implicit def additiveMonoid[K: ClassTag: Order, V: ClassTag: AdditiveMonoid: Eq]: AdditiveMonoid[TotalArrayMap[K, V]] =
     new ArrayTotalMapAdditiveMonoid[K, V]
 
-//  implicit def group[K: ClassTag: Order, V: ClassTag: Group: Eq]: Group[TotalArrayMap[K, V]] =
-//    new MapGroup[K, V]
+  implicit def additiveGroup[K: ClassTag: Order, V: ClassTag: AdditiveGroup: Eq]: AdditiveGroup[TotalArrayMap[K, V]] =
+    new ArrayTotalMapAdditiveGroup[K, V]
+
+  implicit def multiplicativeMonoid[K: ClassTag: Order, V: ClassTag: MultiplicativeMonoid: Eq]: MultiplicativeMonoid[TotalArrayMap[K, V]] =
+    new ArrayTotalMapMultiplicativeMonoid[K, V]
+
+  implicit def multiplicativeGroup[K: ClassTag: Order, V: ClassTag: MultiplicativeGroup: Eq]: MultiplicativeGroup[TotalArrayMap[K, V]] =
+    new ArrayTotalMapMultiplicativeGroup[K, V]
 }
 
-private class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid] extends Monoid[TotalArrayMap[K, V]] {
+private class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq] extends Monoid[TotalArrayMap[K, V]] {
   override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
   override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.unionWith(y, (x, y) ⇒ Semigroup.combine(x, y))
+    x.combine(y, (x, y) ⇒ Semigroup.combine(x, y))
 }
 
-//private final class MapGroup[K: ClassTag : Order, V: ClassTag : Eq: Group] extends MapMonoid[K, V] with Group[TotalArrayMap[K, V]] {
-//
-//  def inverse(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-//    x.mapValues(v ⇒ Group.inverse(v)).filterValues(x ⇒ Eq.neqv(x, Group.empty))
-//
-//  override def remove(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
-//    // everything that is in y but not in x must be inverted
-//    val justY = y.exceptKeys(x.keys).mapValues(x ⇒ Group.inverse(x))
-//    // everything that is in x but not in y can be kept
-//    val justX = x.exceptKeys(y.keys)
-//    // everything that is in both needs to be removed
-//    val intersection = x.intersectWith(y, (x, y) ⇒ Group.remove(x, y))
-//    // merge the results (they do not overlap)
-//    (justX merge justY merge intersection).filterValues(x ⇒ Eq.neqv(x, Group.empty))
-//  }
-//}
+private class ArrayTotalMapGroup[K: ClassTag: Order, V: ClassTag: Group: Eq] extends ArrayTotalMapMonoid[K, V] with Group[TotalArrayMap[K, V]] {
+  override def inverse(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ Group.inverse(x))
+  override def remove(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+    x.combine(y, (x,y) ⇒ Group.remove(x, y))
+}
 
-private final class ArrayTotalMapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveMonoid] extends AdditiveMonoid[TotalArrayMap[K, V]] {
+private class ArrayTotalMapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveMonoid: Eq] extends AdditiveMonoid[TotalArrayMap[K, V]] {
   override def zero: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](AdditiveMonoid[V].zero)
   override def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.unionWith(y, (x, y) ⇒ AdditiveSemigroup.plus(x, y))
+    x.combine(y, (x, y) ⇒ AdditiveSemigroup.plus(x, y))
+}
+
+private class ArrayTotalMapAdditiveGroup[K: ClassTag: Order, V: ClassTag: AdditiveGroup: Eq] extends ArrayTotalMapAdditiveMonoid[K, V] with AdditiveGroup[TotalArrayMap[K, V]] {
+  override def negate(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ AdditiveGroup.negate(x))
+  override def minus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+    x.combine(y, (x,y) ⇒ AdditiveGroup.minus(x, y))
+}
+
+private class ArrayTotalMapMultiplicativeMonoid[K: ClassTag : Order, V: ClassTag: MultiplicativeMonoid: Eq] extends MultiplicativeMonoid[TotalArrayMap[K, V]] {
+  override def one: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](MultiplicativeMonoid[V].one)
+  override def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+    x.combine(y, (x, y) ⇒ MultiplicativeMonoid.times(x, y))
+}
+
+private class ArrayTotalMapMultiplicativeGroup[K: ClassTag: Order, V: ClassTag: MultiplicativeGroup: Eq] extends ArrayTotalMapMultiplicativeMonoid[K, V] with MultiplicativeGroup[TotalArrayMap[K, V]] {
+  override def reciprocal(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ MultiplicativeGroup.reciprocal(x))
+  override def div(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+    x.combine(y, (x,y) ⇒ MultiplicativeGroup.div(x, y))
 }
 
 object TotalArrayMap extends TotalArrayMap1 {
@@ -204,7 +179,7 @@ object TotalArrayMap extends TotalArrayMap1 {
     def result: TotalArrayMap[K, V] = new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri), rd)
   }
 
-  private final class UnionWith[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: ClassTag](
+  private final class Combine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](
     a: TotalArrayMap[K, V], b: TotalArrayMap[K, V], f: (V, V) => V)
     extends BinaryMerge {
 
@@ -221,21 +196,38 @@ object TotalArrayMap extends TotalArrayMap1 {
     def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
 
     def fromA(a0: Int, a1: Int, bi: Int) = {
-      System.arraycopy(ak, a0, rk, ri, a1 - a0)
-      System.arraycopy(av, a0, rv, ri, a1 - a0)
-      ri += a1 - a0
+      var ai = a0
+      while(ai < a1) {
+        val r = f(av(ai), b.default)
+        if(Eq.neqv(r, rd)) {
+          rk(ri) = ak(ai)
+          rv(ri) = r
+          ri += 1
+        }
+        ai += 1
+      }
     }
 
     def fromB(ai: Int, b0: Int, b1: Int) = {
-      System.arraycopy(bk, b0, rk, ri, b1 - b0)
-      System.arraycopy(bv, b0, rv, ri, b1 - b0)
-      ri += b1 - b0
+      var bi = b0
+      while(bi < b1) {
+        val r = f(a.default, bv(bi))
+        if(Eq.neqv(r, rd)) {
+          rk(ri) = bk(bi)
+          rv(ri) = r
+          ri += 1
+        }
+        bi += 1
+      }
     }
 
     def collision(ai: Int, bi: Int) = {
-      rk(ri) = bk(bi)
-      rv(ri) = f(av(ai), bv(bi))
-      ri += 1
+      val r = f(av(ai), bv(bi))
+      if(Eq.neqv(r, rd)) {
+        rk(ri) = bk(bi)
+        rv(ri) = r
+        ri += 1
+      }
     }
 
     merge0(0, ak.length, 0, bk.length)
