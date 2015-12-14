@@ -59,6 +59,15 @@ Provided typeclasses:
 - PartialOrder
 - Semiring
 
+### NegatableArraySet[K, V]
+
+A set by a sorted array, with an additional flag to allow negation. The additional flag allows implementing the full Bool typeclass. The internal representation is extremely compact, especially when using primitives.
+
+Provided typeclasses:
+
+- Eq
+- Bool
+
 ### ArrayMap[K, V]
 
 A map backed by a sorted array of keys and a corresponding array of values. The internal representation is extremely compact, especially when using primitives. 
@@ -71,14 +80,19 @@ Provided typeclasses:
 - Monoid
 - AdditiveMonoid
 
-### NegatableArraySet[K, V]
+### TotalArrayMap[K, V]
 
-A set by a sorted array, with an additional flag to allow negation. The additional flag allows implementing the full Bool typeclass. The internal representation is extremely compact, especially when using primitives.
+A map with default value, so that the apply method is total (hence the name). This map does not have as many operations as ArrayMap[K, V], but you can convert a TotalArrayMap[K, V] back to an ArrayMap[K, V] in O(1).
 
 Provided typeclasses:
 
 - Eq
-- Bool
+- Hash
+- Show
+- Group
+- AdditiveGroup
+- MultiplicativeGroup
+- ...tbc
 
 ### ArrayBiMap[K, V]
 
