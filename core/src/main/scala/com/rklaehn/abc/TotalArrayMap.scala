@@ -71,6 +71,9 @@ private[abc] trait TotalArrayMap1 {
     def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
       Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0) && Eq.eqv(x.default, y.default)
   }
+}
+
+object TotalArrayMap extends TotalArrayMap1 {
 
   implicit def monoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]: Monoid[TotalArrayMap[K, V]] =
     new ArrayTotalMapMonoid[K, V]
@@ -89,66 +92,82 @@ private[abc] trait TotalArrayMap1 {
 
   implicit def multiplicativeGroup[K: ClassTag: Order, V: ClassTag: MultiplicativeGroup: Eq]: MultiplicativeGroup[TotalArrayMap[K, V]] =
     new ArrayTotalMapMultiplicativeGroup[K, V]
-}
 
-private class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]
-  extends Monoid[TotalArrayMap[K, V]] {
-  override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
-  override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
-    val m = Monoid[V]
-    if(m.isEmpty(x.default) && m.isEmpty(y.default))
-      x.fastCombine(y, m.combine)
-    else
-      x.combine(y, m.combine)
+  implicit def semiring[K: ClassTag: Order, V: ClassTag: Semiring: Eq]: Semiring[TotalArrayMap[K, V]] =
+    new ArrayTotalMapSemiring[K, V]
+
+  private class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]
+    extends Monoid[TotalArrayMap[K, V]] {
+    override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
+    override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+      val m = Monoid[V]
+      if(m.isEmpty(x.default) && m.isEmpty(y.default))
+        x.fastCombine(y, m.combine)
+      else
+        x.combine(y, m.combine)
+    }
   }
-}
 
-private final class ArrayTotalMapGroup[K: ClassTag: Order, V: ClassTag: Group: Eq]
-  extends ArrayTotalMapMonoid[K, V] with Group[TotalArrayMap[K, V]] {
-  override def inverse(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ Group.inverse(x))
-  override def remove(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.combine(y, (x,y) ⇒ Group.remove(x, y))
-}
-
-private class ArrayTotalMapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveMonoid: Eq]
-  extends AdditiveMonoid[TotalArrayMap[K, V]] {
-  override def zero: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](AdditiveMonoid[V].zero)
-  override def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
-    val m = AdditiveMonoid[V]
-    if(m.isZero(x.default) && m.isZero(y.default))
-      x.fastCombine(y, m.plus)
-    else
-      x.combine(y, m.plus)
+  private final class ArrayTotalMapGroup[K: ClassTag: Order, V: ClassTag: Group: Eq]
+    extends ArrayTotalMapMonoid[K, V] with Group[TotalArrayMap[K, V]] {
+    override def inverse(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ Group.inverse(x))
+    override def remove(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+      x.combine(y, (x,y) ⇒ Group.remove(x, y))
   }
-}
 
-private final class ArrayTotalMapAdditiveGroup[K: ClassTag: Order, V: ClassTag: AdditiveGroup: Eq]
-  extends ArrayTotalMapAdditiveMonoid[K, V] with AdditiveGroup[TotalArrayMap[K, V]] {
-  override def negate(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ AdditiveGroup.negate(x))
-  override def minus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.combine(y, (x,y) ⇒ AdditiveGroup.minus(x, y))
-}
+  private class ArrayTotalMapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveMonoid: Eq]
+    extends AdditiveMonoid[TotalArrayMap[K, V]] {
+    override def zero: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](AdditiveMonoid[V].zero)
+    override def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+      val m = AdditiveMonoid[V]
+      if(m.isZero(x.default) && m.isZero(y.default))
+        x.fastCombine(y, m.plus)
+      else
+        x.combine(y, m.plus)
+    }
+  }
 
-private class ArrayTotalMapMultiplicativeMonoid[K: ClassTag : Order, V: ClassTag: MultiplicativeMonoid: Eq]
-  extends MultiplicativeMonoid[TotalArrayMap[K, V]] {
-  override def one: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](MultiplicativeMonoid[V].one)
-  override def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
-    val m = MultiplicativeMonoid[V]
-    if(m.isOne(x.default) && m.isOne(y.default))
-      x.fastCombine(y, m.times)
-    else
+  private final class ArrayTotalMapAdditiveGroup[K: ClassTag: Order, V: ClassTag: AdditiveGroup: Eq]
+    extends ArrayTotalMapAdditiveMonoid[K, V] with AdditiveGroup[TotalArrayMap[K, V]] {
+    override def negate(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ AdditiveGroup.negate(x))
+    override def minus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+      x.combine(y, (x,y) ⇒ AdditiveGroup.minus(x, y))
+  }
+
+  private class ArrayTotalMapMultiplicativeMonoid[K: ClassTag : Order, V: ClassTag: MultiplicativeMonoid: Eq]
+    extends MultiplicativeMonoid[TotalArrayMap[K, V]] {
+    override def one: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](MultiplicativeMonoid[V].one)
+    override def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+      val m = MultiplicativeMonoid[V]
+      if(m.isOne(x.default) && m.isOne(y.default))
+        x.fastCombine(y, m.times)
+      else
+        x.combine(y, m.times)
+    }
+  }
+
+  private final class ArrayTotalMapMultiplicativeGroup[K: ClassTag: Order, V: ClassTag: MultiplicativeGroup: Eq]
+    extends ArrayTotalMapMultiplicativeMonoid[K, V] with MultiplicativeGroup[TotalArrayMap[K, V]] {
+    override def reciprocal(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ MultiplicativeGroup.reciprocal(x))
+    override def div(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
+      x.combine(y, (x,y) ⇒ MultiplicativeGroup.div(x, y))
+  }
+
+  private final class ArrayTotalMapSemiring[K: ClassTag: Order, V: ClassTag: Semiring: Eq]
+    extends Semiring[TotalArrayMap[K, V]] {
+    def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+      val m = AdditiveCommutativeMonoid[V]
+      if(m.isZero(x.default) && m.isZero(y.default))
+        x.fastCombine(y, m.plus)
+      else
+        x.combine(y, m.plus)
+    }
+    def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =  {
+      val m = MultiplicativeSemigroup[V]
       x.combine(y, m.times)
+    }
+    def zero = TotalArrayMap.fromDefault[K, V](AdditiveCommutativeMonoid[V].zero)
   }
-}
-
-private final class ArrayTotalMapMultiplicativeGroup[K: ClassTag: Order, V: ClassTag: MultiplicativeGroup: Eq]
-  extends ArrayTotalMapMultiplicativeMonoid[K, V] with MultiplicativeGroup[TotalArrayMap[K, V]] {
-  override def reciprocal(x: TotalArrayMap[K, V]): TotalArrayMap[K, V] = x.mapValues(x ⇒ MultiplicativeGroup.reciprocal(x))
-  override def div(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.combine(y, (x,y) ⇒ MultiplicativeGroup.div(x, y))
-}
-
-object TotalArrayMap extends TotalArrayMap1 {
 
   implicit def show[K: Show, V: Show]: Show[TotalArrayMap[K, V]] = Show.show(m ⇒
     m.iterator

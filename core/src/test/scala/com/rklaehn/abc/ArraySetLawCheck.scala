@@ -80,10 +80,15 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
     checkAll(s"RingLaws[TotalArrayMap[$keyName,$valueName]].multiplicativeGroup", RingLaws[TotalArrayMap[K, V]].multiplicativeGroup)
   }
 
+  def checkSemiringLaws[K: Order: ClassTag: Arbitrary, V: Eq: Semiring: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"RingLaws[TotalArrayMap[$keyName,$valueName]].multiplicativeGroup", RingLaws[TotalArrayMap[K, V]].semiring)
+  }
+
   checkEqLaws[Byte, Byte]()
   checkEqLaws[Short, Short]()
   checkEqLaws[Int, Int]()
-  checkEqLaws[Long, Long]()
   checkEqLaws[Float, Float]()
   checkEqLaws[Double, Double]()
   checkEqLaws[Boolean, Boolean]()
@@ -93,12 +98,10 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
   checkAdditiveMonoidLaws[Byte, Byte]()
   checkAdditiveMonoidLaws[Short, Short]()
   checkAdditiveMonoidLaws[Int, Int]()
-  checkAdditiveMonoidLaws[Long, Long]()
   checkAdditiveMonoidLaws[Boolean, Boolean]()
   checkAdditiveGroupLaws[Byte, Byte]()
   checkAdditiveGroupLaws[Short, Short]()
   checkAdditiveGroupLaws[Int, Int]()
-  checkAdditiveGroupLaws[Long, Long]()
 
   checkMultiplicativeMonoidLaws[Int, Rat]()
   checkMultiplicativeGroupLaws[Int, Rat]()
@@ -107,7 +110,6 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
     checkMonoidLaws[Byte, Byte]()
     checkMonoidLaws[Short, Short]()
     checkMonoidLaws[Int, Int]()
-    checkMonoidLaws[Long, Long]()
     checkMonoidLaws[Boolean, Boolean]()
   }
   scope {
@@ -115,9 +117,11 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
     checkGroupLaws[Byte, Byte]()
     checkGroupLaws[Short, Short]()
     checkGroupLaws[Int, Int]()
-    checkGroupLaws[Long, Long]()
   }
   checkMonoidLaws[String, String]()
+  checkSemiringLaws[Int, Byte]()
+  checkSemiringLaws[Int, Short]()
+  checkSemiringLaws[Int, Int]()
 }
 
 class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
@@ -142,7 +146,6 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
   checkEqLaws[Byte, Byte]()
   checkEqLaws[Short, Short]()
   checkEqLaws[Int, Int]()
-  checkEqLaws[Long, Long]()
   checkEqLaws[Float, Float]()
   checkEqLaws[Double, Double]()
   checkEqLaws[Boolean, Boolean]()
@@ -151,7 +154,6 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
   checkAdditiveMonoidLaws[Byte, Byte]()
   checkAdditiveMonoidLaws[Short, Short]()
   checkAdditiveMonoidLaws[Int, Int]()
-  checkAdditiveMonoidLaws[Long, Long]()
   checkAdditiveMonoidLaws[Float, Float]()
   checkAdditiveMonoidLaws[Double, Double]()
   checkAdditiveMonoidLaws[Boolean, Boolean]()
@@ -160,7 +162,6 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
     checkMonoidLaws[Byte, Byte]()
     checkMonoidLaws[Short, Short]()
     checkMonoidLaws[Int, Int]()
-    checkMonoidLaws[Long, Long]()
     checkMonoidLaws[Float, Float]()
     checkMonoidLaws[Double, Double]()
     checkMonoidLaws[Boolean, Boolean]()
@@ -179,7 +180,6 @@ class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {
   checkLaws[Byte]()
   checkLaws[Short]()
   checkLaws[Int]()
-  checkLaws[Long]()
   checkLaws[Float]()
   checkLaws[Double]()
   checkLaws[Boolean]()
@@ -201,7 +201,6 @@ class ArraySetLawCheck extends FunSuite with Discipline with Helpers {
   checkLaws[Byte]()
   checkLaws[Short]()
   checkLaws[Int]()
-  checkLaws[Long]()
   checkLaws[Float]()
   checkLaws[Double]()
   checkLaws[Boolean]()
@@ -227,7 +226,6 @@ class ArraySetCheck extends FunSuite with Checkers with Helpers {
   checkHashing[Byte]()
   checkHashing[Short]()
   checkHashing[Int]()
-  checkHashing[Long]()
   checkHashing[Float]()
   checkHashing[Double]()
   checkHashing[Boolean]()
