@@ -13,7 +13,7 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) e
 
   def isEmpty: Boolean = elements.isEmpty
 
-  def concat(that: ArraySeq[T])(implicit classTag: ClassTag[T]): ArraySeq[T] =
+  def concat(that: ArraySeq[T])(implicit T: ClassTag[T]): ArraySeq[T] =
     if (this.isEmpty) that
     else if (that.isEmpty) this
     else {
@@ -23,10 +23,10 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) e
       new ArraySeq[T](temp)
     }
 
-  def map[@sp U : ClassTag](f: T => U): ArraySeq[U] =
+  def map[@sp U: ClassTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f))
 
-  def flatMap[@sp U : ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
+  def flatMap[@sp U: ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
     new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
 
   def filter(p: T => Boolean): ArraySeq[T] =
@@ -68,6 +68,10 @@ object ArraySeq extends ArraySeq1 {
   def singleton[@sp T: ClassTag](e: T): ArraySeq[T] =
     new ArraySeq[T](Array.singleton(e))
 
-  def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] =
-    new ArraySeq[T](elements.toArray)
+  def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] = {
+    val t = new Array[T](elements.length)
+    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
+    elements.copyToArray(t)
+    new ArraySeq[T](t)
+  }
 }

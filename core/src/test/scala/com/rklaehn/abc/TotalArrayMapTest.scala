@@ -1,6 +1,7 @@
 package com.rklaehn.abc
 
 import algebra.Eq
+import algebra.ring.MultiplicativeMonoid
 import cats.implicits._
 import org.scalatest.FunSuite
 
@@ -50,5 +51,14 @@ class TotalArrayMapTest extends FunSuite {
       ArrayMap(1 -> 2).withDefaultValue(2).withoutDefault,
       ArrayMap.empty[Int, Int]
     ))
+  }
+
+  test("multiply") {
+    // this test is necessary because the arbitary will rarely choose a default value of 1 for lhs and rhs
+    val a = ArrayMap(1 -> 2).withDefaultValue(1)
+    val b = ArrayMap(1 -> 2).withDefaultValue(1)
+    val c = MultiplicativeMonoid.times(a, b)
+    assert(c(0) == 1)
+    assert(c(1) == 4)
   }
 }

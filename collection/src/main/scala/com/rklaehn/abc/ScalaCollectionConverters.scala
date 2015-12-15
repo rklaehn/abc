@@ -1,12 +1,12 @@
 package com.rklaehn.abc
 
-import algebra.{Order, Eq}
+import algebra.{Eq, Order}
 import com.rklaehn.sonicreducer.Reducer
 
+import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.collection.mutable.ArrayBuffer
-import scala.collection._
 
 // $COVERAGE-OFF$
 object ScalaCollectionConverters {

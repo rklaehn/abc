@@ -68,7 +68,7 @@ lazy val noPublish = Seq(
   publishArtifact := false)
 
 lazy val root = project.in(file("."))
-  .aggregate(coreJVM, coreJS, instrumentedTests, jmhBenchmarks)
+  .aggregate(coreJVM, coreJS, collectionJVM, collectionJS, instrumentedTests, jmhBenchmarks)
   .settings(name := "root")
   .settings(commonSettings: _*)
   .settings(noPublish: _*)
@@ -76,6 +76,12 @@ lazy val root = project.in(file("."))
 lazy val core = crossProject.crossType(CrossType.Pure).in(file("core"))
   .settings(name := "abc")
   .settings(commonSettings: _*)
+
+lazy val collection = crossProject.crossType(CrossType.Pure).in(file("collection"))
+  .settings(name := "abc-collection")
+  .settings(commonSettings: _*)
+  .settings(noPublish: _*)
+  .dependsOn(core)
 
 lazy val instrumentedTests = project.in(file("instrumentedTests"))
   .settings(name := "instrumentedTests")
@@ -86,13 +92,13 @@ lazy val instrumentedTests = project.in(file("instrumentedTests"))
 
 lazy val jmhBenchmarks = project.in(file("jmhBenchmarks"))
   .settings(commonSettings:_*)
-  .dependsOn(coreJVM)
+  .dependsOn(coreJVM, collectionJVM)
   .settings(noPublish: _*)
   .enablePlugins(JmhPlugin)
 
 lazy val thymeBenchmarks = project.in(file("thymeBenchmarks"))
   .settings(commonSettings:_*)
-  .dependsOn(coreJVM)
+  .dependsOn(coreJVM, collectionJVM)
   .settings(libraryDependencies +=
     "ichi.bench" % "thyme" % "0.1.1" from "https://github.com/Ichoran/thyme/raw/9ff531411e10c698855ade2e5bde77791dd0869a/Thyme.jar")
   .settings(noPublish: _*)
@@ -111,3 +117,6 @@ lazy val instrumentedTestSettings = {
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
+
+lazy val collectionJVM = collection.jvm
+lazy val collectionJS = collection.js
