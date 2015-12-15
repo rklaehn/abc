@@ -4,8 +4,6 @@ import algebra.{Eq, Order}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 
-import scala.reflect.ClassTag
-
 object arb {
 
   implicit def arbArraySeq[T: Arbitrary: ClassTag] = Arbitrary {

@@ -1,8 +1,6 @@
 package com.rklaehn.abc
 
 import algebra.Order
-import scala.{specialized ⇒ sp}
-import scala.reflect.ClassTag
 
 /**
   * Simple implementation of insertion sort.

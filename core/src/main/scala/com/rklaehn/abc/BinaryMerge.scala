@@ -1,7 +1,5 @@
 package com.rklaehn.abc
 
-import scala.annotation.tailrec
-
 /**
  * Abstract class that can be used to implement custom binary merges with e.g. special collision behavior or an ordering
  * that is not defined via an Order[T] typeclass

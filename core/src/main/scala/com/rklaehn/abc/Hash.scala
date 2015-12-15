@@ -2,10 +2,6 @@ package com.rklaehn.abc
 
 import algebra.Eq
 
-import scala.{specialized => sp}
-
-import scala.util.hashing.Hashing
-
 // $COVERAGE-OFF$
 /**
  * This is typeclass extends Eq to provide a method hash with the law:

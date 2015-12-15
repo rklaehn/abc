@@ -3,13 +3,18 @@ package com.rklaehn
 import algebra.{Order, Eq}
 import com.rklaehn.abc.Hash
 
-import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
 
 package object abc extends abc1 {
 
+  private[abc] type sp = scala.specialized
+  private[abc] type ClassTag[A] = scala.reflect.ClassTag[A]
+  private[abc] type tailrec     = scala.annotation.tailrec
+  private[abc] val ClassTag = scala.reflect.ClassTag
+  private[abc] val ILD = new Specializable.Group(Long, Int, Double)
+
   implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
-    def singleton[@specialized T](value: T)(implicit classTag: ClassTag[T]) = {
+    def singleton[@sp(ILD) T](value: T)(implicit classTag: ClassTag[T]) = {
       val result = classTag.newArray(1)
       result(0) = value
       result

@@ -2,14 +2,11 @@ package com.rklaehn.abc
 
 import cats.Show
 
-import language.implicitConversions
-import scala.reflect.ClassTag
-import scala.{ specialized => sp }
 import algebra.{PartialOrder, Order, Eq}
 import algebra.lattice.Bool
 import cats.implicits._
 
-final class NegatableArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) extends NoEquals {
+final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) extends NoEquals {
   lhs ⇒
   import NegatableArraySet._
 
@@ -113,19 +110,19 @@ object NegatableArraySet extends NegatableArraySet0 {
 
   private[abc] def wrap[T](elements: Array[T], negated: Boolean) = new NegatableArraySet[T](elements, negated)
 
-  def fromBoolean[@sp(Int, Long, Double) T: ClassTag](value: Boolean): NegatableArraySet[T] =
+  def fromBoolean[@sp(ILD) T: ClassTag](value: Boolean): NegatableArraySet[T] =
     if(value) all else empty
 
-  def empty[@sp(Int, Long, Double) T: ClassTag]: NegatableArraySet[T] =
+  def empty[@sp(ILD) T: ClassTag]: NegatableArraySet[T] =
     wrap(Array.empty[T], false)
 
-  def all[@sp(Int, Long, Double) T: ClassTag]: NegatableArraySet[T] =
+  def all[@sp(ILD) T: ClassTag]: NegatableArraySet[T] =
     wrap(Array.empty[T], true)
 
-  def singleton[@sp(Int, Long, Double) T: ClassTag](e: T): NegatableArraySet[T] =
+  def singleton[@sp(ILD) T: ClassTag](e: T): NegatableArraySet[T] =
     wrap(Array.singleton(e), false)
 
-  def apply[@sp(Int, Long, Double) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
+  def apply[@sp(ILD) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
     val t = new Array[T](elements.length)
     // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
     elements.copyToArray(t)

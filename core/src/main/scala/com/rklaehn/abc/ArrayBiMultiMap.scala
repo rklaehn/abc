@@ -2,10 +2,7 @@ package com.rklaehn.abc
 
 import algebra.{Order, Eq}
 
-import scala.reflect.ClassTag
-import scala.{ specialized => sp }
-
-final class ArrayBiMultiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
+final class ArrayBiMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   val kv: ArrayMultiMap[K, V],
   val vk: ArrayMultiMap[V, K]) extends NoEquals {
 
@@ -43,18 +40,18 @@ object ArrayBiMultiMap {
 
   implicit def eqv[K: Eq, V: Eq]: Eq[ArrayBiMultiMap[K, V]] = Eq.by(_.kv)
 
-  def fromMultiMap[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](kv: ArrayMultiMap[K, V]) =
+  def fromMultiMap[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kv: ArrayMultiMap[K, V]) =
     new ArrayBiMultiMap[K,V](kv, kv.inverse)
 
-  def empty[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag] =
+  def empty[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag] =
     new ArrayBiMultiMap[K, V](ArrayMultiMap.empty[K, V], ArrayMultiMap.empty[V, K])
 
-  def singleton[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](k: K, v: V) =
+  def singleton[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](k: K, v: V) =
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.singleton[K, V](k, ArraySet.singleton(v)),
       ArrayMultiMap.singleton[V, K](v, ArraySet.singleton(k)))
 
-  def apply[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Order: ClassTag](kvs: (K, V)*) = {
+  def apply[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kvs: (K, V)*) = {
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.fromEntries(kvs: _*),
       ArrayMultiMap.fromEntries(kvs.map(_.swap): _*))

@@ -2,8 +2,6 @@ package com.rklaehn.abc
 
 import algebra.Order
 
-import scala.reflect.ClassTag
-import scala.util.hashing.Hashing
 import algebra.std.all._
 import Instances._
 

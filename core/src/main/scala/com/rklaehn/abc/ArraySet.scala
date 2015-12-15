@@ -2,12 +2,10 @@ package com.rklaehn.abc
 
 import algebra.ring.Semiring
 import algebra.{PartialOrder, Order, Eq}
-import cats.{Traverse, Eval, Foldable, Show}
+import cats.{Eval, Foldable, Show}
 import cats.syntax.show._
-import scala.reflect.ClassTag
-import scala.{ specialized => sp }
 
-final class ArraySet[@sp(Int, Long, Double) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
+final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
 
   def size: Int = elements.length
 
@@ -83,13 +81,13 @@ object ArraySet extends ArraySet1 {
     def plus(x: ArraySet[A], y: ArraySet[A]) = x union y
   }
 
-  def empty[@sp(Int, Long, Double) T: ClassTag]: ArraySet[T] =
+  def empty[@sp(ILD) T: ClassTag]: ArraySet[T] =
     new ArraySet[T](Array.empty[T])
 
-  def singleton[@sp(Int, Long, Double) T: ClassTag](e: T): ArraySet[T] =
+  def singleton[@sp(ILD) T: ClassTag](e: T): ArraySet[T] =
     new ArraySet[T](Array.singleton(e))
 
-  def apply[@sp(Int, Long, Double) T: Order : ClassTag](elements: T*): ArraySet[T] = {
+  def apply[@sp(ILD) T: Order : ClassTag](elements: T*): ArraySet[T] = {
     val t = new Array[T](elements.length)
     // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
     elements.copyToArray(t)

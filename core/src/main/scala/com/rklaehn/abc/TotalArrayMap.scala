@@ -4,12 +4,10 @@ import algebra.ring._
 import cats.Show
 
 import cats.syntax.show._
-import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3
-import scala.{ specialized ⇒ sp }
 import algebra._
 
-final class TotalArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
+final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     private[abc] val keys0: Array[K],
     private[abc] val values0: Array[V],
     val default: V
@@ -72,7 +70,7 @@ private[abc] trait TotalArrayMap1 {
 
 object TotalArrayMap extends TotalArrayMap1 {
 
-  private def fastCombine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](lhs: TotalArrayMap[K,V], rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V): TotalArrayMap[K, V] =
+  private def fastCombine[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Eq: ClassTag](lhs: TotalArrayMap[K,V], rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V): TotalArrayMap[K, V] =
     new FastCombine[K, V](lhs, rhs, lhs.default, f).result
 
   implicit def monoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]: Monoid[TotalArrayMap[K, V]] =
@@ -194,7 +192,7 @@ object TotalArrayMap extends TotalArrayMap1 {
     }
   }
 
-  private final class Combine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](
+  private final class Combine[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Eq: ClassTag](
     a: TotalArrayMap[K, V], b: TotalArrayMap[K, V], rd: V, f: (V, V) => V)
     extends BinaryMerge {
 
@@ -255,7 +253,7 @@ object TotalArrayMap extends TotalArrayMap1 {
   //
   // for collisions we still have to check if the result is the default. E.g. when adding Int.MinValue + Int.MinValue,
   // you get back 0, the neutral element of addition
-  private final class FastCombine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](
+  private final class FastCombine[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Eq: ClassTag](
     a: TotalArrayMap[K, V], b: TotalArrayMap[K, V], rd: V, f: (V, V) => V)
     extends BinaryMerge {
 
@@ -296,6 +294,6 @@ object TotalArrayMap extends TotalArrayMap1 {
     def result: TotalArrayMap[K, V] = new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri), rd)
   }
 
-  def fromDefault[@sp(Int, Long, Double) K: ClassTag, @sp(Int, Long, Double) V: ClassTag](default: V): TotalArrayMap[K, V] =
+  def fromDefault[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag](default: V): TotalArrayMap[K, V] =
     new TotalArrayMap(Array.empty[K], Array.empty[V], default)
 }

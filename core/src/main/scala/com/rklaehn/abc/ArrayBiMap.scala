@@ -1,11 +1,8 @@
 package com.rklaehn.abc
 
-import algebra.{Order, Eq}
+import algebra.Order
 
-import scala.reflect.ClassTag
-import scala.{ specialized => sp }
-
-final class ArrayBiMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V] private[abc] (
+final class ArrayBiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   val kv: ArrayMap[K, V],
   val vk: ArrayMap[V, K]) extends NoEquals {
 
@@ -32,16 +29,16 @@ object ArrayBiMap {
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayBiMap[K, V]] = Hash.by(_.kv)
 
-  def empty[@sp(Int, Long, Double) K:ClassTag, @sp(Int, Long, Double) V:ClassTag]: ArrayBiMap[K, V] =
+  def empty[@sp(ILD) K:ClassTag, @sp(ILD) V:ClassTag]: ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](ArrayMap.empty[K,V], ArrayMap.empty[V, K])
 
-  def singleton[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](k: K, v: V)(
+  def singleton[@sp(ILD) K, @sp(ILD) V](k: K, v: V)(
     implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](
       ArrayMap.singleton[K, V](k, v),
       ArrayMap.singleton[V, K](v, k))
 
-  def apply[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](kvs: (K, V)*)(
+  def apply[@sp(ILD) K, @sp(ILD) V](kvs: (K, V)*)(
     implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] = {
     new ArrayBiMap[K, V](
       ArrayMap(kvs: _*),

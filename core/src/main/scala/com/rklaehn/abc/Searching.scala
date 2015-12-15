@@ -2,8 +2,6 @@ package com.rklaehn.abc
 
 import algebra.Order
 
-import scala.{specialized ⇒ sp}
-
 private object Searching {
 
   // scalastyle:off return

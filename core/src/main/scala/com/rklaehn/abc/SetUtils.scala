@@ -1,9 +1,5 @@
 package com.rklaehn.abc
 
-import scala.annotation.tailrec
-import scala.reflect.ClassTag
-import scala.util.control.ControlThrowable
-import scala.{ specialized => sp }
 import algebra.Order
 
 /**
@@ -11,23 +7,23 @@ import algebra.Order
  */
 private object SetUtils {
 
-  private class AbortControl extends ControlThrowable
+  private class AbortControl extends scala.util.control.ControlThrowable
 
   private[this] val abort = new AbortControl
 
-  def union[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+  def union[@sp(ILD) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
     new UnionMerge[T](a, b).result
 
-  def intersection[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+  def intersection[@sp(ILD) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
     new IntersectionMerge[T](a, b).result
 
-  def diff[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+  def diff[@sp(ILD) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
     new DiffMerge[T](a, b).result
 
-  def xor[@sp(Int, Long, Double) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
+  def xor[@sp(ILD) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
     new XorMerge[T](a, b).result
 
-  def subsetOf[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
+  def subsetOf[@sp(ILD) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
       new SubsetOf[T](a, b)
       true
@@ -36,7 +32,7 @@ private object SetUtils {
     }
   }
 
-  def intersects[@sp(Int, Long, Double) T: Order](a: Array[T], b: Array[T]): Boolean = {
+  def intersects[@sp(ILD) T: Order](a: Array[T], b: Array[T]): Boolean = {
     try {
       new NoIntersect[T](a, b)
       false
@@ -45,7 +41,7 @@ private object SetUtils {
     }
   }
 
-  final class SubsetOf[@sp(Int, Long, Double) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+  final class SubsetOf[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
@@ -55,7 +51,7 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class NoIntersect[@sp(Int, Long, Double) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+  final class NoIntersect[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = { throw abort }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
@@ -68,7 +64,7 @@ private object SetUtils {
 //    final val FromB = 1
 //  }
 //
-//  final class UnionMerge2[@sp(Int, Long, Double) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
+//  final class UnionMerge2[@sp(ILD) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
 //    import UnionMerge2._
 //    val r = t.newArray(a.length + b.length)
 //    var ri: Int = 0
@@ -112,7 +108,7 @@ private object SetUtils {
 //    exec()
 //  }
 
-  final class UnionMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+  final class UnionMerge[@sp(ILD) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     val r = new Array[T](a.length + b.length)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
@@ -133,7 +129,7 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class IntersectionMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+  final class IntersectionMerge[@sp(ILD) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     val r = new Array[T](a.length min b.length)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
@@ -148,7 +144,7 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class DiffMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+  final class DiffMerge[@sp(ILD) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     val r = new Array[T](a.length)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
@@ -162,7 +158,7 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-  final class XorMerge[@sp(Int, Long, Double) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
+  final class XorMerge[@sp(ILD) T: Order : ClassTag](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     var ri: Int = 0
     val r = new Array[T](a.length + b.length)
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))

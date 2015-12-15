@@ -1,13 +1,9 @@
 package com.rklaehn.abc
 
-import algebra.Order
-import algebra.{Monoid, Eq}
+import algebra.{Eq, Monoid, Order}
 import cats._
 import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
-
-import scala.reflect.ClassTag
-import scala.{ specialized => sp }
 
 final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals {
 

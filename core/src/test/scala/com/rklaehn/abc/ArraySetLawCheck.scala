@@ -14,8 +14,6 @@ import org.typelevel.discipline.Predicate
 import org.typelevel.discipline.scalatest.Discipline
 import arb._
 
-import scala.reflect.ClassTag
-
 trait Helpers {
 
   def typeName[K: ClassTag] = implicitly[ClassTag[K]].runtimeClass.getSimpleName
