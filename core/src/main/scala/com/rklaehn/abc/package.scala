@@ -56,12 +56,10 @@ package object abc extends abc1 {
       }
   }
 
-  // $COVERAGE-OFF$
-  // scalastyle:off return
-
   implicit def arrayOrder[@specialized A: Order]: Order[Array[A]] = new ArrayOrder[A]
 }
 
+// scalastyle:off return
 private[rklaehn] trait abc0 {
   // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
   implicit def arrayEq[@specialized A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
@@ -119,5 +117,4 @@ private class ArrayOrder[@specialized A](implicit A: Order[A]) extends Order[Arr
     x.length - y.length
   }
 }
-// $COVERAGE-ON$
 // scalastyle:on return

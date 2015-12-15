@@ -2,7 +2,6 @@ package com.rklaehn.abc
 
 import algebra.Eq
 
-// $COVERAGE-OFF$
 /**
  * This is typeclass extends Eq to provide a method hash with the law:
  * if eqv(a, b) then hash(a) == hash(b).
@@ -90,4 +89,3 @@ object Hash extends HashFunctions {
     }
     */
 }
-// $COVERAGE-ON$
