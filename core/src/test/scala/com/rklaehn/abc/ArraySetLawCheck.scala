@@ -162,6 +162,7 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
   checkAdditiveMonoidLaws[Byte, Byte]()
   checkAdditiveMonoidLaws[Short, Short]()
   checkAdditiveMonoidLaws[Int, Int]()
+  checkAdditiveMonoidLaws[Long, Long]()
   checkAdditiveMonoidLaws[Float, Float]()
   checkAdditiveMonoidLaws[Double, Double]()
   checkAdditiveMonoidLaws[Boolean, Boolean]()
