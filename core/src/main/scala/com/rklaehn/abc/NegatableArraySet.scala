@@ -1,9 +1,8 @@
 package com.rklaehn.abc
 
-import cats.Show
-
 import algebra.{PartialOrder, Order, Eq}
 import algebra.lattice.Bool
+import cats.Show
 import cats.implicits._
 
 final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T], private[abc] val negated: Boolean) extends NoEquals {

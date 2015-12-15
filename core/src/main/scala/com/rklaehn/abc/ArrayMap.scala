@@ -5,7 +5,6 @@ import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
 import cats.Show
 import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
-import scala.util.hashing.MurmurHash3
 
 final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
   private[abc] val keys0: Array[K],
@@ -168,7 +167,7 @@ object ArrayMap extends ArrayMap1 {
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayMap[K, V]] = new Hash[ArrayMap[K, V]] {
     def hash(x: ArrayMap[K, V]) =
-      MurmurHash3.mix(Hash.hash(x.keys0), Hash.hash(x.values0))
+      (Hash.hash(x.keys0), Hash.hash(x.values0)).##
 
     def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = {
       Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0)

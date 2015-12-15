@@ -1,11 +1,9 @@
 package com.rklaehn.abc
 
+import algebra._
 import algebra.ring._
 import cats.Show
-
 import cats.syntax.show._
-import scala.util.hashing.MurmurHash3
-import algebra._
 
 final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     private[abc] val keys0: Array[K],
@@ -185,7 +183,7 @@ object TotalArrayMap extends TotalArrayMap1 {
 
   implicit def hash[K: Hash, V: Hash]: Hash[TotalArrayMap[K, V]] = new Hash[TotalArrayMap[K, V]] {
     def hash(x: TotalArrayMap[K, V]) =
-      MurmurHash3.mix(Hash.hash(x.keys0), Hash.hash(x.values0))
+      (Hash.hash(x.keys0), Hash.hash(x.values0)).##
 
     def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) = {
       Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0)

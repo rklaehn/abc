@@ -3,8 +3,6 @@ package com.rklaehn
 import algebra.{Order, Eq}
 import com.rklaehn.abc.Hash
 
-import scala.util.hashing.MurmurHash3
-
 package object abc extends abc1 {
 
   private[abc] type sp = scala.specialized
@@ -97,6 +95,7 @@ private[rklaehn] trait abc1 extends abc0 {
     }
 
     override def hash(a: Array[A]): Int = {
+      import scala.util.hashing.MurmurHash3
       var result = MurmurHash3.arraySeed
       var i = 0
       while(i < a.length) {
