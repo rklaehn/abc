@@ -46,6 +46,7 @@ Provided typeclasses:
 - Hash
 - Show
 - Monoid (empty / concat)
+- Foldable
 
 ### ArraySet[A]
 
@@ -58,6 +59,7 @@ Provided typeclasses:
 - Show
 - PartialOrder
 - Semiring
+- Foldable
 
 ### NegatableArraySet[K, V]
 
