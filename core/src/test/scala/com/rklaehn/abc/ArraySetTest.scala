@@ -4,6 +4,11 @@ import algebra.Eq
 import cats.implicits._
 import org.scalatest.FunSuite
 
+class MiscTest extends FunSuite {
+  test("arrayHash") {
+    assert(Eq.neqv(Array(1,2), Array(1,3))(Hash[Array[Int]]))
+  }
+}
 class ArraySetTest extends FunSuite {
 
   test("instances") {

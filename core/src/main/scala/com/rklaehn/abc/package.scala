@@ -24,27 +24,26 @@ package object abc extends abc1 {
     def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
   }
 
-  implicit private[abc] class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
-
-    def sortAndRemoveDuplicatesInPlace()(implicit order: Order[T], classTag: ClassTag[T]): Array[T] = {
-      if(underlying.length <= 1)
-        underlying
-      else {
-        val a = underlying
-        // use mergeSort since it is better if the elements are pre-ordered, which should be common
-        Sorting.sort(a)
-        var j = 1
-        var i = 1
-        while (i < underlying.length) {
-          if (Eq.neqv(a(j - 1), a(j))) {
-            a(j) = a(i)
-            j += 1
-          }
-          i += 1
+  private[abc] def sortAndRemoveDuplicatesInPlace[@sp T: Order: ClassTag](a: Array[T]): Array[T] = {
+    if(a.length <= 1)
+      a
+    else {
+      // use mergeSort since it is better if the elements are pre-ordered, which should be common
+      Sorting.sort(a)
+      var j = 1
+      var i = 1
+      while (i < a.length) {
+        if (Eq.neqv(a(j - 1), a(j))) {
+          a(j) = a(i)
+          j += 1
         }
-        resizeInPlace(j)
+        i += 1
       }
+      a.resizeInPlace(j)
     }
+  }
+
+  implicit private[abc] class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
 
     def resizeInPlace(n: Int)(implicit c: ClassTag[T]): Array[T] =
       if (underlying.length == n)
@@ -56,18 +55,18 @@ package object abc extends abc1 {
       }
   }
 
-  implicit def arrayOrder[@specialized A: Order]: Order[Array[A]] = new ArrayOrder[A]
+  implicit def arrayOrder[@sp A: Order]: Order[Array[A]] = new ArrayOrder[A]
 }
 
 // scalastyle:off return
 private[rklaehn] trait abc0 {
   // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
-  implicit def arrayEq[@specialized A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
+  implicit def arrayEq[@specialized A: Eq]: Eq[Array[A]] = new Eq[Array[A]] {
     def eqv(x: Array[A], y: Array[A]): Boolean = {
       x.length == y.length && {
         var i = 0
         while(i < x.length) {
-          if(!aEq.eqv(x(i), y(i)))
+          if(!Eq.eqv(x(i), y(i)))
             return false
           i += 1
         }
@@ -79,12 +78,12 @@ private[rklaehn] trait abc0 {
 
 private[rklaehn] trait abc1 extends abc0 {
 
-  implicit def arrayHash[@specialized A](implicit aHash: Hash[A]): Hash[Array[A]] = new Hash[Array[A]] {
+  implicit def arrayHash[@specialized A: Hash]: Hash[Array[A]] = new Hash[Array[A]] {
     def eqv(x: Array[A], y: Array[A]): Boolean = {
       x.length == y.length && {
         var i = 0
         while(i < x.length) {
-          if(!aHash.eqv(x(i), y(i)))
+          if(!Eq.eqv(x(i), y(i)))
             return false
           i += 1
         }
@@ -97,7 +96,7 @@ private[rklaehn] trait abc1 extends abc0 {
       var result = MurmurHash3.arraySeed
       var i = 0
       while(i < a.length) {
-        result = MurmurHash3.mix(result, aHash.hash(a(i)))
+        result = MurmurHash3.mix(result, Hash.hash(a(i)))
         i += 1
       }
       result
@@ -105,7 +104,7 @@ private[rklaehn] trait abc1 extends abc0 {
   }
 }
 
-private class ArrayOrder[@specialized A](implicit A: Order[A]) extends Order[Array[A]] {
+private class ArrayOrder[@specialized A: Order] extends Order[Array[A]] {
 
   override def compare(x: Array[A], y: Array[A]): Int = {
     var i = 0

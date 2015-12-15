@@ -125,6 +125,6 @@ object NegatableArraySet extends NegatableArraySet0 {
     val t = new Array[T](elements.length)
     // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
     elements.copyToArray(t)
-    new NegatableArraySet[T](t.sortAndRemoveDuplicatesInPlace(), false)
+    new NegatableArraySet[T](sortAndRemoveDuplicatesInPlace(t), false)
   }
 }
