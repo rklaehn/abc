@@ -27,7 +27,7 @@ final class TotalArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   def values: ArraySeq[V] = new ArraySeq[V](values0)
 
-  def apply(k: K)(implicit kOrder: Order[K]): V = {
+  def apply(k: K)(implicit K: Order[K]): V = {
     val i = Searching.search(keys0, 0, keys0.length, k)
     if (i >= 0) values0(i)
     else default
@@ -35,9 +35,6 @@ final class TotalArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
 
   def combine(rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
     new Combine[K, V](lhs, rhs, f(lhs.default, rhs.default), f).result
-
-  private[abc] def fastCombine(rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
-    new FastCombine[K, V](lhs, rhs, lhs.default, f).result
 
   def mapValues(f: V ⇒ V)(implicit kClassTag: ClassTag[K], vEq: Eq[V], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
     val rk = new Array[K](size)
@@ -75,6 +72,9 @@ private[abc] trait TotalArrayMap1 {
 
 object TotalArrayMap extends TotalArrayMap1 {
 
+  private def fastCombine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](lhs: TotalArrayMap[K,V], rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V): TotalArrayMap[K, V] =
+    new FastCombine[K, V](lhs, rhs, lhs.default, f).result
+
   implicit def monoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]: Monoid[TotalArrayMap[K, V]] =
     new ArrayTotalMapMonoid[K, V]
 
@@ -96,13 +96,16 @@ object TotalArrayMap extends TotalArrayMap1 {
   implicit def semiring[K: ClassTag: Order, V: ClassTag: Semiring: Eq]: Semiring[TotalArrayMap[K, V]] =
     new ArrayTotalMapSemiring[K, V]
 
+  implicit def rng[K: ClassTag: Order, V: ClassTag: Rng: Eq]: Rng[TotalArrayMap[K, V]] =
+    new TotalArrayMapRng[K, V]
+
   private class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]
     extends Monoid[TotalArrayMap[K, V]] {
     override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
     override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
       val m = Monoid[V]
       if(m.isEmpty(x.default) && m.isEmpty(y.default))
-        x.fastCombine(y, m.combine)
+        fastCombine(x, y, m.combine)
       else
         x.combine(y, m.combine)
     }
@@ -121,7 +124,7 @@ object TotalArrayMap extends TotalArrayMap1 {
     override def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
       val m = AdditiveMonoid[V]
       if(m.isZero(x.default) && m.isZero(y.default))
-        x.fastCombine(y, m.plus)
+        fastCombine(x, y, m.plus)
       else
         x.combine(y, m.plus)
     }
@@ -140,7 +143,7 @@ object TotalArrayMap extends TotalArrayMap1 {
     override def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
       val m = MultiplicativeMonoid[V]
       if(m.isOne(x.default) && m.isOne(y.default))
-        x.fastCombine(y, m.times)
+        fastCombine(x, y, m.times)
       else
         x.combine(y, m.times)
     }
@@ -153,12 +156,12 @@ object TotalArrayMap extends TotalArrayMap1 {
       x.combine(y, (x,y) ⇒ MultiplicativeGroup.div(x, y))
   }
 
-  private final class ArrayTotalMapSemiring[K: ClassTag: Order, V: ClassTag: Semiring: Eq]
+  private class ArrayTotalMapSemiring[K: ClassTag: Order, V: ClassTag: Semiring: Eq]
     extends Semiring[TotalArrayMap[K, V]] {
     def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
       val m = AdditiveCommutativeMonoid[V]
       if(m.isZero(x.default) && m.isZero(y.default))
-        x.fastCombine(y, m.plus)
+        fastCombine(x, y, m.plus)
       else
         x.combine(y, m.plus)
     }
@@ -167,6 +170,13 @@ object TotalArrayMap extends TotalArrayMap1 {
       x.combine(y, m.times)
     }
     def zero = TotalArrayMap.fromDefault[K, V](AdditiveCommutativeMonoid[V].zero)
+  }
+
+  private class TotalArrayMapRng[K: ClassTag: Order, V: ClassTag: Rng: Eq]
+    extends ArrayTotalMapSemiring[K, V] with Rng[TotalArrayMap[K, V]] {
+    def negate(x: TotalArrayMap[K, V]) = x.mapValues(x ⇒ Rng.negate(x))
+    override def minus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
+      x.combine(y, (x, y) ⇒ Rng.minus(x, y))
   }
 
   implicit def show[K: Show, V: Show]: Show[TotalArrayMap[K, V]] = Show.show(m ⇒

@@ -86,6 +86,12 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
     checkAll(s"RingLaws[TotalArrayMap[$keyName,$valueName]].multiplicativeGroup", RingLaws[TotalArrayMap[K, V]].semiring)
   }
 
+  def checkRngLaws[K: Order: ClassTag: Arbitrary, V: Eq: Rng: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"RingLaws[TotalArrayMap[$keyName,$valueName]].rng", RingLaws[TotalArrayMap[K, V]].rng)
+  }
+
   checkEqLaws[Byte, Byte]()
   checkEqLaws[Short, Short]()
   checkEqLaws[Int, Int]()
@@ -122,6 +128,10 @@ class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
   checkSemiringLaws[Int, Byte]()
   checkSemiringLaws[Int, Short]()
   checkSemiringLaws[Int, Int]()
+
+  checkRngLaws[Int, Byte]()
+  checkRngLaws[Int, Short]()
+  checkRngLaws[Int, Int]()
 }
 
 class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
