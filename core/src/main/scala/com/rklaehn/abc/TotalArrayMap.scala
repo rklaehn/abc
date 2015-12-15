@@ -13,7 +13,7 @@ final class TotalArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     private[abc] val keys0: Array[K],
     private[abc] val values0: Array[V],
     val default: V
-  ) extends NoEquals { self ⇒
+  ) extends NoEquals { lhs ⇒
 
   import TotalArrayMap._
 
@@ -33,8 +33,11 @@ final class TotalArrayMap[@sp(Int, Long, Double) K, @sp(Int, Long, Double) V](
     else default
   }
 
-  def combine(that: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
-    new Combine[K, V](this, that, f).result
+  def combine(rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
+    new Combine[K, V](lhs, rhs, f(lhs.default, rhs.default), f).result
+
+  private[abc] def fastCombine(rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
+    new FastCombine[K, V](lhs, rhs, lhs.default, f).result
 
   def mapValues(f: V ⇒ V)(implicit kClassTag: ClassTag[K], vEq: Eq[V], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
     val rk = new Array[K](size)
@@ -91,8 +94,13 @@ private[abc] trait TotalArrayMap1 {
 private class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]
   extends Monoid[TotalArrayMap[K, V]] {
   override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
-  override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.combine(y, (x, y) ⇒ Semigroup.combine(x, y))
+  override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+    val m = Monoid[V]
+    if(m.isEmpty(x.default) && m.isEmpty(y.default))
+      x.fastCombine(y, m.combine)
+    else
+      x.combine(y, m.combine)
+  }
 }
 
 private final class ArrayTotalMapGroup[K: ClassTag: Order, V: ClassTag: Group: Eq]
@@ -105,8 +113,13 @@ private final class ArrayTotalMapGroup[K: ClassTag: Order, V: ClassTag: Group: E
 private class ArrayTotalMapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveMonoid: Eq]
   extends AdditiveMonoid[TotalArrayMap[K, V]] {
   override def zero: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](AdditiveMonoid[V].zero)
-  override def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.combine(y, (x, y) ⇒ AdditiveSemigroup.plus(x, y))
+  override def plus(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+    val m = AdditiveMonoid[V]
+    if(m.isZero(x.default) && m.isZero(y.default))
+      x.fastCombine(y, m.plus)
+    else
+      x.combine(y, m.plus)
+  }
 }
 
 private final class ArrayTotalMapAdditiveGroup[K: ClassTag: Order, V: ClassTag: AdditiveGroup: Eq]
@@ -119,8 +132,13 @@ private final class ArrayTotalMapAdditiveGroup[K: ClassTag: Order, V: ClassTag: 
 private class ArrayTotalMapMultiplicativeMonoid[K: ClassTag : Order, V: ClassTag: MultiplicativeMonoid: Eq]
   extends MultiplicativeMonoid[TotalArrayMap[K, V]] {
   override def one: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](MultiplicativeMonoid[V].one)
-  override def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] =
-    x.combine(y, (x, y) ⇒ MultiplicativeMonoid.times(x, y))
+  override def times(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
+    val m = MultiplicativeMonoid[V]
+    if(m.isOne(x.default) && m.isOne(y.default))
+      x.fastCombine(y, m.times)
+    else
+      x.combine(y, m.times)
+  }
 }
 
 private final class ArrayTotalMapMultiplicativeGroup[K: ClassTag: Order, V: ClassTag: MultiplicativeGroup: Eq]
@@ -148,7 +166,7 @@ object TotalArrayMap extends TotalArrayMap1 {
   }
 
   private final class Combine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](
-    a: TotalArrayMap[K, V], b: TotalArrayMap[K, V], f: (V, V) => V)
+    a: TotalArrayMap[K, V], b: TotalArrayMap[K, V], rd: V, f: (V, V) => V)
     extends BinaryMerge {
 
     @inline def ak = a.keys0
@@ -156,7 +174,6 @@ object TotalArrayMap extends TotalArrayMap1 {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rd = f(a.default, b.default)
     val rk = new Array[K](a.size + b.size)
     val rv = new Array[V](a.size + b.size)
     var ri = 0
@@ -187,6 +204,53 @@ object TotalArrayMap extends TotalArrayMap1 {
         }
         bi += 1
       }
+    }
+
+    def collision(ai: Int, bi: Int) = {
+      val r = f(av(ai), bv(bi))
+      if(Eq.neqv(r, rd)) {
+        rk(ri) = bk(bi)
+        rv(ri) = r
+        ri += 1
+      }
+    }
+
+    merge0(0, ak.length, 0, bk.length)
+
+    def result: TotalArrayMap[K, V] = new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri), rd)
+  }
+
+  // fast path for combine in case a.default, b.default and r.default is the neutral element
+  // in this case we know that we can just copy over elements in a but not in b, or in b but not in a
+  // this is especially important when combining a small and a large map
+  //
+  // for collisions we still have to check if the result is the default. E.g. when adding Int.MinValue + Int.MinValue,
+  // you get back 0, the neutral element of addition
+  private final class FastCombine[@sp(Int, Long, Double) K: Order: ClassTag, @sp(Int, Long, Double) V: Eq: ClassTag](
+    a: TotalArrayMap[K, V], b: TotalArrayMap[K, V], rd: V, f: (V, V) => V)
+    extends BinaryMerge {
+
+    @inline def ak = a.keys0
+    @inline def av = a.values0
+    @inline def bk = b.keys0
+    @inline def bv = b.values0
+
+    val rk = new Array[K](a.size + b.size)
+    val rv = new Array[V](a.size + b.size)
+    var ri = 0
+
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
+
+    def fromA(a0: Int, a1: Int, bi: Int) = {
+      System.arraycopy(ak, a0, rk, ri, a1 - a0)
+      System.arraycopy(av, a0, rv, ri, a1 - a0)
+      ri += a1 - a0
+    }
+
+    def fromB(ai: Int, b0: Int, b1: Int) = {
+      System.arraycopy(bk, b0, rk, ri, b1 - b0)
+      System.arraycopy(bv, b0, rv, ri, b1 - b0)
+      ri += b1 - b0
     }
 
     def collision(ai: Int, bi: Int) = {
