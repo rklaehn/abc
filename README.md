@@ -94,7 +94,8 @@ Provided typeclasses:
 - Group
 - AdditiveGroup
 - MultiplicativeGroup
-- ...tbc
+- Semiring
+- Rig
 
 ### ArrayBiMap[K, V]
 
