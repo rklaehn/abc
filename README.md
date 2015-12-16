@@ -4,9 +4,9 @@
 
 # Array-based collections
 
-Array-based immutable collections for scala. These collections use [algebra](https://github.com/non/algebra) and [cats](https://github.com/non/cats) typeclasses such as Eq and Order instead of relying on the equals method of the element objects, which sometimes does not work (e.g. Array[Byte]).
+Array-based immutable collections for scala. These collections use [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (functions).
 
-They also are effectively specialized, so e.g. an ArraySet[Byte] will use an Array[Byte] internally instead of boxing like normal scala collections do.
+Most operations are specialized for common types, so the specialized instances of typeclasses such as [Order] can be used to avoid boxing. In addition, ClassTag instances ensure that e.g. an ArraySet[Byte] will use an Array[Byte] internally instead of boxing like normal scala collections do.
 
 ## Design goals
 
@@ -30,23 +30,47 @@ Using flat arrays internally is ***very*** inefficient when e.g. adding elements
 
 ### Compatibility with scala collections
 
-An optional interface to scala collections will be provided, but the collections itself are not integrated
+An optional interface to scala collections is provided, but the collections itself are not integrated
 into the scala collections hierarchy. They do not even implement methods such as equals and hashcode. ***In fact they will throw an UnsupportedOperationException when you use == or hashCode***
 They implement toString on a best-effort basis, but formatting should be done using a Show typeclass from cats.
 
 ## Implemented collections
 
+         |          |                  |
+---------|----------|------------------|
+Sequence | ArraySeq | TotalArraySeq    | 
+Set      | ArraySet | NegatableArraySet|
+Map      | ArrayMap | TotalArrayMap    |
+
 ### ArraySeq[A]
 
-Basically just a wrapped array. Specialized for fast primitive access.
+Basically just an array wrapped for immutability. Specialized for fast primitive access
+
+Provided typeclasses:
+
+- [Eq]
+- [Hash]
+- [Show]
+- [Monoid] (empty / concat)
+- Foldable
+
+### TotalArraySeq[A]
+
+A wrapped array with a default value, so that the `apply(index: Int)` method is total. Having a total apply function allows to define many more typeclasses
 
 Provided typeclasses:
 
 - Eq
 - Hash
-- Show
-- Monoid (empty / concat)
-- Foldable
+- Order
+- Semigroup
+- Monoid
+- Group
+- AdditiveSemigroup
+- AdditiveMonoid
+- AdditiveGroup
+- Semiring
+- Rig
 
 ### ArraySet[A]
 
@@ -60,6 +84,7 @@ Provided typeclasses:
 - PartialOrder
 - Semiring
 - Foldable
+- (GenBool once it becomes available)
 
 ### NegatableArraySet[K, V]
 
@@ -116,3 +141,11 @@ Provided typeclasses:
 Provided typeclasses:
 
 - Eq
+
+[algebra]: https://github.com/non/algebra
+[Eq]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Eq.scala
+[Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
+[Monoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Monoid.scala
+
+[cats]: https://github.com/non/cats
+[Show]: https://github.com/non/cats/blob/master/core/src/main/scala/cats/Show.scala
