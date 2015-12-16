@@ -22,7 +22,7 @@ On modern CPUs, cache concerns are *very* important. So a compact in-memory repr
 important for good overall performance than optimal big-O behavior. So in this library, compact in-memory representation
 is ***always*** given priority over reference-heavy trees with theoretically optimal Big-O performance.
 
-This yields very good results regarding compactness and performance. The downside is that you have to provide ClassTag instances for almost every operation.
+This yields very good results regarding compactness and performance for most operations. The downside is that you have to provide ClassTag instances for almost every operation.
 
 ## Bulk operations
 
@@ -42,13 +42,13 @@ They implement toString on a best-effort basis, but formatting should be done us
 
 ## Implemented collections
 
-         |          |                  |
----------|----------|------------------|
-Sequence | ArraySeq | TotalArraySeq    | 
-Set      | ArraySet | NegatableArraySet|
-Map      | ArrayMap | TotalArrayMap    |
+         |            |                    |
+---------|------------|--------------------|
+Sequence | [ArraySeq] | [TotalArraySeq]    | 
+Set      | [ArraySet] | [NegatableArraySet]|
+Map      | [ArrayMap] | [TotalArrayMap]    |
 
-### ArraySeq[A]
+### <a name="ArraySeq"></a> ArraySeq[A]
 
 Basically just an array wrapped for immutability. Specialized for fast primitive access
 
@@ -60,7 +60,7 @@ Provided typeclasses:
 - [Monoid]
 - Foldable
 
-### TotalArraySeq[A]
+### <a name="TotalArraySeq"></a> TotalArraySeq[A]
 
 A wrapped array with a default value, so that the `apply(index: Int)` method is total. Having a total apply function allows to define many more typeclasses
 
@@ -78,7 +78,7 @@ Provided typeclasses:
 - Semiring
 - Rig
 
-### ArraySet[A]
+### <a name="ArraySet"></a> ArraySet[A]
 
 A set backed by a sorted array. The internal representation is extremely compact, especially when using primitives. All boolean operations (union, intersect, diff, xor, subsetOf, intersects) are implemented efficiently.
 
@@ -92,7 +92,7 @@ Provided typeclasses:
 - Foldable
 - (GenBool once it becomes available)
 
-### NegatableArraySet[K, V]
+### <a name="NegatableArraySet"></a> NegatableArraySet[K, V]
 
 A set by a sorted array, with an additional flag to allow negation. The additional flag allows implementing the full Bool typeclass. The internal representation is extremely compact, especially when using primitives.
 
@@ -101,7 +101,7 @@ Provided typeclasses:
 - [Eq]
 - Bool
 
-### ArrayMap[K, V]
+### <a name="ArrayMap"></a> ArrayMap[K, V]
 
 A map backed by a sorted array of keys and a corresponding array of values. The internal representation is extremely compact, especially when using primitives. 
 
@@ -113,7 +113,7 @@ Provided typeclasses:
 - Monoid
 - AdditiveMonoid
 
-### TotalArrayMap[K, V]
+### <a name="TotalArrayMap"></a> TotalArrayMap[K, V]
 
 A map with default value, so that the apply method is total (hence the name). This map does not have as many operations as ArrayMap[K, V], but you can convert a TotalArrayMap[K, V] back to an ArrayMap[K, V] in O(1).
 
