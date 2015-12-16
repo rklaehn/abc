@@ -6,7 +6,7 @@ import algebra.laws._
 import algebra.std.Rat
 import algebra.std.all._
 import cats.laws.discipline.FoldableTests
-import org.scalacheck.Arbitrary
+import org.scalacheck.{Gen, Arbitrary}
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
 import org.typelevel.discipline.Predicate
@@ -18,18 +18,25 @@ trait Helpers {
   def typeName[K: ClassTag] = implicitly[ClassTag[K]].runtimeClass.getSimpleName
 
   def scope[T](f: ⇒ T) = f
+
+  implicit val nonZeroRatArbitrary: Arbitrary[Rat] =
+    Arbitrary {
+      val random: Gen[Rat] = for {
+        (n, d) <- Arbitrary.arbitrary[(BigInt, BigInt)]
+      } yield {
+        val n1 = if(n.signum != 0) n else BigInt(1)
+        val d1 = if(d.signum != 0) d else BigInt(1)
+        Rat(n1, d1)
+      }
+      val one = Gen.const(Rat(1, 1))
+      Gen.frequency(
+        1 -> random,
+        1 -> one
+      )
+    }
 }
 
 class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
-
-  implicit val nonZeroRatArbitrary =
-    Arbitrary(for {
-      (n, d) <- Arbitrary.arbitrary[(BigInt, BigInt)]
-    } yield {
-      val n1 = if(n.signum != 0) n else BigInt(1)
-      val d1 = if(d.signum != 0) d else BigInt(1)
-      Rat(n1, d1)
-    })
 
   implicit def allNonZero[K, V: AdditiveMonoid : Eq] = Predicate { x: TotalArrayMap[K, V] ⇒
     !AdditiveMonoid.isZero(x.default) && !x.values.elements.exists(e ⇒ AdditiveMonoid.isZero(e))
@@ -229,6 +236,14 @@ class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
     val name = typeName[T]
     checkAll(s"GroupLaws[TotalArraySeq[$name].additiveGroup", GroupLaws[TotalArraySeq[T]].additiveGroup)
   }
+  def checkSemiringLaws[T: Semiring: Eq: Arbitrary: ClassTag](): Unit = {
+    val name = typeName[T]
+    checkAll(s"RingLaws[TotalArraySeq[$name].semiring", RingLaws[TotalArraySeq[T]].semiring)
+  }
+  def checkRigLaws[T: Rig: Eq: Arbitrary: ClassTag](): Unit = {
+    val name = typeName[T]
+    checkAll(s"RingLaws[TotalArraySeq[$name].semiring", RingLaws[TotalArraySeq[T]].rig)
+  }
   checkOrderLaws[Byte]()
   checkOrderLaws[Short]()
   checkOrderLaws[Int]()
@@ -270,7 +285,8 @@ class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
   checkAdditiveGroupLaws[Byte]()
   checkAdditiveGroupLaws[Short]()
   checkAdditiveGroupLaws[Int]()
-
+  checkSemiringLaws[Int]()
+  checkRigLaws[Rat]()
 }
 
 class ArraySetLawCheck extends FunSuite with Discipline with Helpers {

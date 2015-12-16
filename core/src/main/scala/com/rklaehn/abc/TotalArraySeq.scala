@@ -1,7 +1,7 @@
 package com.rklaehn.abc
 
 import algebra._
-import algebra.ring.{AdditiveGroup, AdditiveMonoid, AdditiveSemigroup}
+import algebra.ring._
 
 class TotalArraySeq[@sp T] private[abc](private[abc] val elements: Array[T], val default: T) extends NoEquals {
   def apply(index: Int): T =
@@ -55,7 +55,6 @@ private[abc] trait TotalArraySeq2 extends TotalArraySeq1 {
   implicit def hash[A: Hash]: Hash[TotalArraySeq[A]] = new Hash[TotalArraySeq[A]] {
     override def eqv(x: TotalArraySeq[A], y: TotalArraySeq[A]): Boolean =
       Eq.eqv(x.default, y.default) && ArrayUtil.eqv(x.elements, y.elements)
-
     override def hash(a: TotalArraySeq[A]): Int =
       (ArrayUtil.hash(a.elements), Hash.hash(a.default)).##
   }
@@ -75,7 +74,23 @@ private[abc] trait TotalArraySeq2 extends TotalArraySeq1 {
   }
 }
 
-object TotalArraySeq extends TotalArraySeq2 {
+private[abc] trait TotalArraySeq3 extends TotalArraySeq2 {
+
+  implicit def semiring[A: Semiring: Eq: ClassTag]: Semiring[TotalArraySeq[A]] = new Semiring[TotalArraySeq[A]] {
+    def plus(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(Semiring.plus)
+    def times(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(Semiring.times)
+    def zero: TotalArraySeq[A] = TotalArraySeq.constant(Semiring.zero[A])
+  }
+}
+
+object TotalArraySeq extends TotalArraySeq3 {
+
+  implicit def rig[A: Rig: Eq: ClassTag]: Rig[TotalArraySeq[A]] = new Rig[TotalArraySeq[A]] {
+    override def zero: TotalArraySeq[A] = TotalArraySeq.constant(Semiring.zero[A])
+    override def plus(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(Semiring.plus)
+    override def times(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(Semiring.times)
+    override def one: TotalArraySeq[A] = TotalArraySeq.constant(Rig.one[A])
+  }
 
   def constant[A: ClassTag](value: A) = new TotalArraySeq[A](Array.empty[A], value)
 
