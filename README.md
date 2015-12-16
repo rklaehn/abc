@@ -42,15 +42,17 @@ They implement toString on a best-effort basis, but formatting should be done us
 
 ## Implemented collections
 
-         |            |                    |
----------|------------|--------------------|
-Sequence | [ArraySeq] | [TotalArraySeq]    | 
-Set      | [ArraySet] | [NegatableArraySet]|
-Map      | [ArrayMap] | [TotalArrayMap]    |
+The *partial* collections in the left column are better for working with individual elements, whereas the *total* collections in the right column allow more typeclass instances to be defined. It is always possible to convert from partial to total in O(1).
+
+         | Partial    | Total               |
+---------|------------|---------------------|
+Sequence | [ArraySeq] | [TotalArraySeq]     | 
+Set      | [ArraySet] | [NegatableArraySet] |
+Map      | [ArrayMap] | [TotalArrayMap]     |
 
 ### <a name="ArraySeq"></a> ArraySeq[A]
 
-Basically just an array wrapped for immutability. Specialized for fast primitive access
+Basically just an array wrapped to ensure immutability. Specialized for fast primitive access.
 
 Provided typeclasses:
 
@@ -58,19 +60,19 @@ Provided typeclasses:
 - [Hash]
 - [Show]
 - [Monoid]
-- Foldable
+- [Foldable]
 
 ### <a name="TotalArraySeq"></a> TotalArraySeq[A]
 
-A wrapped array with a default value, so that the `apply(index: Int)` method is total. Having a total apply function allows to define many more typeclasses
+A wrapped array with a default value, so that the `apply(index: Int)` method can be defined. Having a total apply function allows to define many more typeclasses
 
 Provided typeclasses:
 
-- Eq
-- Hash
-- Order
+- [Eq]
+- [Hash]
+- [Order]
 - Semigroup
-- Monoid
+- [Monoid]
 - Group
 - AdditiveSemigroup
 - AdditiveMonoid
@@ -86,7 +88,7 @@ Provided typeclasses:
 
 - [Eq]
 - [Hash]
-- Show
+- [Show]
 - PartialOrder
 - Semiring
 - Foldable
@@ -94,12 +96,14 @@ Provided typeclasses:
 
 ### <a name="NegatableArraySet"></a> NegatableArraySet[K, V]
 
-A set by a sorted array, with an additional flag to allow negation. The additional flag allows implementing the full Bool typeclass. The internal representation is extremely compact, especially when using primitives.
+A set backed by a sorted array, with an additional flag to allow negation, so it is possible to express e.g. "all Longs except 1".
+
+The additional flag allows implementing the full [Bool] typeclass, because it is possible to define the e.g. the Set of all Longs, which is the `one` method needed to implement [Bool]. The internal representation is extremely compact, especially when using primitives.
 
 Provided typeclasses:
 
 - [Eq]
-- Bool
+- [Bool]
 
 ### <a name="ArrayMap"></a> ArrayMap[K, V]
 
@@ -110,7 +114,7 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Show]
-- Monoid
+- [Monoid]
 - AdditiveMonoid
 
 ### <a name="TotalArrayMap"></a> TotalArrayMap[K, V]
@@ -157,7 +161,17 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [Eq]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Eq.scala
 [Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
 [Monoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Monoid.scala
+[Bool]: https://github.com/non/algebra/blob/master/lattice/src/main/scala/algebra/lattice/Bool.scala
 
 [cats]: https://github.com/non/cats
 [Show]: https://github.com/non/cats/blob/master/core/src/main/scala/cats/Show.scala
+[Foldable]: https://github.com/non/cats/blob/master/core/src/main/scala/cats/Foldable.scala
+
 [Hash]: #hash
+
+[ArraySeq]: #ArraySeq
+[ArraySet]: #ArraySet
+[ArrayMap]: #ArrayMap
+[TotalArraySeq]: #TotalArraySeq
+[TotalArrayMap]: #TotalArrayMap
+[NegatableArraySet]: #NegatableArraySet
