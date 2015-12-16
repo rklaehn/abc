@@ -4,29 +4,35 @@
 
 # Array-based collections
 
-Array-based immutable collections for scala. These collections use [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (functions).
+Array-based immutable collections for scala. 
 
-Most operations are specialized for common types, so the specialized instances of typeclasses such as [Order] can be used to avoid boxing. In addition, ClassTag instances ensure that e.g. an ArraySet[Byte] will use an Array[Byte] internally instead of boxing like normal scala collections do.
+## Typeclass-friendly design
 
-## Design goals
+These collections *use* [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
 
-### Compact in memory representation
+They also *provide* typeclass instances for as many [algebra] and [cats] typeclasses as possible.
+
+## Specialization of operations
+
+Most operations are specialized for common types (currently Int, Long, Double), so the specialized instances of typeclasses such as [Order] can be used to avoid boxing.
+
+## Compact in-memory representation
 
 On modern CPUs, cache concerns are *very* important. So a compact in-memory representation is often more 
 important for good overall performance than optimal big-O behavior. So in this library, compact in-memory representation
-is ***always*** given priority over optimal big-O behavior.
+is ***always*** given priority over reference-heavy trees with theoretically optimal Big-O performance.
 
-This yields very good results regarding compactness and performance. The downside is that you have to provide ClassTag instances in many places.
+This yields very good results regarding compactness and performance. The downside is that you have to provide ClassTag instances for almost every operation.
 
-### Bulk operations
+## Bulk operations
 
 The scala collections in the standard library mostly implement collection/collection operations in terms of
-collection/element operations. The approach taken in this library is to focus on collection/collection
+collection/element operations. The approach taken in this library is the opposite: focus on collection/collection
 operations and to implement collection/element operations in terms of collection/collection operations
 whenever possible. E.g. adding an element *e* to a set *a* will be done by merging *a* with a
 single-element set created from *e*.
 
-Using flat arrays internally is ***very*** inefficient when e.g. adding elements one by one to a large collection. But when working with collections in a functional way, this is a pretty rare operation. Usually you apply transformations to the collection as a whole. For that use case, the array-based internal representation is very efficient.
+Using flat arrays internally is *very* inefficient when e.g. adding elements one by one to a large collection. But when working with collections in a functional way, this is a pretty rare operation. Usually you apply transformations to the collection as a whole. For that use case, the array-based internal representation is very efficient.
 
 ### Compatibility with scala collections
 
@@ -142,6 +148,11 @@ Provided typeclasses:
 
 - Eq
 
+#
+<a name="hash"></a>
+
+Unfortunately, [algebra] currently does not contain a typeclass for hashing. The hashing typeclass in the scala library does not follow current conventions for typeclasses. Therefore, `Hash[T]` is currently defined [internally](https://github.com/rklaehn/abc/blob/master/core/src/main/scala/com/rklaehn/abc/Hash.scala).
+
 [algebra]: https://github.com/non/algebra
 [Eq]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Eq.scala
 [Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
@@ -149,3 +160,4 @@ Provided typeclasses:
 
 [cats]: https://github.com/non/cats
 [Show]: https://github.com/non/cats/blob/master/core/src/main/scala/cats/Show.scala
+[Hash]: #hash
