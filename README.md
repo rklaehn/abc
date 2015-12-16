@@ -57,7 +57,7 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Show]
-- [Monoid] (empty / concat)
+- [Monoid]
 - Foldable
 
 ### TotalArraySeq[A]
@@ -84,8 +84,8 @@ A set backed by a sorted array. The internal representation is extremely compact
 
 Provided typeclasses:
 
-- Eq
-- Hash
+- [Eq]
+- [Hash]
 - Show
 - PartialOrder
 - Semiring
@@ -98,7 +98,7 @@ A set by a sorted array, with an additional flag to allow negation. The addition
 
 Provided typeclasses:
 
-- Eq
+- [Eq]
 - Bool
 
 ### ArrayMap[K, V]
@@ -107,9 +107,9 @@ A map backed by a sorted array of keys and a corresponding array of values. The 
 
 Provided typeclasses:
 
-- Eq
-- Hash
-- Show
+- [Eq]
+- [Hash]
+- [Show]
 - Monoid
 - AdditiveMonoid
 
@@ -119,9 +119,9 @@ A map with default value, so that the apply method is total (hence the name). Th
 
 Provided typeclasses:
 
-- Eq
-- Hash
-- Show
+- [Eq]
+- [Hash]
+- [Show]
 - Group
 - AdditiveGroup
 - MultiplicativeGroup
@@ -132,21 +132,21 @@ Provided typeclasses:
 
 Provided typeclasses:
 
-- Hash
+- [Hash]
 
 ### ArrayMultiMap[K, V]
 
 Provided typeclasses:
 
-- Eq
-- Show
-- Hash
+- [Eq]
+- [Hash]
+- [Show]
 
 ### ArrayBiMultiMap[K, V]
 
 Provided typeclasses:
 
-- Eq
+- [Eq]
 
 #
 <a name="hash"></a>
