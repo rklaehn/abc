@@ -105,7 +105,6 @@ object TotalArrayMap extends TotalArrayMap3 {
 
   private[abc] class ArrayTotalMapMonoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]
     extends Monoid[TotalArrayMap[K, V]] {
-    override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
     override def combine(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): TotalArrayMap[K, V] = {
       val m = Monoid[V]
       if(m.isEmpty(x.default) && m.isEmpty(y.default))
@@ -113,6 +112,7 @@ object TotalArrayMap extends TotalArrayMap3 {
       else
         x.combine(y, m.combine)
     }
+    override def empty: TotalArrayMap[K, V] = TotalArrayMap.fromDefault[K, V](Monoid[V].empty)
   }
 
   private[abc] final class ArrayTotalMapGroup[K: ClassTag: Order, V: ClassTag: Group: Eq]

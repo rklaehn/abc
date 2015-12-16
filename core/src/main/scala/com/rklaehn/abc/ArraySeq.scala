@@ -11,6 +11,9 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) e
 
   def apply(idx: Int): T = elements(idx)
 
+  def withDefault(value: T)(implicit ev:Eq[T], classTag: ClassTag[T]): TotalArraySeq[T] =
+    new TotalArraySeq[T](ArrayUtil.dropRightWhile(elements, value), value)
+
   def isEmpty: Boolean = elements.isEmpty
 
   def concat(that: ArraySeq[T])(implicit T: ClassTag[T]): ArraySeq[T] =

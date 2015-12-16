@@ -13,11 +13,27 @@ object arb {
     ArraySeq(xs: _*)
   }
 
+  implicit def arbTotalArraySeq[K: Arbitrary: Eq: ClassTag] = Arbitrary {
+    for {
+      m ← arbitrary[ArraySeq[K]]
+      default ← arbitrary[K]
+    } yield
+      m.withDefault(default)
+  }
+
   implicit def arbArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[T]]
     } yield
     ArraySet(xs: _*)
+  }
+
+  implicit def arbNegatableArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
+    for {
+      xs ← arbitrary[Vector[T]]
+      n ← arbitrary[Boolean]
+    } yield
+      NegatableArraySet(xs :_*) xor NegatableArraySet.fromBoolean(n)
   }
 
   implicit def arbArrayMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag] = Arbitrary {
@@ -27,12 +43,12 @@ object arb {
     ArrayMap(xs: _*)
   }
 
-  implicit def arbArrayTotalMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag: Eq] = Arbitrary {
+  implicit def arbTotalArrayMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag: Eq] = Arbitrary {
     for {
       m ← arbitrary[ArrayMap[K, V]]
       default ← arbitrary[V]
     } yield
-      m.withDefaultValue(default)
+      m.withDefault(default)
   }
 
   implicit def arbArrayMultiMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: Order: ClassTag] = Arbitrary {
@@ -40,13 +56,5 @@ object arb {
       xs ← arbitrary[IndexedSeq[(K, ArraySet[V])]]
     } yield
     ArrayMultiMap(xs: _*)
-  }
-
-  implicit def arbNegatableArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
-    for {
-      xs ← arbitrary[Vector[T]]
-      n ← arbitrary[Boolean]
-    } yield
-      NegatableArraySet(xs :_*) xor NegatableArraySet.fromBoolean(n)
   }
 }

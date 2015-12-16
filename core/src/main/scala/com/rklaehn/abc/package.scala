@@ -1,9 +1,8 @@
 package com.rklaehn
 
 import algebra.{Order, Eq}
-import com.rklaehn.abc.Hash
 
-package object abc extends abc1 {
+package object abc extends abc.abc1 {
 
   private[abc] type sp = scala.specialized
   private[abc] type ClassTag[A] = scala.reflect.ClassTag[A]
@@ -55,65 +54,28 @@ package object abc extends abc1 {
       }
   }
 
-  implicit def arrayOrder[@sp A: Order]: Order[Array[A]] = new ArrayOrder[A]
-}
-
-// scalastyle:off return
-private[rklaehn] trait abc0 {
-  // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
-  implicit def arrayEq[@specialized A: Eq]: Eq[Array[A]] = new Eq[Array[A]] {
-    def eqv(x: Array[A], y: Array[A]): Boolean = {
-      x.length == y.length && {
-        var i = 0
-        while(i < x.length) {
-          if(!Eq.eqv(x(i), y(i)))
-            return false
-          i += 1
-        }
-        true
-      }
-    }
+  implicit def arrayOrder[@sp A: Order]: Order[Array[A]] = new Order[Array[A]] {
+    override def eqv(x: Array[A], y: Array[A]): Boolean = ArrayUtil.eqv(x, y)
+    def compare(x: Array[A], y: Array[A]): Int = ArrayUtil.compare(x, y)
   }
 }
 
-private[rklaehn] trait abc1 extends abc0 {
+package abc {
 
-  implicit def arrayHash[@specialized A: Hash]: Hash[Array[A]] = new Hash[Array[A]] {
-    def eqv(x: Array[A], y: Array[A]): Boolean = {
-      x.length == y.length && {
-        var i = 0
-        while(i < x.length) {
-          if(!Eq.eqv(x(i), y(i)))
-            return false
-          i += 1
-        }
-        true
-      }
+  private[abc] trait abc0 {
+
+    // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
+    implicit def arrayEq[@specialized A: Eq]: Eq[Array[A]] = new Eq[Array[A]] {
+      override def eqv(x: Array[A], y: Array[A]): Boolean = ArrayUtil.eqv(x, y)
     }
+  }
 
-    override def hash(a: Array[A]): Int = {
-      import scala.util.hashing.MurmurHash3
-      var result = MurmurHash3.arraySeed
-      var i = 0
-      while(i < a.length) {
-        result = MurmurHash3.mix(result, Hash.hash(a(i)))
-        i += 1
-      }
-      result
+  private[abc] trait abc1 extends abc0 {
+
+    implicit def arrayHash[@specialized A: Hash]: Hash[Array[A]] = new Hash[Array[A]] {
+      def eqv(x: Array[A], y: Array[A]): Boolean = ArrayUtil.eqv(x, y)
+
+      def hash(a: Array[A]): Int = ArrayUtil.hash(a)
     }
   }
 }
-
-private class ArrayOrder[@specialized A: Order] extends Order[Array[A]] {
-
-  override def compare(x: Array[A], y: Array[A]): Int = {
-    var i = 0
-    while (i < x.length && i < y.length) {
-      val cmp = Order.compare(x(i), y(i))
-      if (cmp != 0) return cmp
-      i += 1
-    }
-    x.length - y.length
-  }
-}
-// scalastyle:on return

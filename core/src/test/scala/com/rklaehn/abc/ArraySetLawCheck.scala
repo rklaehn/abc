@@ -5,7 +5,6 @@ import algebra._
 import algebra.laws._
 import algebra.std.Rat
 import algebra.std.all._
-import cats.laws.FoldableLaws
 import cats.laws.discipline.FoldableTests
 import org.scalacheck.Arbitrary
 import org.scalatest.FunSuite
@@ -21,7 +20,7 @@ trait Helpers {
   def scope[T](f: ⇒ T) = f
 }
 
-class ArrayTotalMapLawCheck extends FunSuite with Discipline with Helpers {
+class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
 
   implicit val nonZeroRatArbitrary =
     Arbitrary(for {
@@ -197,6 +196,81 @@ class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {
     implicit val intMonoid = AdditiveMonoid[Int].additive
     checkAll(s"FoldableTests[ArraySeq[T]]", FoldableTests[ArraySeq].foldable[Int, Int])
   }
+}
+
+class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
+
+  def checkOrderLaws[T: Order: ClassTag: Arbitrary](): Unit = {
+    val name = typeName[T]
+    checkAll(s"OrderLaws[TotalArraySeq[$name]].eqv", OrderLaws[TotalArraySeq[T]].eqv)
+    checkAll(s"OrderLaws[TotalArraySeq[$name]].order", OrderLaws[TotalArraySeq[T]].order)
+  }
+  def checkSemigroupLaws[T: Semigroup: Eq: ClassTag: Arbitrary](): Unit = {
+    val name = typeName[T]
+    checkAll(s"GroupLaws[TotalArraySeq[$name]].semigroup", GroupLaws[TotalArraySeq[T]].semigroup)
+  }
+  def checkAdditiveSemigroupLaws[T: AdditiveSemigroup: Eq: Arbitrary: ClassTag](): Unit = {
+    val name = typeName[T]
+    checkAll(s"GroupLaws[TotalArraySeq[$name].additiveSemigroup", GroupLaws[TotalArraySeq[T]].additiveSemigroup)
+  }
+  def checkMonoidLaws[T: Monoid: Eq: ClassTag: Arbitrary](): Unit = {
+    val name = typeName[T]
+    checkAll(s"GroupLaws[TotalArraySeq[$name]].monoid", GroupLaws[TotalArraySeq[T]].monoid)
+  }
+  def checkAdditiveMonoidLaws[T: AdditiveMonoid: Eq: Arbitrary: ClassTag](): Unit = {
+    val name = typeName[T]
+    checkAll(s"GroupLaws[TotalArraySeq[$name].additiveMonoid", GroupLaws[TotalArraySeq[T]].additiveMonoid)
+  }
+  def checkGroupLaws[T: Group: Eq: ClassTag: Arbitrary](): Unit = {
+    val name = typeName[T]
+    checkAll(s"GroupLaws[TotalArraySeq[$name]].group", GroupLaws[TotalArraySeq[T]].group)
+  }
+  def checkAdditiveGroupLaws[T: AdditiveGroup: Eq: Arbitrary: ClassTag](): Unit = {
+    val name = typeName[T]
+    checkAll(s"GroupLaws[TotalArraySeq[$name].additiveGroup", GroupLaws[TotalArraySeq[T]].additiveGroup)
+  }
+  checkOrderLaws[Byte]()
+  checkOrderLaws[Short]()
+  checkOrderLaws[Int]()
+  checkOrderLaws[Float]()
+  checkOrderLaws[Double]()
+  checkOrderLaws[Boolean]()
+  checkOrderLaws[Char]()
+  checkOrderLaws[String]()
+  scope {
+    implicit def monoidFromAdditiveMonoid[T: AdditiveSemigroup]: Semigroup[T] = AdditiveSemigroup[T].additive
+    checkSemigroupLaws[Byte]()
+    checkSemigroupLaws[Short]()
+    checkSemigroupLaws[Int]()
+    checkSemigroupLaws[Boolean]()
+    checkSemigroupLaws[String]()
+  }
+  checkAdditiveSemigroupLaws[Byte]()
+  checkAdditiveSemigroupLaws[Short]()
+  checkAdditiveSemigroupLaws[Int]()
+  checkAdditiveSemigroupLaws[Boolean]()
+  scope {
+    implicit def monoidFromAdditiveMonoid[T: AdditiveMonoid]: Monoid[T] = AdditiveMonoid[T].additive
+    checkMonoidLaws[Byte]()
+    checkMonoidLaws[Short]()
+    checkMonoidLaws[Int]()
+    checkMonoidLaws[Boolean]()
+    checkMonoidLaws[String]()
+  }
+  checkAdditiveMonoidLaws[Byte]()
+  checkAdditiveMonoidLaws[Short]()
+  checkAdditiveMonoidLaws[Int]()
+  checkAdditiveMonoidLaws[Boolean]()
+  scope {
+    implicit def groupFromAdditiveGroup[T: AdditiveGroup]: Group[T] = AdditiveGroup[T].additive
+    checkGroupLaws[Byte]()
+    checkGroupLaws[Short]()
+    checkGroupLaws[Int]()
+  }
+  checkAdditiveGroupLaws[Byte]()
+  checkAdditiveGroupLaws[Short]()
+  checkAdditiveGroupLaws[Int]()
+
 }
 
 class ArraySetLawCheck extends FunSuite with Discipline with Helpers {
