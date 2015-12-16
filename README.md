@@ -6,6 +6,10 @@
 
 Array-based immutable collections for scala. 
 
+***Experimental***
+
+Everything that is there is thoroughly tested using [typelevel/discipline](https://github.com/typelevel/discipline). Nevertheless, there are probably a few bugs, and everything is still subject to a lot of change.
+
 ## Typeclass-friendly design
 
 These collections *use* [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
@@ -22,7 +26,7 @@ On modern CPUs, cache concerns are *very* important. So a compact in-memory repr
 important for good overall performance than optimal big-O behavior. So in this library, compact in-memory representation
 is ***always*** given priority over reference-heavy trees with theoretically optimal Big-O performance.
 
-This yields very good results regarding compactness and performance for most operations. The downside is that you have to provide ClassTag instances for almost every operation.
+This yields very good results regarding compactness and performance for [most operations](#disclaimer). The downside is that you have to provide ClassTag instances for almost every operation.
 
 ## Bulk operations
 
@@ -152,8 +156,11 @@ Provided typeclasses:
 
 - [Eq]
 
-#
-<a name="hash"></a>
+# <a name="disclaimer"></a> Performance disclaimer
+
+Read performance as well as creation performance will be *significantly* higher than scala collections *when used properly*. However, when adding single elements to large (100000 elements) collections, the performance will be pretty bad. So if that is your use-case, use something else.
+
+# <a name="hash"></a> Hash
 
 Unfortunately, [algebra] currently does not contain a typeclass for hashing. The hashing typeclass in the scala library does not follow current conventions for typeclasses. Therefore, `Hash[T]` is currently defined [internally](https://github.com/rklaehn/abc/blob/master/core/src/main/scala/com/rklaehn/abc/Hash.scala).
 
