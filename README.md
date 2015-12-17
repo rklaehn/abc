@@ -181,6 +181,8 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [AdditiveSemigroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
 [AdditiveMonoid]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
 [AdditiveGroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
+[MultiplicativeSemigroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Multiplicative.scala
+[MultiplicativeMonoid]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Multiplicative.scala
 [MultiplicativeGroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Multiplicative.scala
 [Semiring]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Semiring.scala
 [Rig]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Rig.scala
