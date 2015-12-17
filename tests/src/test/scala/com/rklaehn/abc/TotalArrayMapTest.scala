@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.Eq
+import algebra.{Order, Eq}
 import algebra.ring.MultiplicativeMonoid
 import cats.implicits._
 import org.scalatest.FunSuite
@@ -60,5 +60,11 @@ class TotalArrayMapTest extends FunSuite {
     val c = MultiplicativeMonoid.times(a, b)
     assert(c(0) == 1)
     assert(c(1) == 4)
+  }
+
+  test("order") {
+    val a = ArrayMap(1 → 1, 2 → 1, 3 → 1).withDefault(0)
+    val b = ArrayMap(1 → 1, 2 → 1, 3 → 2).withDefault(0)
+    assert(Order.compare(a, b) < 0)
   }
 }

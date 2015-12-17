@@ -10,6 +10,10 @@ package object abc extends abc.abc1 {
   private[abc] val ClassTag = scala.reflect.ClassTag
   private[abc] val ILD = new Specializable.Group(Long, Int, Double)
 
+  private[abc] final class AbortControl extends scala.util.control.ControlThrowable
+
+  private[abc] val abort = new AbortControl
+
   implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
     def singleton[@sp(ILD) T](value: T)(implicit classTag: ClassTag[T]) = {
       val result = classTag.newArray(1)

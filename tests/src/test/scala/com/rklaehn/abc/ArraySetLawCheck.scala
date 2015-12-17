@@ -48,6 +48,12 @@ class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
     checkAll(s"OrderLaws[TotalArrayMap[$keyName,$valueName]].eqv", OrderLaws[TotalArrayMap[K, V]].eqv)
   }
 
+  def checkOrderLaws[K: Order: ClassTag: Arbitrary, V: Eq: Order: ClassTag: Arbitrary](): Unit = {
+    val keyName = typeName[K]
+    val valueName = typeName[V]
+    checkAll(s"OrderLaws[TotalArrayMap[$keyName,$valueName]].order", OrderLaws[TotalArrayMap[K, V]].order)
+  }
+
   def checkMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: Monoid: ClassTag: Arbitrary](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
@@ -104,6 +110,16 @@ class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
   checkEqLaws[Boolean, Boolean]()
   checkEqLaws[Char, Char]()
   checkEqLaws[String, String]()
+
+  checkOrderLaws[Int, Boolean]()
+  checkOrderLaws[Byte, Byte]()
+  checkOrderLaws[Short, Short]()
+  checkOrderLaws[Int, Int]()
+  checkOrderLaws[Float, Float]()
+  checkOrderLaws[Double, Double]()
+  checkOrderLaws[Boolean, Boolean]()
+  checkOrderLaws[Char, Char]()
+  checkOrderLaws[String, String]()
 
   checkAdditiveMonoidLaws[Byte, Byte]()
   checkAdditiveMonoidLaws[Short, Short]()
