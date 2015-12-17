@@ -75,14 +75,14 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Order]
-- Semigroup
+- [Semigroup]
 - [Monoid]
-- Group
-- AdditiveSemigroup
-- AdditiveMonoid
-- AdditiveGroup
-- Semiring
-- Rig
+- [Group]
+- [AdditiveSemigroup]
+- [AdditiveMonoid]
+- [AdditiveGroup]
+- [Semiring]
+- [Rig]
 
 ### <a name="ArraySet"></a> ArraySet[A]
 
@@ -93,9 +93,9 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Show]
-- PartialOrder
-- Semiring
-- Foldable
+- [PartialOrder]
+- [Semiring]
+- [Foldable]
 - (GenBool once it becomes available)
 
 ### <a name="NegatableArraySet"></a> NegatableArraySet[K, V]
@@ -119,7 +119,7 @@ Provided typeclasses:
 - [Hash]
 - [Show]
 - [Monoid]
-- AdditiveMonoid
+- [AdditiveMonoid]
 
 ### <a name="TotalArrayMap"></a> TotalArrayMap[K, V]
 
@@ -130,11 +130,12 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Show]
-- Group
-- AdditiveGroup
-- MultiplicativeGroup
-- Semiring
-- Rig
+- [Order]
+- [Group]
+- [AdditiveGroup]
+- [MultiplicativeGroup]
+- [Semiring]
+- [Rig]
 
 ### ArrayBiMap[K, V]
 
@@ -166,8 +167,18 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 
 [algebra]: https://github.com/non/algebra
 [Eq]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Eq.scala
+[PartialOrder]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/PartialOrder.scala
 [Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
+
+[Semigroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Semigroup.scala
 [Monoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Monoid.scala
+[AdditiveMonoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/AdditiveMonoid.scala
+[Group]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Group.scala
+[AdditiveGroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/AdditiveGroup.scala
+[MultiplicativeGroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/MultiplicativeGroup.scala
+[Semiring]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/ring/Semiring.scala
+[Rig]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/ring/Rig.scala
+
 [Bool]: https://github.com/non/algebra/blob/master/lattice/src/main/scala/algebra/lattice/Bool.scala
 
 [cats]: https://github.com/non/cats
