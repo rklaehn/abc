@@ -172,12 +172,13 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 
 [Semigroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Semigroup.scala
 [Monoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Monoid.scala
-[AdditiveMonoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/AdditiveMonoid.scala
 [Group]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Group.scala
-[AdditiveGroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/AdditiveGroup.scala
-[MultiplicativeGroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/MultiplicativeGroup.scala
-[Semiring]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/ring/Semiring.scala
-[Rig]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/ring/Rig.scala
+
+[AdditiveMonoid]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/AdditiveMonoid.scala
+[AdditiveGroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/AdditiveGroup.scala
+[MultiplicativeGroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/MultiplicativeGroup.scala
+[Semiring]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Semiring.scala
+[Rig]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Rig.scala
 
 [Bool]: https://github.com/non/algebra/blob/master/lattice/src/main/scala/algebra/lattice/Bool.scala
 
