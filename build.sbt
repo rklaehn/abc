@@ -68,7 +68,7 @@ lazy val noPublish = Seq(
   publishArtifact := false)
 
 lazy val root = project.in(file("."))
-  .aggregate(coreJVM, coreJS, collectionJVM, collectionJS, instrumentedTests, jmhBenchmarks)
+  .aggregate(coreJVM, coreJS, collectionJVM, collectionJS, lawsJVM, lawsJS, testsJVM, testsJS, instrumentedTests, jmhBenchmarks)
   .settings(name := "root")
   .settings(commonSettings: _*)
   .settings(noPublish: _*)
@@ -77,11 +77,22 @@ lazy val core = crossProject.crossType(CrossType.Pure).in(file("core"))
   .settings(name := "abc")
   .settings(commonSettings: _*)
 
+lazy val laws = crossProject.crossType(CrossType.Pure).in(file("laws"))
+  .settings(name := "abc-laws")
+  .settings(commonSettings: _*)
+  .dependsOn(core)
+
 lazy val collection = crossProject.crossType(CrossType.Pure).in(file("collection"))
   .settings(name := "abc-collection")
   .settings(commonSettings: _*)
   .settings(noPublish: _*)
   .dependsOn(core)
+
+lazy val tests = crossProject.crossType(CrossType.Pure).in(file("tests"))
+  .settings(name := "abc-tests")
+  .settings(commonSettings: _*)
+  .settings(noPublish: _*)
+  .dependsOn(core, laws)
 
 lazy val instrumentedTests = project.in(file("instrumentedTests"))
   .settings(name := "instrumentedTests")
@@ -118,5 +129,11 @@ lazy val instrumentedTestSettings = {
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
+lazy val lawsJVM = laws.jvm
+lazy val lawsJS = laws.js
+
 lazy val collectionJVM = collection.jvm
 lazy val collectionJS = collection.js
+
+lazy val testsJVM = tests.jvm
+lazy val testsJS = tests.js

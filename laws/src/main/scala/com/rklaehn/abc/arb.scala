@@ -10,7 +10,7 @@ object arb {
     for {
       xs ← arbitrary[IndexedSeq[T]]
     } yield
-    ArraySeq(xs: _*)
+      ArraySeq(xs: _*)
   }
 
   implicit def arbTotalArraySeq[K: Arbitrary: Eq: ClassTag] = Arbitrary {
@@ -25,7 +25,7 @@ object arb {
     for {
       xs ← arbitrary[IndexedSeq[T]]
     } yield
-    ArraySet(xs: _*)
+      ArraySet(xs: _*)
   }
 
   implicit def arbNegatableArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
@@ -40,7 +40,7 @@ object arb {
     for {
       xs ← arbitrary[IndexedSeq[(K, V)]]
     } yield
-    ArrayMap(xs: _*)
+      ArrayMap(xs: _*)
   }
 
   implicit def arbTotalArrayMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag: Eq] = Arbitrary {
@@ -55,6 +55,6 @@ object arb {
     for {
       xs ← arbitrary[IndexedSeq[(K, ArraySet[V])]]
     } yield
-    ArrayMultiMap(xs: _*)
+      ArrayMultiMap(xs: _*)
   }
 }
