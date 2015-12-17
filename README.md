@@ -132,10 +132,14 @@ Provided typeclasses:
 - [Show]
 - [Order]
 - [Group]
+- [AdditiveMonoid]
 - [AdditiveGroup]
+- [MultiplicativeMonoid]
 - [MultiplicativeGroup]
 - [Semiring]
 - [Rig]
+
+---
 
 ### ArrayBiMap[K, V]
 
