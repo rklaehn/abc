@@ -50,11 +50,11 @@ object arb {
     } yield
       m.withDefault(default)
   }
-
-  implicit def arbArrayMultiMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: Order: ClassTag] = Arbitrary {
-    for {
-      xs ← arbitrary[IndexedSeq[(K, ArraySet[V])]]
-    } yield
-      ArrayMultiMap(xs: _*)
-  }
+//
+//  implicit def arbArrayMultiMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: Order: ClassTag] = Arbitrary {
+//    for {
+//      xs ← arbitrary[IndexedSeq[(K, ArraySet[V])]]
+//    } yield
+//      ArrayMultiMap(xs: _*)
+//  }
 }
