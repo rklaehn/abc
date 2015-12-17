@@ -7,10 +7,6 @@ import algebra.Order
  */
 private object SetUtils {
 
-  private class AbortControl extends scala.util.control.ControlThrowable
-
-  private[this] val abort = new AbortControl
-
   def union[@sp(ILD) T: Order: ClassTag](a: Array[T], b: Array[T]): Array[T] =
     new UnionMerge[T](a, b).result
 

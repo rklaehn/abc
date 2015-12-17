@@ -32,9 +32,9 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
   def combine(rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
     new Combine[K, V](lhs, rhs, f(lhs.default, rhs.default), f).result
 
-  def mapValues(f: V ⇒ V)(implicit kClassTag: ClassTag[K], vEq: Eq[V], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
+  def mapValues[W](f: V ⇒ W)(implicit kClassTag: ClassTag[K], wEq: Eq[W], wClassTag: ClassTag[W]): TotalArrayMap[K, W] = {
     val rk = new Array[K](size)
-    val rv = new Array[V](size)
+    val rv = new Array[W](size)
     val rd = f(default)
     var i = 0
     var ri = 0
@@ -49,7 +49,7 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     }
     val keys1 = if(ri == keys0.length) keys0 else rk.resizeInPlace(ri)
     val values1 = rv.resizeInPlace(ri)
-    new TotalArrayMap[K, V](keys1, values1, rd)
+    new TotalArrayMap[K, W](keys1, values1, rd)
   }
 
   override def toString: String =
@@ -62,12 +62,20 @@ private[abc] trait TotalArrayMap1 {
 
   implicit def eqv[K: Eq, V: Eq]: Eq[TotalArrayMap[K, V]] = new Eq[TotalArrayMap[K, V]] {
     def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
-      Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0) && Eq.eqv(x.default, y.default)
+      Eq.eqv(x.default, y.default) && ArrayUtil.eqv(x.keys0, y.keys0) && ArrayUtil.eqv(x.values0, y.values0)
   }
 }
 
 private[abc] trait TotalArrayMap2 extends TotalArrayMap1 {
   import TotalArrayMap._
+
+  implicit def order[K: Order, V: Order]: Order[TotalArrayMap[K, V]] = new Order[TotalArrayMap[K, V]] {
+    override def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
+      Eq.eqv(x.default, y.default) && ArrayUtil.eqv(x.keys0, y.keys0) && ArrayUtil.eqv(x.values0, y.values0)
+
+    def compare(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
+      TotalArrayMap.compare(x, y)
+  }
 
   implicit def monoid[K: ClassTag : Order, V: ClassTag: Monoid: Eq]: Monoid[TotalArrayMap[K, V]] =
     new ArrayTotalMapMonoid[K, V]
@@ -193,9 +201,8 @@ object TotalArrayMap extends TotalArrayMap3 {
     def hash(x: TotalArrayMap[K, V]) =
       (Hash.hash(x.keys0), Hash.hash(x.values0)).##
 
-    def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) = {
-      Eq.eqv(x.keys0, y.keys0) && Eq.eqv(x.values0, y.values0)
-    }
+    def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
+      Eq.eqv(x.default, y.default) && ArrayUtil.eqv(x.keys0, y.keys0) && ArrayUtil.eqv(x.values0, y.values0)
   }
 
   private final class Combine[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Eq: ClassTag](
@@ -298,6 +305,55 @@ object TotalArrayMap extends TotalArrayMap3 {
     merge0(0, ak.length, 0, bk.length)
 
     def result: TotalArrayMap[K, V] = new TotalArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri), rd)
+  }
+
+  private[abc] def compare[@sp(ILD) K: Order, @sp(ILD) V: Order](x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]): Int =
+    new Compare[K, V](x, y).merge()
+
+  private final class Compare[@sp(ILD) K: Order, @sp(ILD) V: Order](a: TotalArrayMap[K, V], b: TotalArrayMap[K, V])
+    extends BinaryMerge {
+    // require(Eq.eqv(a.default, b.default))
+
+    @inline def ak = a.keys0
+    @inline def av = a.values0
+    @inline def bk = b.keys0
+    @inline def bv = b.values0
+    var r: Int = 0
+
+    def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
+
+    def fromA(a0: Int, a1: Int, bi: Int) = {
+      // merge0 only gets called if a.default === b.default
+      // av(a0) must be =!= a.default and thus =!= b.default
+      // so this comparison will never return 0, and we can immediately abort
+      r = Order.compare(av(a0), b.default)
+      throw abort
+    }
+
+    def fromB(ai: Int, b0: Int, b1: Int) = {
+      // merge0 only gets called if a.default === b.default
+      // bv(b0) must be =!= b.default and thus =!= a.default
+      // so this comparison will never return 0, and we can immediately abort
+      r = Order.compare(a.default, bv(b0))
+      throw abort
+    }
+
+    def collision(ai: Int, bi: Int) = {
+      r = Order.compare(av(ai), bv(bi))
+      if(r != 0)
+        throw abort
+    }
+
+    def merge(): Int = {
+      r = Order.compare(a.default, b.default)
+      if (r == 0)
+        try {
+          merge0(0, ak.length, 0, bk.length)
+        } catch {
+          case x: AbortControl ⇒
+        }
+      r
+    }
   }
 
   def fromDefault[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag](default: V): TotalArrayMap[K, V] =
