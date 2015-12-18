@@ -197,6 +197,11 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
     checkMonoidLaws[Boolean, Boolean]()
   }
   checkMonoidLaws[String, String]()
+  scope {
+    implicit val intMonoid = AdditiveMonoid[Int].additive
+    type ArrayMapInt[T] = ArrayMap[Int, T]
+    checkAll(s"FoldableTests[ArraySeq[T]]", FoldableTests[ArrayMapInt].foldable[Int, Int])
+  }
 }
 
 class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {

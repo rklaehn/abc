@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import algebra._
 import algebra.ring.{AdditiveMonoid, AdditiveSemigroup}
-import cats.Show
+import cats.{Eval, Foldable, Show}
 import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
 
@@ -160,6 +160,16 @@ private final class MapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: Additive
 }
 
 object ArrayMap extends ArrayMap1 {
+
+  // use kind-projector?
+  implicit def foldable[K]: Foldable[({type L[A] = ArrayMap[K, A]})#L] =
+    new Foldable[({type L[A] = ArrayMap[K, A]})#L] {
+      def foldLeft[A, B](fa: ArrayMap[K, A], b: B)(f: (B, A) ⇒ B) =
+        Foldable[ArraySeq].foldLeft(fa.values, b)(f)
+
+      def foldRight[A, B](fa: ArrayMap[K, A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) =
+        Foldable[ArraySeq].foldRight(fa.values, lb)(f)
+    }
 
   implicit def show[K: Show, V: Show]: Show[ArrayMap[K, V]] = Show.show(
     _.iterator.map { case (k,v) ⇒ s"${k.show}->${v.show}" }.mkString("ArrayMap(", ",", ")")
