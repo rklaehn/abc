@@ -2,6 +2,7 @@ package com.rklaehn.abc
 
 import java.util.concurrent.TimeUnit
 
+import algebra.Order
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 import algebra.std.all._
@@ -14,14 +15,21 @@ sealed trait SetElementBenchOps {
   def containsFalse: Any
 }
 
+//object IntOrder extends Order[Int] {
+//  override def compare(x: Int, y: Int): Int = {
+//    println("foo")
+//    Integer.compare(x, y)
+//  }
+//}
+
 object SetElementBenchOps {
 
   def apply(a: Seq[Int], c: Int, n: Int, kind: String) = {
     kind match {
-      case "arrayset" => ScalaCollectionBench(ArraySet(a: _*).asCollection, c, n)
       case "hashset" => ScalaCollectionBench(HashSet(a: _*), c, n)
       case "sortedset" => ScalaCollectionBench(SortedSet(a: _*), c, n)
-      case "arrayset2" => TypeClassBench(ArraySet(a: _*), c, n)
+      case "arrayset" => TypeClassBench(ArraySet(a: _*), c, n)
+      case "arrayset2" => ScalaCollectionBench(ArraySet(a: _*).asCollection, c, n)
     }
   }
 

@@ -21,10 +21,10 @@ object SetSetBenchOps {
 
   def apply(a: Seq[Int], b: Seq[Int], kind: String) = {
     kind match {
-      case "arrayset" => ScalaCollectionBench(ArraySet(a: _*).asCollection, ArraySet(b: _*).asCollection)
       case "hashset" => ScalaCollectionBench(HashSet(a: _*), HashSet(b: _*))
       case "sortedset" => ScalaCollectionBench(SortedSet(a: _*), SortedSet(b: _*))
-      case "arrayset2" => TypeClassBench(ArraySet(a: _*), ArraySet(b: _*))
+      case "arrayset" => TypeClassBench(ArraySet(a: _*), ArraySet(b: _*))
+      case "arrayset2" => ScalaCollectionBench(ArraySet(a: _*).asCollection, ArraySet(b: _*).asCollection)
     }
   }
 
