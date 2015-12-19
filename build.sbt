@@ -19,7 +19,7 @@ lazy val commonSettings = Seq(
     "-feature"
   ),
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-  homepage := Some(url("http://github.com/rklaehn/radixtree")),
+  homepage := Some(url("http://github.com/rklaehn/abc")),
 
   // release stuff
   credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
@@ -37,14 +37,14 @@ lazy val commonSettings = Seq(
   },
   pomExtra :=
     <scm>
-      <url>git@github.com:rklaehn/radixtree.git</url>
-      <connection>scm:git:git@github.com:rklaehn/radixtree.git</connection>
+      <url>git@github.com:rklaehn/abc.git</url>
+      <connection>scm:git:git@github.com:rklaehn/abc.git</connection>
     </scm>
       <developers>
         <developer>
           <id>r_k</id>
           <name>R&#xFC;diger Klaehn</name>
-          <url>http://github.com/rklaehn/</url>
+          <url>http://rklaehn.github.io/</url>
         </developer>
       </developers>
   ,
@@ -130,8 +130,8 @@ lazy val instrumentedTestSettings = {
     s"-javaagent:$jammJar"
   }
   Seq(
-    javaOptions in Test <+= (dependencyClasspath in Test).map(makeAgentOptions),
-      libraryDependencies += "com.github.jbellis" % "jamm" % "0.3.0" % "test",
+    javaOptions <+= (dependencyClasspath in Test).map(makeAgentOptions),
+      libraryDependencies += "com.github.jbellis" % "jamm" % "0.3.0",
       fork := true
     )
 }

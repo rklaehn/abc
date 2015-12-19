@@ -62,10 +62,12 @@ class SetSetBench {
   var k: Int = 0
   var bench: SetSetBenchOps = _
 
+  val shift = 1000000 // so we don't get the cached java.lang.Integer instances
+
   @Setup
   def setup(): Unit = {
     k = (offset * size).toInt
-    bench = SetSetBenchOps(0 until size, k until (k + size), kind)
+    bench = SetSetBenchOps(shift until (shift + size), (shift + k) until (shift + k + size), kind)
   }
 
 
@@ -91,6 +93,6 @@ class SetSetBench {
 
   @Benchmark
   def filter(x: Blackhole): Unit = {
-    x.consume(bench.filter(_ < k))
+    x.consume(bench.filter(_ < k + shift))
   }
 }

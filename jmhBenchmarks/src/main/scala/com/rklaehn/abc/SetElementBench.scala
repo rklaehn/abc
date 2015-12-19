@@ -49,7 +49,7 @@ object SetElementBenchOps {
 @State(Scope.Thread)
 class SetElementBench {
 
-  @Param(Array("1", "10", "100", "1000", "10000", "100000"))
+  @Param(Array("1", "10", "100", "1000", "10000"))
   var size = 0
 
   @Param(Array("arrayset", "arrayset2", "hashset", "sortedset"))
@@ -60,9 +60,10 @@ class SetElementBench {
 
   @Setup
   def setup(): Unit = {
+    val shift = 1000000 // so we don't get the cached java.lang.Integer instances
     val c = (0.3 * size).toInt // a value that is contained in the set
     val n = (1.3 * size).toInt // a value that is not contained in the set
-    bench = SetElementBenchOps(0 until size, c, n, kind)
+    bench = SetElementBenchOps(shift until (shift + size), c + shift, n + shift, kind)
   }
 
   @Benchmark
