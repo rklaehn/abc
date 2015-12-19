@@ -118,6 +118,7 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Show]
+- [Foldable]
 - [Monoid]
 - [AdditiveMonoid]
 
@@ -174,8 +175,8 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [PartialOrder]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/PartialOrder.scala
 [Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
 
-[Semigroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Semigroup.scala
-[Monoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Monoid.scala
+[Semigroup]: https://non.github.io/cats//tut/semigroup.html
+[Monoid]: https://non.github.io/cats//tut/monoid.html
 [Group]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Group.scala
 
 [AdditiveSemigroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
@@ -201,3 +202,5 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [TotalArraySeq]: #TotalArraySeq
 [TotalArrayMap]: #TotalArrayMap
 [NegatableArraySet]: #NegatableArraySet
+
+[typeclasses]: https://non.github.io/cats//typeclasses.html
