@@ -18,14 +18,14 @@ class NegatableArraySetLawCheck extends FunSuite with Discipline {
 object NegatableArraySetSampleCheck extends Properties("NegatableArraySet") {
 
   def unaryOp(a: NegatableArraySet[Int], r: NegatableArraySet[Int], op: Boolean ⇒ Boolean): Boolean = {
-    val samples = a.elements :+ Int.MinValue
+    val samples = a.elements0 :+ Int.MinValue
     samples.forall { e ⇒
       r(e) == op(a(e))
     }
   }
 
   def binaryOp(a: NegatableArraySet[Int], b: NegatableArraySet[Int], r: NegatableArraySet[Int], op: (Boolean, Boolean) ⇒ Boolean): Boolean = {
-    val samples = (a.elements ++ b.elements).distinct :+ Int.MinValue
+    val samples = (a.elements0 ++ b.elements0).distinct :+ Int.MinValue
     samples.forall { e ⇒
       r(e) == op(a(e), b(e))
     }
@@ -71,7 +71,7 @@ object NegatableArraySetSampleCheck extends Properties("NegatableArraySet") {
 
   property("isEmpty") = forAll { x: NegatableArraySet[Int] ⇒
     if(x.isEmpty)
-      x.elementsAsArraySeq.isEmpty
+      x.elements.isEmpty
     else
       true
   }

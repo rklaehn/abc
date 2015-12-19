@@ -7,6 +7,8 @@ import cats.syntax.show._
 
 final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
 
+  def asNegatable: NegatableArraySet[T] = new NegatableArraySet[T](elements, false)
+
   def size: Int = elements.length
 
   def contains(elem: T)(implicit order: Order[T]) = self.apply(elem)

@@ -8,6 +8,7 @@ import algebra.std.all._
 import ScalaCollectionConverters._
 
 import scala.collection.immutable.{HashSet, SortedSet}
+import scala.util.hashing.MurmurHash3
 
 sealed trait SetSetBenchOps {
   def union: Any
@@ -19,12 +20,16 @@ sealed trait SetSetBenchOps {
 
 object SetSetBenchOps {
 
+  def mix(x: Int): Int = MurmurHash3.mix(0, x)
+
   def apply(a: Seq[Int], b: Seq[Int], kind: String) = {
+    val a1 = a.map(mix)
+    val b1 = b.map(mix)
     kind match {
-      case "hashset" => ScalaCollectionBench(HashSet(a: _*), HashSet(b: _*))
-      case "sortedset" => ScalaCollectionBench(SortedSet(a: _*), SortedSet(b: _*))
-      case "arrayset" => TypeClassBench(ArraySet(a: _*), ArraySet(b: _*))
-      case "arrayset2" => ScalaCollectionBench(ArraySet(a: _*).asCollection, ArraySet(b: _*).asCollection)
+      case "hashset" => ScalaCollectionBench(HashSet(a1: _*), HashSet(b1: _*))
+      case "sortedset" => ScalaCollectionBench(SortedSet(a1: _*), SortedSet(b1: _*))
+      case "arrayset" => TypeClassBench(ArraySet(a1: _*), ArraySet(b1: _*))
+      case "arrayset2" => ScalaCollectionBench(ArraySet(a1: _*).asCollection, ArraySet(b1: _*).asCollection)
     }
   }
 
@@ -56,7 +61,7 @@ class SetSetBench {
   @Param(Array("0.0", "0.5", "1.0"))
   var offset = 0.0
 
-  @Param(Array("arrayset", "arrayset2", "hashset", "sortedset"))
+  @Param(Array("arrayset", "hashset", "sortedset")) //, "arrayset2"))
   var kind = ""
 
   var k: Int = 0

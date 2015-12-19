@@ -2,13 +2,13 @@ package com.rklaehn.abc
 
 import java.util.concurrent.TimeUnit
 
-import algebra.Order
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 import algebra.std.all._
 import ScalaCollectionConverters._
 
 import scala.collection.immutable.{HashSet, SortedSet}
+import scala.util.hashing.MurmurHash3
 
 sealed trait SetElementBenchOps {
   def containsTrue: Any
@@ -24,12 +24,18 @@ sealed trait SetElementBenchOps {
 
 object SetElementBenchOps {
 
+  def mix(x: Int): Int = MurmurHash3.mix(0, x)
+
   def apply(a: Seq[Int], c: Int, n: Int, kind: String) = {
+    val a1 = a.map(mix)
+    val c1 = mix(c)
+    val n1 = mix(n)
+    require(a1.length == a.length)
     kind match {
-      case "hashset" => ScalaCollectionBench(HashSet(a: _*), c, n)
-      case "sortedset" => ScalaCollectionBench(SortedSet(a: _*), c, n)
-      case "arrayset" => TypeClassBench(ArraySet(a: _*), c, n)
-      case "arrayset2" => ScalaCollectionBench(ArraySet(a: _*).asCollection, c, n)
+      case "hashset" => ScalaCollectionBench(HashSet(a1: _*), c1, n1)
+      case "sortedset" => ScalaCollectionBench(SortedSet(a1: _*), c1, n1)
+      case "arrayset" => TypeClassBench(ArraySet(a1: _*), c1, n1)
+      case "arrayset2" => ScalaCollectionBench(ArraySet(a1: _*).asCollection, c1, n1)
     }
   }
 
@@ -49,10 +55,10 @@ object SetElementBenchOps {
 @State(Scope.Thread)
 class SetElementBench {
 
-  @Param(Array("1", "10", "100", "1000", "10000"))
+  @Param(Array("1", "10", "100", "1000", "10000", "100000"))
   var size = 0
 
-  @Param(Array("arrayset", "arrayset2", "hashset", "sortedset"))
+  @Param(Array("arrayset", "hashset", "sortedset")) //, "arrayset2"))
   var kind = ""
 
   var k: Int = 0
@@ -60,10 +66,9 @@ class SetElementBench {
 
   @Setup
   def setup(): Unit = {
-    val shift = 1000000 // so we don't get the cached java.lang.Integer instances
     val c = (0.3 * size).toInt // a value that is contained in the set
     val n = (1.3 * size).toInt // a value that is not contained in the set
-    bench = SetElementBenchOps(shift until (shift + size), c + shift, n + shift, kind)
+    bench = SetElementBenchOps(0 until size, c, n, kind)
   }
 
   @Benchmark

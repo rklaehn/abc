@@ -39,4 +39,13 @@ class NegatableArraySetTest extends FunSuite {
     assert(eqv(NegatableArraySet(1), NegatableArraySet(1)))
     assert(!eqv(NegatableArraySet(1), NegatableArraySet(2)))
   }
+
+  test("Hash") {
+    implicitly[Hash[NegatableArraySet[Int]]]
+    def test[K: Hash](x: NegatableArraySet[K], y: NegatableArraySet[K]): Boolean =
+      (Hash.hash(x) == Hash.hash(y)) && Eq.eqv(x, y)
+    val x = ArraySet(1, 2).asNegatable
+    val y = ArraySet(1, 2).asNegatable
+    assert(test(x, y))
+  }
 }
