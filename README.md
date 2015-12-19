@@ -12,7 +12,7 @@ Everything that is there is thoroughly tested using [typelevel/discipline](https
 
 ## Typeclass-friendly design
 
-These collections *use* [algebra] [typeclasses] such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
+These collections *use* [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
 
 They also *provide* typeclass instances for as many [algebra] and [cats] typeclasses as possible.
 
