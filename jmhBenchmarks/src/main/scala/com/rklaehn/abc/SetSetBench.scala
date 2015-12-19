@@ -9,16 +9,15 @@ import ScalaCollectionConverters._
 
 import scala.collection.immutable.{HashSet, SortedSet}
 
-sealed trait SetBenchOps {
+sealed trait SetSetBenchOps {
   def union: Any
   def intersect: Any
   def diff: Any
   def subsetOf: Boolean
-  def contains: Any
   def filter(f: Int => Boolean): Any
 }
 
-object SetBenchOps {
+object SetSetBenchOps {
 
   def apply(a: Seq[Int], b: Seq[Int], kind: String) = {
     kind match {
@@ -29,21 +28,19 @@ object SetBenchOps {
     }
   }
 
-  private final case class ScalaCollectionBench(a: Set[Int], b: Set[Int]) extends SetBenchOps {
+  private final case class ScalaCollectionBench(a: Set[Int], b: Set[Int]) extends SetSetBenchOps {
     override def union: Any = a union b
     override def diff: Any = a diff b
     override def subsetOf: Boolean = a subsetOf b
     override def intersect: Any = a intersect b
-    override def contains = for(be <- b.iterator) a.contains(be)
     override def filter(f: (Int) => Boolean): Any = a filter f
   }
 
-  private final case class TypeClassBench(a: ArraySet[Int], b: ArraySet[Int]) extends SetBenchOps {
+  private final case class TypeClassBench(a: ArraySet[Int], b: ArraySet[Int]) extends SetSetBenchOps {
     override def union: Any = a union b
     override def diff: Any = a diff b
     override def subsetOf: Boolean = a subsetOf b
     override def intersect: Any = a intersect b
-    override def contains = for(be <- b.iterator) a.contains(be)
     override def filter(f: (Int) => Boolean): Any = a filter f
   }
 }
@@ -51,7 +48,7 @@ object SetBenchOps {
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Thread)
-class SetBench {
+class SetSetBench {
 
   @Param(Array("1", "10", "100", "1000", "10000", "100000"))
   var size = 0
@@ -63,12 +60,12 @@ class SetBench {
   var kind = ""
 
   var k: Int = 0
-  var bench: SetBenchOps = _
+  var bench: SetSetBenchOps = _
 
   @Setup
   def setup(): Unit = {
     k = (offset * size).toInt
-    bench = SetBenchOps(0 until size, k until (k + size), kind)
+    bench = SetSetBenchOps(0 until size, k until (k + size), kind)
   }
 
 

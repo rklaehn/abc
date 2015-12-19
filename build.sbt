@@ -62,13 +62,21 @@ lazy val commonSettings = Seq(
     ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
     pushChanges))
 
+lazy val commonJvmSettings = Seq(
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF")
+)
+
 lazy val noPublish = Seq(
   publish := {},
   publishLocal := {},
   publishArtifact := false)
 
 lazy val root = project.in(file("."))
-  .aggregate(coreJVM, coreJS, collectionJVM, collectionJS, lawsJVM, lawsJS, testsJVM, testsJS, instrumentedTests, jmhBenchmarks)
+  .aggregate(
+    coreJVM, collectionJVM, lawsJVM, testsJVM,
+    coreJS, collectionJS, lawsJS, testsJS,
+    instrumentedTests, jmhBenchmarks
+  )
   .settings(name := "root")
   .settings(commonSettings: _*)
   .settings(noPublish: _*)
@@ -102,12 +110,14 @@ lazy val instrumentedTests = project.in(file("instrumentedTests"))
   .dependsOn(coreJVM)
 
 lazy val jmhBenchmarks = project.in(file("jmhBenchmarks"))
+  .settings(name := "jmhBenchmarks")
   .settings(commonSettings:_*)
   .dependsOn(coreJVM, collectionJVM)
   .settings(noPublish: _*)
   .enablePlugins(JmhPlugin)
 
 lazy val thymeBenchmarks = project.in(file("thymeBenchmarks"))
+  .settings(name := "thymeBenchmarks")
   .settings(commonSettings:_*)
   .dependsOn(coreJVM, collectionJVM)
   .settings(libraryDependencies +=
@@ -126,14 +136,27 @@ lazy val instrumentedTestSettings = {
     )
 }
 
+
+// abc-jvm is JVM-only
+lazy val abcJVM = project.in(file(".abcJVM"))
+  .aggregate(coreJVM, lawsJVM, testsJVM)
+  .dependsOn(coreJVM, lawsJVM, testsJVM % "test-internal -> test")
+  .settings(moduleName := "cats-jvm")
+  .settings(commonSettings:_*)
+  .settings(commonJvmSettings:_*)
+
 lazy val coreJVM = core.jvm
+
 lazy val coreJS = core.js
 
 lazy val lawsJVM = laws.jvm
+
 lazy val lawsJS = laws.js
 
 lazy val collectionJVM = collection.jvm
+
 lazy val collectionJS = collection.js
 
 lazy val testsJVM = tests.jvm
+
 lazy val testsJS = tests.js
