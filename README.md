@@ -12,7 +12,7 @@ Everything that is there is thoroughly tested using [typelevel/discipline](https
 
 ## Typeclass-friendly design
 
-These collections *use* [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
+These collections *use* [algebra] [typeclasses] such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
 
 They also *provide* typeclass instances for as many [algebra] and [cats] typeclasses as possible.
 
@@ -118,6 +118,7 @@ Provided typeclasses:
 - [Eq]
 - [Hash]
 - [Show]
+- [Foldable]
 - [Monoid]
 - [AdditiveMonoid]
 
@@ -174,8 +175,8 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [PartialOrder]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/PartialOrder.scala
 [Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
 
-[Semigroup]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Semigroup.scala
-[Monoid]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Monoid.scala
+[Semigroup]: https://non.github.io/cats//tut/semigroup.html
+[Monoid]: https://non.github.io/cats//tut/monoid.html
 [Group]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Group.scala
 
 [AdditiveSemigroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
@@ -201,3 +202,5 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [TotalArraySeq]: #TotalArraySeq
 [TotalArrayMap]: #TotalArrayMap
 [NegatableArraySet]: #NegatableArraySet
+
+[typeclasses]: https://non.github.io/cats//typeclasses.html
