@@ -107,6 +107,8 @@ The additional flag allows implementing the full [Bool] typeclass, because it is
 Provided typeclasses:
 
 - [Eq]
+- [Show]
+- [PartialOrder]
 - [Bool]
 
 ### <a name="ArrayMap"></a> ArrayMap[K, V]
