@@ -41,8 +41,7 @@ Using flat arrays internally is *very* inefficient when e.g. adding elements one
 ### Compatibility with scala collections
 
 An optional interface to scala collections is provided, but the collections itself are not integrated
-into the scala collections hierarchy. They do not even implement methods such as equals and hashcode. ***In fact they will throw an UnsupportedOperationException when you use == or hashCode***
-They implement toString on a best-effort basis, but formatting should be done using a Show typeclass from cats.
+into the scala collections hierarchy. They only implement equals, hashCode and toString on a best-effort basis. But you should use the Eq, Hash and Show typeclasses if possible, since they also work for set elements without working equality (e.g. arrays).
 
 ## Implemented collections
 
