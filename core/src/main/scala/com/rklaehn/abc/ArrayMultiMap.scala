@@ -2,10 +2,11 @@ package com.rklaehn.abc
 
 import algebra.{Eq, Order}
 import cats.Show
+import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
 
 final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
-  private[abc] val map: ArrayMap[K, ArraySet[V]]) extends NoEquals {
+  private[abc] val map: ArrayMap[K, ArraySet[V]]) {
 
   def keys: ArraySet[K] = map.keys
 
@@ -45,9 +46,14 @@ final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
 
   def apply(k: K)(implicit kOrder: Order[K]): ArraySet[V] = map.apply(k)
 
-  // def getOrEmpty(k: K)(implicit kOrder: Order[K], kClassTag: ClassTag[K]): ArraySet[V] = map.getOrElse(k, ArraySet.empty[V])
+  override def equals(that: Any): Boolean = that match {
+    case that: ArrayMultiMap[K, V] => ArrayMultiMap.eqv(Universal[K], Universal[V]).eqv(this, that)
+    case _ => false
+  }
 
-  override def toString: String = map.toString
+  override def hashCode(): Int = ArrayMultiMap.hash(Universal[K], Universal[V]).hash(this)
+
+  override def toString: String = ArrayMultiMap.show(Universal[K], Universal[V]).show(this)
 }
 
 private[abc] trait ArrayMultiMap0 {
@@ -57,7 +63,12 @@ private[abc] trait ArrayMultiMap0 {
 
 object ArrayMultiMap extends ArrayMultiMap0 {
 
-  implicit def show[K: Show, V: Show]: Show[ArrayMultiMap[K, V]] = Show.show(_.map.iterator.mkString("ArrayMultiMap(",",",")"))
+  implicit def show[K: Show, V: Show]: Show[ArrayMultiMap[K, V]] = Show.show {
+    _.map
+      .iterator
+      .map { case (k, v) => k.show + "->" + v.show }
+      .mkString("ArrayMultiMap(",",",")")
+  }
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayMultiMap[K, V]] = Hash.by(_.map)
 

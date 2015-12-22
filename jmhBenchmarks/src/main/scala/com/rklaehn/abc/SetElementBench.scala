@@ -8,23 +8,13 @@ import algebra.std.all._
 import ScalaCollectionConverters._
 
 import scala.collection.immutable.{HashSet, SortedSet}
-import scala.util.hashing.MurmurHash3
 
 sealed trait SetElementBenchOps {
   def containsTrue: Any
   def containsFalse: Any
 }
 
-//object IntOrder extends Order[Int] {
-//  override def compare(x: Int, y: Int): Int = {
-//    println("foo")
-//    Integer.compare(x, y)
-//  }
-//}
-
-object SetElementBenchOps {
-
-  def mix(x: Int): Int = MurmurHash3.mix(0, x)
+object SetElementBenchOps extends BenchUtil {
 
   def apply(a: Seq[Int], c: Int, n: Int, kind: String) = {
     val a1 = a.map(mix)

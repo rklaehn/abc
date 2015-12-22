@@ -67,4 +67,22 @@ class TotalArrayMapTest extends FunSuite {
     val b = ArrayMap(1 → 1, 2 → 1, 3 → 2).withDefault(0)
     assert(Order.compare(a, b) < 0)
   }
+
+  test("equalsWrongType") {
+    assert(ArrayMap(1 -> 1).withDefault(0) != "foo")
+  }
+
+  test("noEquals") {
+    val a = ArrayMap(NoEquals(1) -> NoEquals(1)).withDefault(NoEquals(1))
+    val b = ArrayMap(NoEquals(1) -> NoEquals(1)).withDefault(NoEquals(1))
+
+    assert(a.show == b.show)
+    intercept[UnsupportedOperationException](a.toString)
+
+    assert(Hash.hash(a) == Hash.hash(b))
+    intercept[UnsupportedOperationException](a.hashCode)
+
+    assert(Eq.eqv(a, b))
+    intercept[UnsupportedOperationException](a.equals(b))
+  }
 }

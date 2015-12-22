@@ -9,7 +9,7 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     private[abc] val keys0: Array[K],
     private[abc] val values0: Array[V],
     val default: V
-  ) extends NoEquals { lhs ⇒
+  ) { lhs ⇒
 
   import TotalArrayMap._
 
@@ -52,10 +52,14 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     new TotalArrayMap[K, W](keys1, values1, rd)
   }
 
-  override def toString: String =
-    iterator
-      .map { case (k, v) ⇒ s"$k->$v"}
-      .mkString(s"ArrayMap(", ",", s").withDefaultValue($default)")
+  override def equals(that: Any): Boolean = that match {
+    case that: TotalArrayMap[K, V] => TotalArrayMap.eqv(Universal[K], Universal[V]).eqv(this, that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = TotalArrayMap.hash(Universal[K], Universal[V]).hash(this)
+
+  override def toString: String = TotalArrayMap.show(Universal[K], Universal[V]).show(this)
 }
 
 private[abc] trait TotalArrayMap1 {
@@ -199,7 +203,7 @@ object TotalArrayMap extends TotalArrayMap3 {
 
   implicit def hash[K: Hash, V: Hash]: Hash[TotalArrayMap[K, V]] = new Hash[TotalArrayMap[K, V]] {
     def hash(x: TotalArrayMap[K, V]) =
-      (Hash.hash(x.keys0), Hash.hash(x.values0)).##
+      (Hash.hash(x.default), Hash.hash(x.keys0), Hash.hash(x.values0)).##
 
     def eqv(x: TotalArrayMap[K, V], y: TotalArrayMap[K, V]) =
       Eq.eqv(x.default, y.default) && ArrayUtil.eqv(x.keys0, y.keys0) && ArrayUtil.eqv(x.values0, y.values0)

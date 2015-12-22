@@ -5,7 +5,7 @@ import cats._
 import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
 
-final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals {
+final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
 
   def length = elements.length
 
@@ -34,10 +34,19 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) e
 
   def filter(p: T => Boolean): ArraySeq[T] =
     new ArraySeq[T](this.elements.filter(p))
+
+  override def equals(that: Any): Boolean = that match {
+    case that: ArraySeq[T] => ArraySeq.eqv(Universal[T]).eqv(this, that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = ArraySeq.hash(Universal[T]).hash(this)
+
+  override def toString: String = ArraySeq.show(Universal[T]).show(this)
 }
 
 private[abc] trait ArraySeq0 {
-  implicit def eq[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
+  implicit def eqv[A: Eq]: Eq[ArraySeq[A]] = Eq.by(_.elements)
 }
 
 private[abc] trait ArraySeq1 extends ArraySeq0 {

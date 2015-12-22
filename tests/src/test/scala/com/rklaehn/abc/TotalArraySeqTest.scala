@@ -24,4 +24,22 @@ class TotalArraySeqTest extends FunSuite {
   test("withDefault") {
     assert(ArraySeq(1).withDefault(1).withoutDefault.isEmpty)
   }
+
+  test("equalsWrongType") {
+    assert(ArraySeq(1).withDefault(0) != "foo")
+  }
+
+  test("noEquals") {
+    val a = ArraySeq(NoEquals(1)).withDefault(NoEquals(1))
+    val b = ArraySeq(NoEquals(1)).withDefault(NoEquals(1))
+
+    assert(a.show == b.show)
+    intercept[UnsupportedOperationException](a.toString)
+
+    assert(Hash.hash(a) == Hash.hash(b))
+    intercept[UnsupportedOperationException](a.hashCode)
+
+    assert(Eq.eqv(a, b))
+    intercept[UnsupportedOperationException](a.equals(b))
+  }
 }

@@ -5,7 +5,7 @@ import algebra.{PartialOrder, Order, Eq}
 import cats.{Eval, Foldable, Show}
 import cats.syntax.show._
 
-final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) extends NoEquals { self ⇒
+final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
   def asNegatable: NegatableArraySet[T] = new NegatableArraySet[T](elements, false)
 
@@ -48,7 +48,14 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
 
   def isEmpty: Boolean = elements.isEmpty
 
-  override def toString: String = elements.mkString("Set(", ",", ")")
+  override def equals(that: Any): Boolean = that match {
+    case that: ArraySet[T] => ArraySet.eqv(Universal[T]).eqv(this, that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = ArraySet.hash(Universal[T]).hash(this)
+
+  override def toString: String = ArraySet.show(Universal[T]).show(this)
 }
 
 private[abc] trait ArraySet0 {

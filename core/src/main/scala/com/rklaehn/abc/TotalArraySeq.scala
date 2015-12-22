@@ -2,12 +2,23 @@ package com.rklaehn.abc
 
 import algebra._
 import algebra.ring._
+import cats.Show
+import cats.syntax.show._
 
-class TotalArraySeq[@sp T] private[abc](private[abc] val elements: Array[T], val default: T) extends NoEquals {
+class TotalArraySeq[@sp T] private[abc](private[abc] val elements: Array[T], val default: T) {
   def apply(index: Int): T =
     if(index >= 0 && index < elements.length) elements(index)
     else default
   def withoutDefault: ArraySeq[T] = new ArraySeq[T](elements)
+
+  override def equals(that: Any): Boolean = that match {
+    case that: TotalArraySeq[T] => TotalArraySeq.eqv(Universal[T]).eqv(this, that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = TotalArraySeq.hash(Universal[T]).hash(this)
+
+  override def toString: String = TotalArraySeq.show(Universal[T]).show(this)
 }
 
 private[abc] trait TotalArraySeq0 {
@@ -84,6 +95,10 @@ private[abc] trait TotalArraySeq3 extends TotalArraySeq2 {
 }
 
 object TotalArraySeq extends TotalArraySeq3 {
+
+  implicit def show[A: Show]: Show[TotalArraySeq[A]] = new Show[TotalArraySeq[A]] {
+    override def show(a: TotalArraySeq[A]): String = a.elements.map(_.show).mkString("ArraySeq(", ",", ").withDefault(" + a.default.show + ")")
+  }
 
   implicit def rig[A: Rig: Eq: ClassTag]: Rig[TotalArraySeq[A]] = new Rig[TotalArraySeq[A]] {
     override def zero: TotalArraySeq[A] = TotalArraySeq.constant(Semiring.zero[A])

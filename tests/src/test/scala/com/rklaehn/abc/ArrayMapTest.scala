@@ -27,4 +27,22 @@ class ArrayMapTest extends FunSuite {
   test("show") {
     assert(!ArrayMap.empty[Int, Int].show.isEmpty)
   }
+
+  test("equalsWrongType") {
+    assert(ArrayMap(1 -> 1) != "foo")
+  }
+
+  test("noEquals") {
+    val a = ArrayMap(NoEquals(1) -> NoEquals(1))
+    val b = ArrayMap(NoEquals(1) -> NoEquals(1))
+
+    assert(a.show == b.show)
+    intercept[UnsupportedOperationException](a.toString)
+
+    assert(Hash.hash(a) == Hash.hash(b))
+    intercept[UnsupportedOperationException](a.hashCode)
+
+    assert(Eq.eqv(a, b))
+    intercept[UnsupportedOperationException](a.equals(b))
+  }
 }

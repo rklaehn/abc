@@ -5,7 +5,7 @@ import algebra.lattice.Bool
 import cats.Show
 import cats.implicits._
 
-final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val elements0: Array[T], private[abc] val negated: Boolean) extends NoEquals {
+final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val elements0: Array[T], private[abc] val negated: Boolean) {
   lhs ⇒
   import NegatableArraySet._
 
@@ -67,6 +67,15 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
       case (true, true)   ⇒ wrap(SetUtils.diff(rhs.elements0, lhs.elements0), false)
     }
   }
+
+  override def equals(that: Any): Boolean = that match {
+    case that: NegatableArraySet[T] => NegatableArraySet.eqv(Universal[T]).eqv(this, that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = NegatableArraySet.hash(Universal[T]).hash(this)
+
+  override def toString: String = NegatableArraySet.show(Universal[T]).show(this)
 }
 
 private[abc] trait NegatableArraySet0 {

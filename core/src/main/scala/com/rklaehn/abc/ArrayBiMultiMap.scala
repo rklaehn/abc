@@ -4,7 +4,7 @@ import algebra.{Order, Eq}
 
 final class ArrayBiMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   val kv: ArrayMultiMap[K, V],
-  val vk: ArrayMultiMap[V, K]) extends NoEquals {
+  val vk: ArrayMultiMap[V, K]) {
 
   def swap: ArrayBiMultiMap[V, K] = new ArrayBiMultiMap[V, K](vk, kv)
 
@@ -32,8 +32,10 @@ final class ArrayBiMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
     ArrayBiMultiMap.fromMultiMap(kv1)
   }
 
-  override def toString =
-    s"ArrayBiMultiMap($kv, $vk)"
+  override def equals(that: Any): Boolean = that match {
+    case that: ArrayBiMultiMap[K, V] => ArrayBiMultiMap.eqv(Universal[K], Universal[V]).eqv(this, that)
+    case _ => false
+  }
 }
 
 object ArrayBiMultiMap {

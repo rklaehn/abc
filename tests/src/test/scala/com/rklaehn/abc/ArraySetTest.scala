@@ -22,6 +22,24 @@ class ArraySetTest extends FunSuite {
   test("show") {
     assert(!ArraySet.empty[Int].show.isEmpty)
   }
+
+  test("equalsWrongType") {
+    assert(ArraySet(1) != "foo")
+  }
+
+  test("noEquals") {
+    val a = ArraySet(NoEquals(1))
+    val b = ArraySet(NoEquals(1))
+
+    assert(a.show == b.show)
+    intercept[UnsupportedOperationException](a.toString)
+
+    assert(Hash.hash(a) == Hash.hash(b))
+    intercept[UnsupportedOperationException](a.hashCode)
+
+    assert(Eq.eqv(a, b))
+    intercept[UnsupportedOperationException](a.equals(b))
+  }
 }
 
 class NegatableArraySetTest extends FunSuite {
@@ -47,5 +65,23 @@ class NegatableArraySetTest extends FunSuite {
     val x = ArraySet(1, 2).asNegatable
     val y = ArraySet(1, 2).asNegatable
     assert(test(x, y))
+  }
+
+  test("equalsWrongType") {
+    assert(ArraySet(1).asNegatable != "foo")
+  }
+
+  test("noEquals") {
+    val a = ArraySet(NoEquals(1)).asNegatable
+    val b = ArraySet(NoEquals(1)).asNegatable
+
+    assert(a.show == b.show)
+    intercept[UnsupportedOperationException](a.toString)
+
+    assert(Hash.hash(a) == Hash.hash(b))
+    intercept[UnsupportedOperationException](a.hashCode)
+
+    assert(Eq.eqv(a, b))
+    intercept[UnsupportedOperationException](a.equals(b))
   }
 }

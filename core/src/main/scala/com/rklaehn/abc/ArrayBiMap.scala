@@ -4,7 +4,7 @@ import algebra.Order
 
 final class ArrayBiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   val kv: ArrayMap[K, V],
-  val vk: ArrayMap[V, K]) extends NoEquals {
+  val vk: ArrayMap[V, K]) {
 
   def swap: ArrayBiMap[V, K] = new ArrayBiMap[V, K](vk, kv)
 

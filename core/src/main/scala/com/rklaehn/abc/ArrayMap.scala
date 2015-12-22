@@ -8,7 +8,7 @@ import com.rklaehn.sonicreducer.Reducer
 
 final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
   private[abc] val keys0: Array[K],
-  private[abc] val values0: Array[V]) extends NoEquals { self ⇒
+  private[abc] val values0: Array[V]) { self ⇒
   import ArrayMap._
 
   def withDefault(default: V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vEq: Eq[V], vClassTag: ClassTag[V]): TotalArrayMap[K, V] = {
@@ -108,8 +108,14 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
   def mapValues[@sp(ILD) V2: ClassTag](f: V => V2): ArrayMap[K, V2] =
     new ArrayMap(keys0, values0.map(f))
 
-  override def toString: String =
-    keys0.indices.map(i => s"${keys0(i)}->${values0(i)}").mkString("Map(", ",", ")")
+  override def equals(that: Any): Boolean = that match {
+    case that: ArrayMap[K, V] => ArrayMap.eqv(Universal[K], Universal[V]).eqv(this, that)
+    case _ => false
+  }
+
+  override def hashCode(): Int = ArrayMap.hash(Universal[K], Universal[V]).hash(this)
+
+  override def toString: String = ArrayMap.show(Universal[K], Universal[V]).show(this)
 }
 
 private[abc] trait ArrayMap1 {

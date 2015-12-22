@@ -8,7 +8,6 @@ import algebra.std.all._
 import ScalaCollectionConverters._
 
 import scala.collection.immutable.{HashSet, SortedSet}
-import scala.util.hashing.MurmurHash3
 
 sealed trait SetSetBenchOps {
   def union: Any
@@ -18,9 +17,7 @@ sealed trait SetSetBenchOps {
   def filter(f: Int => Boolean): Any
 }
 
-object SetSetBenchOps {
-
-  def mix(x: Int): Int = MurmurHash3.mix(0, x)
+object SetSetBenchOps extends BenchUtil {
 
   def apply(a: Seq[Int], b: Seq[Int], kind: String) = {
     val a1 = a.map(mix)
@@ -59,6 +56,7 @@ class SetSetBench {
   var size = 0
 
   @Param(Array("0.0", "0.5", "1.0"))
+//  @Param(Array("0.5"))
   var offset = 0.0
 
   @Param(Array("arrayset", "hashset", "sortedset")) //, "arrayset2"))
