@@ -42,4 +42,11 @@ class ArrayBiMultiMapTest extends FunSuite {
     assert(a.kv eq a.swap.vk)
     assert(a.vk eq a.swap.kv)
   }
+
+  test("equals") {
+    val a = ArrayBiMultiMap(1 → 2, 1 → 3, 4 → 2, 4 → 3)
+    val b = ArrayBiMultiMap(1 → 2, 1 → 3, 4 → 2, 4 → 3)
+    assert(a == b)
+    assert(a != "foo")
+  }
 }

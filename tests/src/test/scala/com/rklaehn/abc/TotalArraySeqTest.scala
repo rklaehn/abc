@@ -15,6 +15,11 @@ class TotalArraySeqTest extends FunSuite {
     assert(test(x, y))
   }
 
+  test("show") {
+    val x = ArraySeq(1).withDefault(2)
+    assert(!x.show.isEmpty)
+  }
+
   test("apply") {
     val x = ArraySeq(1).withDefault(2)
     assert(x(0) == 1)

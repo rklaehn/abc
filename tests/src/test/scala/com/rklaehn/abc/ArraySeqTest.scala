@@ -19,15 +19,13 @@ class ArraySeqTest extends FunSuite {
 
   test("apply") {
     val t = ArraySeq(1, 2, 3)
-    assert(t(0) == 1)
-    assert(t(1) == 2)
-    assert(t(2) == 3)
-    intercept[IndexOutOfBoundsException] {
-      t(-1)
-    }
-    intercept[IndexOutOfBoundsException] {
-      t(3)
-    }
+    assert(t.getOrElse(-1, 0) == 0)
+    assert(t.getOrElse(0, 0) == 1)
+    assert(t.getOrElse(1, 0) == 2)
+    assert(t.getOrElse(2, 0) == 3)
+    assert(t.getOrElse(3, 0) == 0)
+    assert(t.get(0) == Some(1))
+    assert(t.get(10) == None)
   }
 
   test("concat") {

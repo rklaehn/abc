@@ -39,4 +39,15 @@ class ArrayMultiMapTest extends FunSuite {
     assert(!ArrayMultiMap.empty[Int, Int].toString.isEmpty)
     assert(!ArrayMultiMap.empty[Int, Int].show.isEmpty)
   }
+
+  test("hashCode") {
+    val x = ArrayMultiMap.empty[Int, Int]
+    assert(x.hashCode == Hash.hash(x))
+  }
+
+  test("equals") {
+    val a = ArrayMultiMap.fromEntries(1 → 1, 2 → 1)
+    assert(a == a.inverse.inverse)
+    assert(a != "foo")
+  }
 }
