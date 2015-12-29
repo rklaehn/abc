@@ -36,7 +36,7 @@ package object abc extends abc.abc1 {
       var j = 1
       var i = 1
       while (i < a.length) {
-        if (Eq.neqv(a(j - 1), a(j))) {
+        if (Eq.neqv(a(j - 1), a(i))) {
           a(j) = a(i)
           j += 1
         }
