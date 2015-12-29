@@ -9,7 +9,13 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
 
   def length = elements.length
 
-  def apply(idx: Int): T = elements(idx)
+  def get(index: Int): Option[T] =
+    if(index < 0 || index >= elements.length) None
+    else Some(elements(index))
+
+  def getOrElse(index: Int, default: T): T =
+    if(index < 0 || index >= elements.length) default
+    else elements(index)
 
   def withDefault(value: T)(implicit ev:Eq[T], classTag: ClassTag[T]): TotalArraySeq[T] =
     new TotalArraySeq[T](ArrayUtil.dropRightWhile(elements, value), value)
