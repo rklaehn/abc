@@ -330,25 +330,3 @@ class ArraySetLawCheck extends FunSuite with Discipline with Helpers {
     checkAll(s"FoldableTests[ArraySet[T]]", FoldableTests[ArraySet].foldable[Int, Int])
   }
 }
-
-class ArraySetCheck extends FunSuite with Checkers with Helpers {
-
-  def checkHashing[T: Order: Hash: ClassTag: Arbitrary](): Unit = {
-    val name = typeName[T]
-    test(s"hashConsistency $name") {
-      check { xs: Vector[T] ⇒
-        Eq.eqv(ArraySet(xs: _*), ArraySet(xs.reverse: _*)) &&
-        Hash.hash(ArraySet(xs: _*)) == Hash.hash(ArraySet(xs.reverse: _*))
-      }
-    }
-  }
-  checkHashing[Byte]()
-  checkHashing[Short]()
-  checkHashing[Int]()
-  checkHashing[Long]()
-  checkHashing[Float]()
-  checkHashing[Double]()
-  checkHashing[Boolean]()
-  checkHashing[Char]()
-  checkHashing[String]()
-}
