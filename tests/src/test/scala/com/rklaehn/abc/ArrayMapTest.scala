@@ -1,6 +1,5 @@
 package com.rklaehn.abc
 
-import algebra.ring.AdditiveGroup
 import cats.Show
 import cats.implicits._
 import algebra.Eq

@@ -29,7 +29,7 @@ object MapCreateAccessBench extends App {
       val x = n/2
       val r = th.pbenchOffWarm(s"Access HashMap[Int, Int] vs ArrayMap[Int, Int] $n")(
         th.Warm(s0(x)))(
-          th.Warm(s1(x)))
+          th.Warm(s1.apply0(x)))
     }
   }
 
@@ -52,7 +52,7 @@ object MapCreateAccessBench extends App {
       val x = n/2
       val r = th.pbenchOffWarm(s"Access HashMap[Int, String] vs ArrayMap[Int, String] $n")(
         th.Warm(s0(x)))(
-          th.Warm(s1(x)))
+          th.Warm(s1.apply0(x)))
     }
   }
 
