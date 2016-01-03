@@ -16,10 +16,6 @@ These collections *use* [algebra] typeclasses such as [Eq] and [Order], and [cat
 
 They also *provide* typeclass instances for as many [algebra] and [cats] typeclasses as possible.
 
-## Specialization of operations
-
-Most operations are specialized for common types (currently Int, Long, Double), so the specialized instances of typeclasses such as [Order] can be used to avoid boxing.
-
 ## Compact in-memory representation
 
 On modern CPUs, cache concerns are *very* important. So a compact in-memory representation is often more 
@@ -27,6 +23,10 @@ important for good overall performance than optimal big-O behavior. So in this l
 is ***always*** given priority over reference-heavy trees with theoretically optimal Big-O performance.
 
 This yields very good results regarding compactness and performance for [most operations](#disclaimer). The downside is that you have to provide ClassTag instances for almost every operation.
+
+## Specialization of operations
+
+Most operations are specialized for common types (currently Int, Long, Double), so the specialized instances of typeclasses such as [Order] can be used to avoid boxing. Note that even for types for which the collections are not specialized, the internal representation for primitives will still be efficient due to the use of primitive arrays.
 
 ## Bulk operations
 
