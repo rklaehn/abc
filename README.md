@@ -49,13 +49,27 @@ into the scala collections hierarchy. They only implement equals, hashCode and t
 
 ## Implemented collections
 
-The *partial* collections in the left column are better for working with individual elements, whereas the *total* collections in the right column allow more typeclass instances to be defined. It is always possible to convert from partial to total in O(1).
+### Core
+
+The *partial* collections in the left column are better for working with individual elements, whereas the *total* collections in the right column allow more typeclass instances to be defined. It is always possible to convert from partial to total and back in O(1).
 
          | Partial    | Total               |
 ---------|------------|---------------------|
 Sequence | [ArraySeq] | [TotalArraySeq]     | 
 Set      | [ArraySet] | [NegatableArraySet] |
 Map      | [ArrayMap] | [TotalArrayMap]     |
+
+Partial methods like `apply(index: Int)` for ArraySeq or `apply(key: K): V` for ArrayMap are **not** provided. You have to convert the collection to the total version for that.
+
+### Extras
+
+The extras module contains a few composite collections.
+
+Purpose                | Name            | 
+-----------------------|-----------------|
+Bijective map          | ArrayBiMap      |
+Multimap               | ArrayMultiMap   |
+Bijective multimap     | ArrayBiMultiMap |
 
 ### <a name="ArraySeq"></a> ArraySeq[A]
 
