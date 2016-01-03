@@ -32,7 +32,7 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
   def combine(rhs: TotalArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vClassTag: ClassTag[V], vEq: Eq[V]): TotalArrayMap[K, V] =
     new Combine[K, V](lhs, rhs, f(lhs.default, rhs.default), f).result
 
-  def mapValues[W](f: V ⇒ W)(implicit kClassTag: ClassTag[K], wEq: Eq[W], wClassTag: ClassTag[W]): TotalArrayMap[K, W] = {
+  def mapValues[@sp(ILD) W](f: V ⇒ W)(implicit kClassTag: ClassTag[K], wEq: Eq[W], wClassTag: ClassTag[W]): TotalArrayMap[K, W] = {
     val rk = new Array[K](size)
     val rv = new Array[W](size)
     val rd = f(default)
