@@ -7,6 +7,8 @@ import com.rklaehn.sonicreducer.Reducer
 
 final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
 
+  // require((elements eq null) || (elements.length != 0))
+
   def length = elements.sl
 
   def iterator = elements.safe.iterator
@@ -22,7 +24,7 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
   def withDefault(value: T)(implicit ev:Eq[T]): TotalArraySeq[T] =
     new TotalArraySeq[T](ArrayUtil.dropRightWhile(elements, value), value)
 
-  def isEmpty: Boolean = elements.safe.isEmpty
+  def isEmpty: Boolean = elements eq null
 
   def concat(that: ArraySeq[T]): ArraySeq[T] =
     if (this.isEmpty) that
@@ -35,13 +37,13 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
     }
 
   def map[@sp U: ClassTag](f: T => U): ArraySeq[U] =
-    new ArraySeq[U](this.elements.map(f))
+    new ArraySeq[U](this.elements.safe.map(f).unsafe)
 
   def flatMap[@sp U: ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
-    new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
+    new ArraySeq[U](this.elements.safe.flatMap(x ⇒ f(x).elements).unsafe)
 
   def filter(p: T => Boolean): ArraySeq[T] =
-    new ArraySeq[T](this.elements.filter(p))
+    new ArraySeq[T](this.elements.safe.filter(p).unsafe)
 
   override def equals(that: Any): Boolean = that match {
     case that: ArraySeq[T] => ArraySeq.eqv(Universal[T]).eqv(this, that)
@@ -88,7 +90,7 @@ object ArraySeq extends ArraySeq1 {
   def singleton[@sp T](e: T): ArraySeq[T] =
     new ArraySeq[T](primitiveArray(e))
 
-  def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] = {
+  def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] = if(elements.isEmpty) empty[T] else {
     val t = new Array[T](elements.length)
     // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
     elements.copyToArray(t)

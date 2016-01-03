@@ -6,6 +6,9 @@ import cats.Show
 import cats.syntax.show._
 
 class TotalArraySeq[@sp T] private[abc](private[abc] val elements: Array[T], val default: T) {
+
+  // require((elements eq null) || (elements.length != 0))
+
   def apply(index: Int): T =
     if(index >= 0 && index < elements.sl) elements(index)
     else default
@@ -97,7 +100,7 @@ private[abc] trait TotalArraySeq3 extends TotalArraySeq2 {
 object TotalArraySeq extends TotalArraySeq3 {
 
   implicit def show[A: Show]: Show[TotalArraySeq[A]] = new Show[TotalArraySeq[A]] {
-    override def show(a: TotalArraySeq[A]): String = a.elements.safe.map(_.show).mkString("ArraySeq(", ",", ").withDefault(" + a.default.show + ")")
+    override def show(a: TotalArraySeq[A]): String = a.withoutDefault.iterator.map(_.show).mkString("ArraySeq(", ",", ").withDefault(" + a.default.show + ")")
   }
 
   implicit def rig[A: Rig: Eq]: Rig[TotalArraySeq[A]] = new Rig[TotalArraySeq[A]] {

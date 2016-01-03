@@ -10,14 +10,14 @@ object ArraySetSampleCheck extends Properties("ArraySet") {
   import arb._
 
   def unaryOp(a: ArraySet[Int], r: ArraySet[Int], op: Boolean ⇒ Boolean): Boolean = {
-    val samples = a.elements :+ Int.MinValue
+    val samples = a.iterator.toArray :+ Int.MinValue
     samples.forall { e ⇒
       r(e) == op(a(e))
     }
   }
 
   def binaryOp(a: ArraySet[Int], b: ArraySet[Int], r: ArraySet[Int], op: (Boolean, Boolean) ⇒ Boolean): Boolean = {
-    val samples = (a.elements ++ b.elements).distinct :+ Int.MinValue
+    val samples = (a.iterator.toArray ++ b.iterator).distinct :+ Int.MinValue
     samples.forall { e ⇒
       r(e) == op(a(e), b(e))
     }

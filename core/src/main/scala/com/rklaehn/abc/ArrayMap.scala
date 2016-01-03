@@ -11,13 +11,16 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
   private[abc] val values0: Array[V]) { self ⇒
   import ArrayMap._
 
+  // require((keys0 eq null) || (keys0.length != 0))
+  // require((values0 eq null) || (values0.length != 0))
+
   def withDefault(default: V)(implicit kOrder: Order[K], vEq: Eq[V]): TotalArrayMap[K, V] = {
     val keep = (x: V) ⇒ vEq.neqv(x, default)
     val filtered = self.filterValues(keep)
     new TotalArrayMap[K, V](filtered.keys0, filtered.values0, default)
   }
 
-  def iterator = keys0.safe.iterator zip values0.safe.iterator
+  def iterator = keys.iterator zip values.iterator
 
   def size: Int = keys0.sl
 

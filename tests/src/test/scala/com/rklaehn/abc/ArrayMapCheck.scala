@@ -96,7 +96,7 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   }
 
   property("iterator") = forAll { x: ArrayMap[Int, Int] ⇒
-    x.iterator.toArray === (x.keys.toArray zip x.values.iterator.toSeq)
+    x.iterator.toSeq == (x.keys.iterator.toSeq zip x.values.iterator.toSeq)
   }
 
 //  property("isEmpty") = forAll { x: ArraySet[Int] ⇒

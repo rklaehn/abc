@@ -7,13 +7,13 @@ import cats.syntax.show._
 
 final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
+  // require((elements eq null) || (elements.length != 0))
+
   def asNegatable: NegatableArraySet[T] = new NegatableArraySet[T](elements, false)
 
   def size: Int = elements.sl
 
   def contains(elem: T)(implicit order: Order[T]) = self.apply(elem)
-
-  def toArray(implicit c: ClassTag[T]) = if(elements.sl == 0) new Array[T](0) else elements.clone
 
   def +(elem: T)(implicit order: Order[T]) = self.union(ArraySet.singleton(elem))
 
@@ -43,12 +43,12 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
 
   def filter(p: T => Boolean): ArraySet[T] =
-    new ArraySet[T](this.elements.filter(p))
+    new ArraySet[T](this.elements.safe.filter(p).unsafe)
 
   def xor(that: ArraySet[T])(implicit order: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
-  def isEmpty: Boolean = elements.safe.isEmpty
+  def isEmpty: Boolean = elements eq null
 
   override def equals(that: Any): Boolean = that match {
     case that: ArraySet[T] => ArraySet.eqv(Universal[T]).eqv(this, that)
@@ -78,11 +78,11 @@ private[abc] trait ArraySet1 extends ArraySet0 {
 object ArraySet extends ArraySet1 {
 
   implicit val foldable: Foldable[ArraySet] = new Foldable[ArraySet] {
-    def foldLeft[A, B](fa: ArraySet[A], b: B)(f: (B, A) ⇒ B): B = fa.elements.foldLeft[B](b)(f)
-    def foldRight[A, B](fa: ArraySet[A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) = Foldable.iterateRight(fa.elements.iterator, lb)(f)
+    def foldLeft[A, B](fa: ArraySet[A], b: B)(f: (B, A) ⇒ B): B = fa.iterator.foldLeft[B](b)(f)
+    def foldRight[A, B](fa: ArraySet[A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) = Foldable.iterateRight(fa.iterator, lb)(f)
   }
 
-  implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.elements.safe.map(_.show).mkString("ArraySet(", ",", ")"))
+  implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.iterator.map(_.show).mkString("ArraySet(", ",", ")"))
 
   implicit def hash[A: Hash]: Hash[ArraySet[A]] = Hash.by(_.elements)
 
@@ -99,7 +99,7 @@ object ArraySet extends ArraySet1 {
     new ArraySet[T](primitiveArray(e))
   }
 
-  def apply[@sp(ILD) T: Order : ClassTag](elements: T*): ArraySet[T] = {
+  def apply[@sp(ILD) T: Order : ClassTag](elements: T*): ArraySet[T] = if(elements.isEmpty) empty[T] else {
     val t = new Array[T](elements.length)
     // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
     elements.copyToArray(t)

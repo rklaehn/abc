@@ -62,6 +62,8 @@ package object abc extends abc.abc1 {
 
     def safe: Array[T] = if(underlying eq null) dummy.asInstanceOf[Array[T]] else underlying
 
+    def unsafe: Array[T] = if(underlying.length == 0) null else underlying
+
     def resizeInPlace(n: Int): Array[T] =
       if(n == 0)
         null

@@ -11,11 +11,14 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     val default: V
   ) { lhs ⇒
 
+  // require((keys0 eq null) || (keys0.length != 0))
+  // require((values0 eq null) || (values0.length != 0))
+
   import TotalArrayMap._
 
   def withoutDefault: ArrayMap[K, V] = new ArrayMap[K, V](keys0, values0)
 
-  def iterator = keys0.safe.iterator zip values0.safe.iterator
+  def iterator = keys.iterator zip values.iterator
 
   def size: Int = keys0.sl
 

@@ -9,9 +9,11 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
   lhs ⇒
   import NegatableArraySet._
 
+  // require(((elements0 eq null) || (elements0.length != 0)))
+
   def elements: ArraySet[T] = new ArraySet[T](elements0)
 
-  def isEmpty: Boolean = !negated && elements0.safe.isEmpty
+  def isEmpty: Boolean = !negated && (elements0 eq null)
 
   def negate: NegatableArraySet[T] = wrap(elements0, !negated)
 
@@ -143,7 +145,7 @@ object NegatableArraySet extends NegatableArraySet1 {
   def singleton[@sp(ILD) T](e: T): NegatableArraySet[T] =
     wrap(primitiveArray(e), false)
 
-  def apply[@sp(ILD) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
+  def apply[@sp(ILD) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = if(elements.isEmpty) empty[T] else {
     val t = new Array[T](elements.length)
     // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
     elements.copyToArray(t)

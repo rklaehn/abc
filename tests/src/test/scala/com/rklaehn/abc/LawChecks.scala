@@ -39,7 +39,7 @@ trait Helpers {
 class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
 
   implicit def allNonZero[K, V: AdditiveMonoid : Eq] = Predicate { x: TotalArrayMap[K, V] ⇒
-    !AdditiveMonoid.isZero(x.default) && !x.values.elements.safe.exists(e ⇒ AdditiveMonoid.isZero(e))
+    !AdditiveMonoid.isZero(x.default) && !x.values.iterator.exists(e ⇒ AdditiveMonoid.isZero(e))
   }
 
   def checkEqLaws[K: Order: ClassTag: Arbitrary, V: Eq: ClassTag: Arbitrary](): Unit = {
