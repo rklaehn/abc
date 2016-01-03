@@ -11,15 +11,15 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
 
   def elements: ArraySet[T] = new ArraySet[T](elements0)
 
-  def isEmpty: Boolean = !negated && elements0.isEmpty
+  def isEmpty: Boolean = !negated && elements0.safe.isEmpty
 
   def negate: NegatableArraySet[T] = wrap(elements0, !negated)
 
-  def apply(elem: T)(implicit order: Order[T]) = negated ^ (Searching.search(elements0, 0, elements0.length, elem) >= 0)
+  def apply(elem: T)(implicit order: Order[T]) = negated ^ (Searching.search(elements0, 0, elements0.sl, elem) >= 0)
 
-  def +(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.union(singleton(elem))
+  def +(elem: T)(implicit order: Order[T]) = lhs.union(singleton(elem))
 
-  def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.diff(singleton(elem))
+  def -(elem: T)(implicit order: Order[T]) = lhs.diff(singleton(elem))
 
   def subsetOf(rhs: NegatableArraySet[T])(implicit order: Order[T]): Boolean =
     (lhs.negated, rhs.negated) match {
@@ -106,12 +106,12 @@ object NegatableArraySet extends NegatableArraySet1 {
 
   implicit def show[T: Show]: Show[NegatableArraySet[T]] = Show.show { s ⇒
     if(s.negated) {
-      if (s.elements0.isEmpty) "All"
-      else s.elements0.map(_.show).mkString("Except(", ",", ")")
+      if (s.elements0.safe.isEmpty) "All"
+      else s.elements0.safe.map(_.show).mkString("Except(", ",", ")")
     }
     else {
-      if(s.elements0.isEmpty) "Empty"
-      else s.elements0.map(_.show).mkString("Set(", ",", ")")
+      if(s.elements0.safe.isEmpty) "Empty"
+      else s.elements0.safe.map(_.show).mkString("Set(", ",", ")")
     }
   }
 
@@ -120,7 +120,7 @@ object NegatableArraySet extends NegatableArraySet1 {
     def hash(a: NegatableArraySet[T]): Int = (Hash.hash(a.negated), ArrayUtil.hash(a.elements0)).##
   }
 
-  implicit def bool[T : Order: ClassTag]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
+  implicit def bool[T : Order]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
     def complement(a: NegatableArraySet[T]) = a.negate
     def or(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a union b
     def and(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a intersect b
@@ -131,16 +131,16 @@ object NegatableArraySet extends NegatableArraySet1 {
 
   private[abc] def wrap[T](elements: Array[T], negated: Boolean) = new NegatableArraySet[T](elements, negated)
 
-  def fromBoolean[@sp(ILD) T: ClassTag](value: Boolean): NegatableArraySet[T] =
+  def fromBoolean[@sp(ILD) T](value: Boolean): NegatableArraySet[T] =
     if(value) all else empty
 
-  def empty[@sp(ILD) T: ClassTag]: NegatableArraySet[T] =
-    wrap(Array.empty[T], false)
+  def empty[@sp(ILD) T]: NegatableArraySet[T] =
+    wrap(emptyArray[T], false)
 
-  def all[@sp(ILD) T: ClassTag]: NegatableArraySet[T] =
-    wrap(Array.empty[T], true)
+  def all[@sp(ILD) T]: NegatableArraySet[T] =
+    wrap(emptyArray[T], true)
 
-  def singleton[@sp(ILD) T: ClassTag](e: T): NegatableArraySet[T] =
+  def singleton[@sp(ILD) T](e: T): NegatableArraySet[T] =
     wrap(primitiveArray(e), false)
 
   def apply[@sp(ILD) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {

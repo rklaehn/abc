@@ -22,7 +22,7 @@ final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   def filterKeys(p: K ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.filterKeys(p))
 
-  def merge(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] = {
+  def merge(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[K, V] = {
     def mergeElements(a: ArraySet[V], b: ArraySet[V]): ArraySet[V] = a.union(b)
     new ArrayMultiMap[K, V](map.unionWith(that.map, mergeElements))
   }
@@ -72,10 +72,10 @@ object ArrayMultiMap extends ArrayMultiMap0 {
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayMultiMap[K, V]] = Hash.by(_.map)
 
-  def empty[@sp(ILD) K:  ClassTag, @sp(ILD) V: ClassTag]: ArrayMultiMap[K, V] =
+  def empty[@sp(ILD) K, @sp(ILD) V]: ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])
 
-  def singleton[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag](k: K, v: ArraySet[V]) = {
+  def singleton[@sp(ILD) K, @sp(ILD) V](k: K, v: ArraySet[V]) = {
     new ArrayMultiMap[K, V](ArrayMap.singleton(k, v))
   }
 
@@ -87,7 +87,7 @@ object ArrayMultiMap extends ArrayMultiMap0 {
     reducer.resultOrElse(empty[K, V])
   }
 
-  def fromEntries[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kvs: (K, V)*) = {
+  def fromEntries[@sp(ILD) K: Order, @sp(ILD) V: Order](kvs: (K, V)*) = {
     val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer(singleton(k, ArraySet.singleton(v)))

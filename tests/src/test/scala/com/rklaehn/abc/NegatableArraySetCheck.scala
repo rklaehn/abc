@@ -18,14 +18,14 @@ class NegatableArraySetLawCheck extends FunSuite with Discipline {
 object NegatableArraySetSampleCheck extends Properties("NegatableArraySet") {
 
   def unaryOp(a: NegatableArraySet[Int], r: NegatableArraySet[Int], op: Boolean ⇒ Boolean): Boolean = {
-    val samples = a.elements0 :+ Int.MinValue
+    val samples = a.elements.iterator.toArray :+ Int.MinValue
     samples.forall { e ⇒
       r(e) == op(a(e))
     }
   }
 
   def binaryOp(a: NegatableArraySet[Int], b: NegatableArraySet[Int], r: NegatableArraySet[Int], op: (Boolean, Boolean) ⇒ Boolean): Boolean = {
-    val samples = (a.elements0 ++ b.elements0).distinct :+ Int.MinValue
+    val samples = (a.elements.iterator.toArray ++ b.elements.iterator).distinct :+ Int.MinValue
     samples.forall { e ⇒
       r(e) == op(a(e), b(e))
     }

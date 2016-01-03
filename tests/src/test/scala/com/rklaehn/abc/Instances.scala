@@ -18,9 +18,9 @@ object Instances {
   // todo: remove once algebra has array instances (or use spire for instances once that moves to algebra)?
   implicit def arrayEq[A](implicit aEq: Eq[A]): Eq[Array[A]] = new Eq[Array[A]] {
     def eqv(x: Array[A], y: Array[A]): Boolean = {
-      x.length == y.length && {
+      x.sl == y.sl && {
         var i = 0
-        while(i < x.length) {
+        while(i < x.sl) {
           if(!aEq.eqv(x(i), y(i)))
             return false
           i += 1

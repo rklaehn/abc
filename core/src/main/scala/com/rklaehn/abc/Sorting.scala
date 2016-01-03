@@ -33,7 +33,7 @@ private object InsertionSort {
 private object QuickSort {
   @inline final def limit: Int = 16
 
-  final def sort[@sp A:Order](data:Array[A]): Unit = qsort(data, 0, data.length - 1)
+  final def sort[@sp A:Order](data:Array[A]): Unit = qsort(data, 0, data.sl - 1)
 
   final def qsort[@sp A](data:Array[A], left: Int, right: Int)(implicit o:Order[A]): Unit = {
 

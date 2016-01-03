@@ -44,7 +44,7 @@ private object SetUtils {
       throw abort
     }
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
-    merge0(0, a.length, 0, b.length)
+    merge0(0, a.sl, 0, b.sl)
   }
 
   final class NoIntersect[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
@@ -52,7 +52,7 @@ private object SetUtils {
     def collision(ai: Int, bi: Int): Unit = { throw abort }
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
-    merge0(0, a.length, 0, b.length)
+    merge0(0, a.sl, 0, b.sl)
   }
 
 //  object UnionMerge2 {
@@ -105,7 +105,7 @@ private object SetUtils {
 //  }
 
   final class UnionMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
-    val r = newArray(a.length + b.length, a, b)
+    val r = newArray(a.sl + b.sl, a, b)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
@@ -122,11 +122,11 @@ private object SetUtils {
       ri += b1 - b0
     }
     def result: Array[T] = r.resizeInPlace(ri)
-    merge0(0, a.length, 0, b.length)
+    merge0(0, a.sl, 0, b.sl)
   }
 
   final class IntersectionMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
-    val r = newArray(a.length min b.length, a)
+    val r = newArray(a.sl min b.sl, a)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
@@ -137,11 +137,11 @@ private object SetUtils {
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {}
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
     def result: Array[T] = r.resizeInPlace(ri)
-    merge0(0, a.length, 0, b.length)
+    merge0(0, a.sl, 0, b.sl)
   }
 
   final class DiffMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
-    val r = newArray(a.length, a)
+    val r = newArray(a.sl, a)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
@@ -151,12 +151,12 @@ private object SetUtils {
     }
     def fromB(ai: Int, b0: Int, b1: Int): Unit = {}
     def result: Array[T] = r.resizeInPlace(ri)
-    merge0(0, a.length, 0, b.length)
+    merge0(0, a.sl, 0, b.sl)
   }
 
   final class XorMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     var ri: Int = 0
-    val r = newArray(a.length + b.length, a, b)
+    val r = newArray(a.sl + b.sl, a, b)
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {
@@ -168,6 +168,6 @@ private object SetUtils {
       ri += b1 - b0
     }
     def result: Array[T] = r.resizeInPlace(ri)
-    merge0(0, a.length, 0, b.length)
+    merge0(0, a.sl, 0, b.sl)
   }
 }

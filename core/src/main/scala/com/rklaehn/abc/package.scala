@@ -14,24 +14,21 @@ package object abc extends abc.abc1 {
 
   private[abc] val abort = new AbortControl
 
+  private[abc] def emptyArray[T]: Array[T] = null
+
   private[abc] def newArray[T](n: Int, prototype: Array[T]) : Array[T] =
-    java.lang.reflect.Array.newInstance(prototype.getClass.getComponentType, n).asInstanceOf[Array[T]]
+    if(n == 0)
+      null
+    else
+      java.lang.reflect.Array.newInstance(prototype.getClass.getComponentType, n).asInstanceOf[Array[T]]
 
   private[abc] def newArray[T](n: Int, a: Array[T], b: Array[T]) : Array[T] =
-    if(a.length > 0)
+    if(n == 0)
+      null
+    else if(a ne null)
       java.lang.reflect.Array.newInstance(a.getClass.getComponentType, n).asInstanceOf[Array[T]]
-    else if(b.length > 0)
-      java.lang.reflect.Array.newInstance(b.getClass.getComponentType, n).asInstanceOf[Array[T]]
     else
       java.lang.reflect.Array.newInstance(b.getClass.getComponentType, n).asInstanceOf[Array[T]]
-
-  private[abc] implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
-    def singleton[@sp(ILD) T: ClassTag](value: T) = {
-      val result = new Array[T](1)
-      result(0) = value
-      result
-    }
-  }
 
   private[abc] implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {
 
@@ -39,7 +36,7 @@ package object abc extends abc.abc1 {
   }
 
   private[abc] def sortAndRemoveDuplicatesInPlace[@sp T: Order](a: Array[T]): Array[T] = {
-    if(a.length <= 1)
+    if(a.sl <= 1)
       a
     else {
       // use mergeSort since it is better if the elements are pre-ordered, which should be common
@@ -57,14 +54,22 @@ package object abc extends abc.abc1 {
     }
   }
 
+  val dummy = Array.empty[AnyRef]
+
   implicit private[abc] class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
 
+    def sl: Int = if(underlying eq null) 0 else underlying.length
+
+    def safe: Array[T] = if(underlying eq null) dummy.asInstanceOf[Array[T]] else underlying
+
     def resizeInPlace(n: Int): Array[T] =
-      if (underlying.length == n)
+      if(n == 0)
+        null
+      else if (underlying.sl == n)
         underlying
       else {
         val r = newArray(n, underlying)
-        System.arraycopy(underlying, 0, r, 0, n min underlying.length)
+        System.arraycopy(underlying, 0, r, 0, n min underlying.sl)
         r
       }
   }

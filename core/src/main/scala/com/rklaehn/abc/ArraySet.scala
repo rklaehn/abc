@@ -9,24 +9,23 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
 
   def asNegatable: NegatableArraySet[T] = new NegatableArraySet[T](elements, false)
 
-  def size: Int = elements.length
+  def size: Int = elements.sl
 
   def contains(elem: T)(implicit order: Order[T]) = self.apply(elem)
 
-  def +(elem: T)(implicit order: Order[T]) = {
-    // println(Thread.currentThread().getStackTrace().apply(1).getClassName)
-    self.union(ArraySet.singleton(elem))
-  }
+  def toArray(implicit c: ClassTag[T]) = if(elements.sl == 0) new Array[T](0) else elements.clone
+
+  def +(elem: T)(implicit order: Order[T]) = self.union(ArraySet.singleton(elem))
 
   def -(elem: T)(implicit order: Order[T]) = self.diff(ArraySet.singleton(elem))
 
-  def iterator = elements.iterator
+  def iterator = elements.safe.iterator
 
   def asArraySeq: ArraySeq[T] =
     new ArraySeq[T](elements)
 
   def apply(e: T)(implicit order: Order[T]): Boolean =
-    Searching.search(elements, 0, elements.length, e) >= 0
+    Searching.search(elements, 0, elements.sl, e) >= 0
 
   def subsetOf(that: ArraySet[T])(implicit order: Order[T]): Boolean =
     SetUtils.subsetOf(this.elements, that.elements)
@@ -46,10 +45,10 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
   def filter(p: T => Boolean): ArraySet[T] =
     new ArraySet[T](this.elements.filter(p))
 
-  def xor(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def xor(that: ArraySet[T])(implicit order: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
-  def isEmpty: Boolean = elements.isEmpty
+  def isEmpty: Boolean = elements.safe.isEmpty
 
   override def equals(that: Any): Boolean = that match {
     case that: ArraySet[T] => ArraySet.eqv(Universal[T]).eqv(this, that)
@@ -83,21 +82,20 @@ object ArraySet extends ArraySet1 {
     def foldRight[A, B](fa: ArraySet[A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) = Foldable.iterateRight(fa.elements.iterator, lb)(f)
   }
 
-  implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.elements.map(_.show).mkString("ArraySet(", ",", ")"))
+  implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.elements.safe.map(_.show).mkString("ArraySet(", ",", ")"))
 
   implicit def hash[A: Hash]: Hash[ArraySet[A]] = Hash.by(_.elements)
 
-  implicit def semiring[A: Order: ClassTag]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
+  implicit def semiring[A: Order]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
     def zero = ArraySet.empty[A]
     def times(x: ArraySet[A], y: ArraySet[A]) = x intersect y
     def plus(x: ArraySet[A], y: ArraySet[A]) = x union y
   }
 
-  def empty[@sp(ILD) T: ClassTag]: ArraySet[T] =
-    new ArraySet[T](Array.empty[T])
+  def empty[@sp(ILD) T]: ArraySet[T] =
+    new ArraySet[T](emptyArray[T])
 
   def singleton[@sp(ILD) T](e: T): ArraySet[T] = {
-    // println(Thread.currentThread().getStackTrace().apply(1).getMethodName)
     new ArraySet[T](primitiveArray(e))
   }
 

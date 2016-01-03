@@ -10,13 +10,13 @@ import Instances._
 object ArrayMapSampleCheck extends Properties("ArrayMap") {
 
   def unaryOp(a: ArrayMap[Int, Int], r: ArrayMap[Int, Int], op: (Int, Option[Int]) ⇒ Option[Int]): Boolean = {
-    val samples = a.keys0 :+ Int.MinValue
+    val samples = a.keys.iterator.toArray :+ Int.MinValue
     samples.forall { e ⇒
       r.get(e) === op(e, a.get(e))
     }
   }
   def binaryOp(a: ArrayMap[Int, Int], b: ArrayMap[Int, Int], r: ArrayMap[Int, Int], op: (Int, Option[Int], Option[Int]) ⇒ Option[Int]): Boolean = {
-    val samples = (a.keys0 ++ b.keys0).distinct :+ Int.MinValue
+    val samples = (a.keys.iterator.toArray ++ b.keys.iterator).distinct :+ Int.MinValue
     samples.forall { e ⇒
       r.get(e) === op(e, a.get(e), b.get(e))
     }
@@ -96,7 +96,7 @@ object ArrayMapSampleCheck extends Properties("ArrayMap") {
   }
 
   property("iterator") = forAll { x: ArrayMap[Int, Int] ⇒
-    x.iterator.toArray === (x.keys0 zip x.values0)
+    x.iterator.toArray === (x.keys.toArray zip x.values.iterator.toSeq)
   }
 
 //  property("isEmpty") = forAll { x: ArraySet[Int] ⇒

@@ -17,22 +17,22 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
     new TotalArrayMap[K, V](filtered.keys0, filtered.values0, default)
   }
 
-  def iterator = keys0.iterator zip values0.iterator
+  def iterator = keys0.safe.iterator zip values0.safe.iterator
 
-  def size: Int = keys0.length
+  def size: Int = keys0.sl
 
   def keys: ArraySet[K] = new ArraySet[K](keys0)
 
   def values: ArraySeq[V] = new ArraySeq[V](values0)
 
   private[abc] def apply0(k: K)(implicit kOrder: Order[K]): V = {
-    val i = Searching.search(keys0, 0, keys0.length, k)
+    val i = Searching.search(keys0, 0, keys0.sl, k)
     if (i >= 0) values0(i)
     else throw new NoSuchElementException
   }
 
   def get(k: K)(implicit kOrder: Order[K]): Option[V] = {
-    val i = Searching.search(keys0, 0, keys0.length, k)
+    val i = Searching.search(keys0, 0, keys0.sl, k)
     if (i < 0) None else Some(values0(i))
   }
 
@@ -46,11 +46,11 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
     new Except[K, V](this, that, f).result
 
   def filterKeys(f: K ⇒ Boolean)(implicit kOrder: Order[K]): ArrayMap[K, V] = {
-    val rk = newArray(keys0.length, keys0)
-    val rv = newArray(values0.length, values0)
+    val rk = newArray(keys0.sl, keys0)
+    val rv = newArray(values0.sl, values0)
     var ri = 0
     var i = 0
-    while(i < keys0.length) {
+    while(i < keys0.sl) {
       if (f(keys0(i))) {
         rk(ri) = keys0(i)
         rv(ri) = values0(i)
@@ -58,16 +58,16 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
       }
       i += 1
     }
-    if(ri == rk.length) this
+    if(ri == rk.sl) this
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
   def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K]): ArrayMap[K, V] = {
-    val rk = newArray[K](keys0.length, keys0)
-    val rv = newArray[V](values0.length, values0)
+    val rk = newArray[K](keys0.sl, keys0)
+    val rv = newArray[V](values0.sl, values0)
     var ri = 0
     var i = 0
-    while(i < keys0.length) {
+    while(i < keys0.sl) {
       if (f(values0(i))) {
         rk(ri) = keys0(i)
         rv(ri) = values0(i)
@@ -75,16 +75,16 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
       }
       i += 1
     }
-    if(ri == rk.length) this
+    if(ri == rk.sl) this
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
   def filter(f: ((K, V)) ⇒ Boolean)(implicit kOrder: Order[K]): ArrayMap[K, V] = {
-    val rk = newArray(keys0.length, keys0)
-    val rv = newArray(values0.length, values0)
+    val rk = newArray(keys0.sl, keys0)
+    val rv = newArray(values0.sl, values0)
     var ri = 0
     var i = 0
-    while(i < keys0.length) {
+    while(i < keys0.sl) {
       if (f((keys0(i), values0(i)))) {
         rk(ri) = keys0(i)
         rv(ri) = values0(i)
@@ -92,7 +92,7 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
       }
       i += 1
     }
-    if(ri == rk.length) this
+    if(ri == rk.sl) this
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
@@ -121,21 +121,21 @@ private[abc] trait ArrayMap1 {
     def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
   }
 
-  implicit def monoid[K: ClassTag : Order, V: ClassTag: Semigroup]: Monoid[ArrayMap[K, V]] =
+  implicit def monoid[K: Order, V: Semigroup]: Monoid[ArrayMap[K, V]] =
     new MapMonoid[K, V]
 
-  implicit def additiveMonoid[K: ClassTag: Order, V: ClassTag: AdditiveSemigroup]: AdditiveMonoid[ArrayMap[K, V]] =
+  implicit def additiveMonoid[K: Order, V: AdditiveSemigroup]: AdditiveMonoid[ArrayMap[K, V]] =
     new MapAdditiveMonoid[K, V]
 }
 
-private class MapMonoid[K: ClassTag : Order, V: ClassTag: Semigroup] extends Monoid[ArrayMap[K, V]] {
+private class MapMonoid[K: Order, V: Semigroup] extends Monoid[ArrayMap[K, V]] {
   override def empty: ArrayMap[K, V] = ArrayMap.empty[K, V]
 
   override def combine(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] =
     x.unionWith(y, (x, y) ⇒ Semigroup.combine(x, y))
 }
 
-private final class MapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveSemigroup] extends AdditiveMonoid[ArrayMap[K, V]] {
+private final class MapAdditiveMonoid[K: Order, V: AdditiveSemigroup] extends AdditiveMonoid[ArrayMap[K, V]] {
   override def zero: ArrayMap[K, V] = ArrayMap.empty[K, V]
 
   override def plus(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] =
@@ -199,7 +199,7 @@ object ArrayMap extends ArrayMap1 {
       ri += 1
     }
 
-    merge0(0, ak.length, 0, bk.length)
+    merge0(0, ak.sl, 0, bk.sl)
 
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
@@ -236,7 +236,7 @@ object ArrayMap extends ArrayMap1 {
       ri += 1
     }
 
-    merge0(0, ak.length, 0, bk.length)
+    merge0(0, ak.sl, 0, bk.sl)
 
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
@@ -273,7 +273,7 @@ object ArrayMap extends ArrayMap1 {
       }
     }
 
-    merge0(0, ak.length, 0, bk.length)
+    merge0(0, ak.sl, 0, bk.sl)
 
     def result: ArrayMap[K, V] = new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
@@ -285,8 +285,8 @@ object ArrayMap extends ArrayMap1 {
     @inline def av = a.values0
     @inline def bk = b.elements
 
-    val rk = newArray(ak.length min bk.length, ak)
-    val rv = newArray(ak.length min bk.length, av)
+    val rk = newArray(ak.sl min bk.sl, ak)
+    val rv = newArray(ak.sl min bk.sl, av)
     var ri = 0
 
     def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
@@ -301,10 +301,10 @@ object ArrayMap extends ArrayMap1 {
       ri += 1
     }
 
-    merge0(0, ak.length, 0, bk.length)
+    merge0(0, ak.sl, 0, bk.sl)
 
     def result: ArrayMap[K, V] =
-      if(ri == ak.length) a
+      if(ri == ak.sl) a
       else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
@@ -315,8 +315,8 @@ object ArrayMap extends ArrayMap1 {
     @inline def av = a.values0
     @inline def bk = b.elements
 
-    val rk = newArray(ak.length, ak)
-    val rv = newArray(ak.length, av)
+    val rk = newArray(ak.sl, ak)
+    val rv = newArray(ak.sl, av)
     var ri = 0
 
     def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
@@ -331,15 +331,15 @@ object ArrayMap extends ArrayMap1 {
 
     def collision(ai: Int, bi: Int) = {}
 
-    merge0(0, ak.length, 0, bk.length)
+    merge0(0, ak.sl, 0, bk.sl)
 
     def result: ArrayMap[K, V] =
-      if(ri == ak.length) a
+      if(ri == ak.sl) a
       else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def empty[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag]: ArrayMap[K, V] =
-    new ArrayMap(Array.empty[K], Array.empty[V])
+  def empty[@sp(ILD) K, @sp(ILD) V]: ArrayMap[K, V] =
+    new ArrayMap(emptyArray[K], emptyArray[V])
 
   def singleton[@sp(ILD) K, @sp(ILD) V](k: K, v: V): ArrayMap[K, V] =
     new ArrayMap[K, V](primitiveArray(k), primitiveArray(v))
