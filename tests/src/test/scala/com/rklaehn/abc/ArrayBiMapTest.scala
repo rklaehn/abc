@@ -1,17 +1,13 @@
 package com.rklaehn.abc
 
 import algebra.Eq
-import algebra.std.all._
+import cats.implicits._
 import org.scalatest.FunSuite
 
 class ArrayBiMapTest extends FunSuite {
 
   test("instances") {
     implicitly[Eq[ArrayBiMap[Int, Int]]]
-  }
-
-  test("toString") {
-    assert(!ArrayBiMap.empty[Int, Int].toString.isEmpty)
   }
 
   test("creation") {
@@ -25,5 +21,23 @@ class ArrayBiMapTest extends FunSuite {
 
   test("exceptKeys") {
     assert(Eq.eqv(ArrayBiMap(1 → 2, 2 → 3).exceptKeys(ArraySet(1)), ArrayBiMap(2 → 3)))
+  }
+
+  test("equals") {
+    val a = ArrayBiMap(1 → 2, 2 → 3)
+    val b = ArrayBiMap(2 → 3, 1 → 2)
+    assert(a == b)
+    assert(a != "foo")
+  }
+
+  test("hashCode") {
+    val a = ArrayBiMap(1 → 2, 2 → 3)
+    val b = ArrayBiMap(2 → 3, 1 → 2)
+    assert(a.hashCode == b.hashCode)
+  }
+
+  test("toString") {
+    val a = ArrayBiMap(1 → 2, 2 → 3)
+    assert(a.toString == a.show)
   }
 }

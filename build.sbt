@@ -73,8 +73,8 @@ lazy val noPublish = Seq(
 
 lazy val root = project.in(file("."))
   .aggregate(
-    coreJVM, collectionJVM, lawsJVM, testsJVM,
-    coreJS, collectionJS, lawsJS, testsJS,
+    coreJVM, extrasJVM, collectionJVM, lawsJVM, testsJVM,
+    coreJS, extrasJS, collectionJS, lawsJS, testsJS,
     instrumentedTests, jmhBenchmarks
   )
   .settings(name := "root")
@@ -84,6 +84,11 @@ lazy val root = project.in(file("."))
 lazy val core = crossProject.crossType(CrossType.Pure).in(file("core"))
   .settings(name := "abc")
   .settings(commonSettings: _*)
+
+lazy val extras = crossProject.crossType(CrossType.Pure).in(file("extras"))
+  .settings(name := "abc-extras")
+  .settings(commonSettings: _*)
+  .dependsOn(core)
 
 lazy val laws = crossProject.crossType(CrossType.Pure).in(file("laws"))
   .settings(name := "abc-laws")
@@ -100,26 +105,26 @@ lazy val tests = crossProject.crossType(CrossType.Pure).in(file("tests"))
   .settings(name := "abc-tests")
   .settings(commonSettings: _*)
   .settings(noPublish: _*)
-  .dependsOn(core, laws)
+  .dependsOn(core, extras, laws)
 
 lazy val instrumentedTests = project.in(file("instrumentedTests"))
   .settings(name := "instrumentedTests")
   .settings(commonSettings: _*)
   .settings(instrumentedTestSettings: _*)
   .settings(noPublish: _*)
-  .dependsOn(coreJVM)
+  .dependsOn(coreJVM, extrasJVM)
 
 lazy val jmhBenchmarks = project.in(file("jmhBenchmarks"))
   .settings(name := "jmhBenchmarks")
   .settings(commonSettings:_*)
-  .dependsOn(coreJVM, collectionJVM)
+  .dependsOn(coreJVM, extrasJVM, collectionJVM)
   .settings(noPublish: _*)
   .enablePlugins(JmhPlugin)
 
 lazy val thymeBenchmarks = project.in(file("thymeBenchmarks"))
   .settings(name := "thymeBenchmarks")
   .settings(commonSettings:_*)
-  .dependsOn(coreJVM, collectionJVM)
+  .dependsOn(coreJVM, extrasJVM, collectionJVM)
   .settings(libraryDependencies +=
     "ichi.bench" % "thyme" % "0.1.1" from "https://github.com/Ichoran/thyme/raw/9ff531411e10c698855ade2e5bde77791dd0869a/Thyme.jar")
   .settings(noPublish: _*)
@@ -136,18 +141,13 @@ lazy val instrumentedTestSettings = {
     )
 }
 
-
-// abc-jvm is JVM-only
-lazy val abcJVM = project.in(file(".abcJVM"))
-  .aggregate(coreJVM, lawsJVM, testsJVM)
-  .dependsOn(coreJVM, lawsJVM, testsJVM % "test-internal -> test")
-  .settings(moduleName := "cats-jvm")
-  .settings(commonSettings:_*)
-  .settings(commonJvmSettings:_*)
-
 lazy val coreJVM = core.jvm
 
 lazy val coreJS = core.js
+
+lazy val extrasJVM = extras.jvm
+
+lazy val extrasJS = extras.js
 
 lazy val lawsJVM = laws.jvm
 

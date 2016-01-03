@@ -1,6 +1,7 @@
 package com.rklaehn.abc
 
 import algebra.{Eq, Order}
+import cats.implicits._
 import org.scalacheck.Arbitrary
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers

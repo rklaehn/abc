@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import algebra.{Eq, Order}
 import cats.Show
-import cats.syntax.show._
+import cats.implicits._
 import com.rklaehn.sonicreducer.Reducer
 
 final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (

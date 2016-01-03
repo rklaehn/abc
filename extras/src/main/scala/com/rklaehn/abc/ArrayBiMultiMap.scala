@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.{Order, Eq}
+import algebra.{Eq, Order}
 
 final class ArrayBiMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   val kv: ArrayMultiMap[K, V],
