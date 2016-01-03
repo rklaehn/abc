@@ -25,7 +25,7 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
 
   def values: ArraySeq[V] = new ArraySeq[V](values0)
 
-  def apply(k: K)(implicit kOrder: Order[K]): V = {
+  private[abc] def apply0(k: K)(implicit kOrder: Order[K]): V = {
     val i = Searching.search(keys0, 0, keys0.length, k)
     if (i >= 0) values0(i)
     else throw new NoSuchElementException

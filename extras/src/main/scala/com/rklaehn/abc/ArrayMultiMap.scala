@@ -44,7 +44,7 @@ final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
     new ArrayMultiMap[K, V](map1)
   }
 
-  def apply(k: K)(implicit kOrder: Order[K]): ArraySet[V] = map.apply(k)
+  def apply(k: K)(implicit kOrder: Order[K]): ArraySet[V] = map.apply0(k)
 
   override def equals(that: Any): Boolean = that match {
     case that: ArrayMultiMap[K, V] => ArrayMultiMap.eqv(Universal[K], Universal[V]).eqv(this, that)

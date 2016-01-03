@@ -14,9 +14,9 @@ class ArrayMapTest extends FunSuite {
     implicitly[Hash[ArrayMap[Int, Int]]]
   }
 
-  test("apply") {
+  test("apply0") {
     intercept[NoSuchElementException] {
-      ArrayMap(1 → 1).apply(2)
+      ArrayMap(1 → 1).apply0(2)
     }
   }
 

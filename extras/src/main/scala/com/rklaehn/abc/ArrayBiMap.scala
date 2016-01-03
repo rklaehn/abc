@@ -18,7 +18,7 @@ final class ArrayBiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] = {
     val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
-    val values = removedKeys.elements.map(kv.apply)
+    val values = removedKeys.elements.map(kv.apply0)
     val vk1 = vk.exceptKeys(ArraySet(values: _*))
     new ArrayBiMap[K, V](kv1, vk1)
   }
