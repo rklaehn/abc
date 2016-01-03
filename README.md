@@ -183,7 +183,7 @@ Provided typeclasses:
 
 # <a name="disclaimer"></a> Performance disclaimer
 
-Read performance as well as creation performance will be *significantly* higher than scala collections *when used properly*. However, when adding single elements to large (100000 elements) collections, the performance will be pretty bad. So if that is your use-case, use something else.
+Read performance as well as creation performance will be *significantly* higher than scala collections *when used properly*. However, when adding single elements to large (100000 elements) collections, the performance will be pretty bad. So if that is your use-case, use something else. All collections contain *Array* in their name to keep you aware of the somewhat unusual performance characteristics.
 
 # <a name="hash"></a> Hash
 
