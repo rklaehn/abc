@@ -98,7 +98,6 @@ lazy val laws = crossProject.crossType(CrossType.Pure).in(file("laws"))
 lazy val collection = crossProject.crossType(CrossType.Pure).in(file("collection"))
   .settings(name := "abc-collection")
   .settings(commonSettings: _*)
-  .settings(noPublish: _*)
   .dependsOn(core)
 
 lazy val tests = crossProject.crossType(CrossType.Pure).in(file("tests"))
