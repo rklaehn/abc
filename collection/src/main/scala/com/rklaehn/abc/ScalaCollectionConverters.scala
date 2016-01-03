@@ -30,7 +30,7 @@ final class ArraySeqCollection[T: Hash : ClassTag](val underlying: ArraySeq[T]) 
   override protected[this] def newBuilder: mutable.Builder[T, ArraySeqCollection[T]] =
     new ArrayBuffer[T].mapResult(x ⇒ new ArraySeqCollection(new ArraySeq(x.toArray)))
 
-  def apply(idx: Int) = underlying.apply(idx)
+  def apply(idx: Int) = underlying.get(idx).get
 
   def length = underlying.length
 
