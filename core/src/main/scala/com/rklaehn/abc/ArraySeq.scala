@@ -17,16 +17,16 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
     if(index < 0 || index >= elements.length) default
     else elements(index)
 
-  def withDefault(value: T)(implicit ev:Eq[T], classTag: ClassTag[T]): TotalArraySeq[T] =
+  def withDefault(value: T)(implicit ev:Eq[T]): TotalArraySeq[T] =
     new TotalArraySeq[T](ArrayUtil.dropRightWhile(elements, value), value)
 
   def isEmpty: Boolean = elements.isEmpty
 
-  def concat(that: ArraySeq[T])(implicit T: ClassTag[T]): ArraySeq[T] =
+  def concat(that: ArraySeq[T]): ArraySeq[T] =
     if (this.isEmpty) that
     else if (that.isEmpty) this
     else {
-      val temp = new Array[T](this.elements.length + that.elements.length)
+      val temp = newArray(this.elements.length + that.elements.length, this.elements, that.elements)
       System.arraycopy(this.elements, 0, temp, 0, this.elements.length)
       System.arraycopy(that.elements, 0, temp, this.elements.length, that.elements.length)
       new ArraySeq[T](temp)

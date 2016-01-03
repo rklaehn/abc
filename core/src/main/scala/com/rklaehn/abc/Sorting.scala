@@ -9,7 +9,7 @@ import algebra.Order
   */
 private object InsertionSort {
 
-  final def sort[@sp A](data:Array[A], start:Int, end:Int)(implicit o:Order[A], ct:ClassTag[A]): Unit = {
+  final def sort[@sp A](data:Array[A], start:Int, end:Int)(implicit o:Order[A]): Unit = {
 
     var i = start + 1
     while (i < end) {
@@ -33,9 +33,9 @@ private object InsertionSort {
 private object QuickSort {
   @inline final def limit: Int = 16
 
-  final def sort[@sp A:Order:ClassTag](data:Array[A]): Unit = qsort(data, 0, data.length - 1)
+  final def sort[@sp A:Order](data:Array[A]): Unit = qsort(data, 0, data.length - 1)
 
-  final def qsort[@sp A](data:Array[A], left: Int, right: Int)(implicit o:Order[A], ct:ClassTag[A]): Unit = {
+  final def qsort[@sp A](data:Array[A], left: Int, right: Int)(implicit o:Order[A]): Unit = {
 
     if (right - left < limit)
       InsertionSort.sort(data, left, right + 1)
@@ -47,7 +47,7 @@ private object QuickSort {
     }
   }
 
-  final def partition[@sp A](data:Array[A], left:Int, right:Int, pivot:Int)(implicit o:Order[A], ct:ClassTag[A]): Int = {
+  final def partition[@sp A](data:Array[A], left:Int, right:Int, pivot:Int)(implicit o:Order[A]): Int = {
 
     val value = data(pivot)
 
@@ -79,5 +79,5 @@ private object QuickSort {
   * insertionSort(), which is slow except for small arrays.
   */
 private object Sorting {
-  final def sort[@sp A:Order:ClassTag](data:Array[A]): Unit = QuickSort.sort(data)
+  final def sort[@sp A:Order](data:Array[A]): Unit = QuickSort.sort(data)
 }

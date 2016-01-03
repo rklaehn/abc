@@ -21,7 +21,7 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
 
   def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.diff(singleton(elem))
 
-  def subsetOf(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): Boolean =
+  def subsetOf(rhs: NegatableArraySet[T])(implicit order: Order[T]): Boolean =
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ SetUtils.subsetOf(lhs.elements0, rhs.elements0)
       case (false, true)  ⇒ !SetUtils.intersects(lhs.elements0, rhs.elements0)
@@ -29,7 +29,7 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
       case (true, true)   ⇒ SetUtils.subsetOf(rhs.elements0, lhs.elements0)
     }
 
-  def intersects(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): Boolean = {
+  def intersects(rhs: NegatableArraySet[T])(implicit order: Order[T]): Boolean = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ SetUtils.intersects(lhs.elements0, rhs.elements0)
       case (false, true)  ⇒ !SetUtils.subsetOf(lhs.elements0, rhs.elements0)
@@ -38,10 +38,10 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
     }
   }
 
-  def xor(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] =
+  def xor(rhs: NegatableArraySet[T])(implicit order: Order[T]): NegatableArraySet[T] =
     wrap(SetUtils.xor(lhs.elements0, rhs.elements0), lhs.negated ^ rhs.negated)
 
-  def union(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] = {
+  def union(rhs: NegatableArraySet[T])(implicit order: Order[T]): NegatableArraySet[T] = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ wrap(SetUtils.union(lhs.elements0, rhs.elements0), false)
       case (false, true)  ⇒ wrap(SetUtils.diff(rhs.elements0, lhs.elements0), true)
@@ -50,7 +50,7 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
     }
   }
 
-  def intersect(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] = {
+  def intersect(rhs: NegatableArraySet[T])(implicit order: Order[T]): NegatableArraySet[T] = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ wrap(SetUtils.intersection(lhs.elements0, rhs.elements0), false)
       case (false, true)  ⇒ wrap(SetUtils.diff(lhs.elements0, rhs.elements0), false)
@@ -59,7 +59,7 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
     }
   }
 
-  def diff(rhs: NegatableArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): NegatableArraySet[T] = {
+  def diff(rhs: NegatableArraySet[T])(implicit order: Order[T]): NegatableArraySet[T] = {
     (lhs.negated, rhs.negated) match {
       case (false, false) ⇒ wrap(SetUtils.diff(lhs.elements0, rhs.elements0), false)
       case (false, true)  ⇒ wrap(SetUtils.intersection(lhs.elements0, rhs.elements0), false)
@@ -87,7 +87,7 @@ private[abc] trait NegatableArraySet0 {
 
 private[abc] trait NegatableArraySet1 extends NegatableArraySet0 {
 
-  implicit def partialOrder[T: Order: ClassTag]: PartialOrder[NegatableArraySet[T]] = new PartialOrder[NegatableArraySet[T]] {
+  implicit def partialOrder[T: Order]: PartialOrder[NegatableArraySet[T]] = new PartialOrder[NegatableArraySet[T]] {
     override def eqv(x: NegatableArraySet[T], y: NegatableArraySet[T]) = NegatableArraySet.eqv0(x, y)
     def partialCompare(x: NegatableArraySet[T], y: NegatableArraySet[T]): Double =
       (x subsetOf y, y subsetOf x) match {

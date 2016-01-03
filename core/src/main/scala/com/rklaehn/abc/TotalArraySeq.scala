@@ -28,11 +28,11 @@ private[abc] trait TotalArraySeq0 {
       Eq.eqv(x.default, y.default) && ArrayUtil.eqv(x.elements, y.elements)
   }
 
-  implicit def semigroup[A: Semigroup: Eq: ClassTag]: Semigroup[TotalArraySeq[A]] = new Semigroup[TotalArraySeq[A]] {
+  implicit def semigroup[A: Semigroup: Eq]: Semigroup[TotalArraySeq[A]] = new Semigroup[TotalArraySeq[A]] {
     def combine(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(Semigroup.combine)
   }
 
-  implicit def additiveSemigroup[A: AdditiveSemigroup: Eq: ClassTag]: AdditiveSemigroup[TotalArraySeq[A]] = new AdditiveSemigroup[TotalArraySeq[A]] {
+  implicit def additiveSemigroup[A: AdditiveSemigroup: Eq]: AdditiveSemigroup[TotalArraySeq[A]] = new AdditiveSemigroup[TotalArraySeq[A]] {
     def plus(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(AdditiveSemigroup.plus)
   }
 }
@@ -50,12 +50,12 @@ private[abc] trait TotalArraySeq1 extends TotalArraySeq0 {
     }
   }
 
-  implicit def monoid[A: Monoid : Eq : ClassTag]: Monoid[TotalArraySeq[A]] = new Monoid[TotalArraySeq[A]] {
+  implicit def monoid[A: Monoid : Eq: ClassTag]: Monoid[TotalArraySeq[A]] = new Monoid[TotalArraySeq[A]] {
     def combine(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(Semigroup.combine)
     def empty: TotalArraySeq[A] = TotalArraySeq.constant(Monoid.empty[A])
   }
 
-  implicit def additiveMonoid[A: AdditiveMonoid : Eq : ClassTag]: AdditiveMonoid[TotalArraySeq[A]] = new AdditiveMonoid[TotalArraySeq[A]] {
+  implicit def additiveMonoid[A: AdditiveMonoid : Eq: ClassTag]: AdditiveMonoid[TotalArraySeq[A]] = new AdditiveMonoid[TotalArraySeq[A]] {
     def zero: TotalArraySeq[A] = TotalArraySeq.constant(AdditiveMonoid.zero[A])
     def plus(x: TotalArraySeq[A], y: TotalArraySeq[A]): TotalArraySeq[A] = TotalArraySeq.zipWith(x, y)(AdditiveSemigroup.plus)
   }
@@ -109,15 +109,20 @@ object TotalArraySeq extends TotalArraySeq3 {
 
   def constant[A: ClassTag](value: A) = new TotalArraySeq[A](Array.empty[A], value)
 
-  private[abc] def zipWith[A: Eq: ClassTag](x: TotalArraySeq[A], y: TotalArraySeq[A])(f: (A, A) => A): TotalArraySeq[A] = {
+  private[abc] def zipWith[A: Eq](x: TotalArraySeq[A], y: TotalArraySeq[A])(f: (A, A) => A): TotalArraySeq[A] = {
     val rd = f(x.default, y.default)
     val re = ArrayUtil.combine(x.elements, x.default, y.elements, y.default)(f)
     new TotalArraySeq[A](ArrayUtil.dropRightWhile(re, rd), rd)
   }
 
-  private[abc] def map[A: Eq: ClassTag](a: TotalArraySeq[A])(f: A => A): TotalArraySeq[A] = {
+  private[abc] def map[A: Eq](a: TotalArraySeq[A])(f: A => A): TotalArraySeq[A] = {
     val rd = f(a.default)
-    val re = a.elements.map(f)
+    val re = newArray(a.elements.length, a.elements)
+    var i = 0
+    while(i < a.elements.length) {
+      re(i) = f(a.elements(i))
+      i += 1
+    }
     new TotalArraySeq[A](ArrayUtil.dropRightWhile(re, rd), rd)
   }
 }

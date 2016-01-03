@@ -1,6 +1,6 @@
 package com.rklaehn.abc
 
-import algebra.{Group, Semigroup, Order, Eq}
+import algebra.{Order, Eq}
 
 // scalastyle:off return
 private[abc] object ArrayUtil {
@@ -38,7 +38,7 @@ private[abc] object ArrayUtil {
     sign(x.length - y.length)
   }
 
-  def dropRightWhile[T: Eq: ClassTag](a: Array[T], z: T): Array[T] = {
+  def dropRightWhile[T: Eq](a: Array[T], z: T): Array[T] = {
     @tailrec
     def lastIndexWhereZero(i: Int): Int =
       if(i == 0) i
@@ -67,8 +67,8 @@ private[abc] object ArrayUtil {
     0
   }
 
-  def combine[A: ClassTag](x: Array[A], x_d: A, y: Array[A], y_d: A)(f: (A, A) => A): Array[A] = {
-    val re = new Array[A](x.length max y.length)
+  def combine[A](x: Array[A], x_d: A, y: Array[A], y_d: A)(f: (A, A) => A): Array[A] = {
+    val re = newArray(x.length max y.length, x, y)
     var i = 0
     while (i < x.length && i < y.length) {
       re(i) = f(x(i), y(i))
