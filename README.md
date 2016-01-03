@@ -4,7 +4,9 @@
 
 # Array-based collections
 
-Array-based immutable collections for scala. 
+Array-based immutable collections for scala.
+
+[Blog post](http://rklaehn.github.io/2015/12/18/array-based-immutable-collections/) explaining the motivation and performance characteristics.
 
 ***Experimental***
 
