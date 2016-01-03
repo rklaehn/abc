@@ -12,13 +12,15 @@ Array-based immutable collections for scala.
 
 Everything that is there is thoroughly tested using [typelevel/discipline](https://github.com/typelevel/discipline). Nevertheless, there are probably a few bugs, and everything is still subject to a lot of change.
 
-## Typeclass-friendly design
+## Design goals
+
+### Typeclass-friendly design
 
 These collections *use* [algebra] typeclasses such as [Eq] and [Order], and [cats] typeclasses such as [Show] instead of relying on the equals method of the element objects, which sometimes does not work (e.g. `Array[Byte]`) or does not make sense (`Function1[A, B]`).
 
 They also *provide* typeclass instances for as many [algebra] and [cats] typeclasses as possible.
 
-## Compact in-memory representation
+### Compact in-memory representation
 
 On modern CPUs, cache concerns are *very* important. So a compact in-memory representation is often more 
 important for good overall performance than optimal big-O behavior. So in this library, compact in-memory representation
@@ -26,11 +28,11 @@ is ***always*** given priority over reference-heavy trees with theoretically opt
 
 This yields very good results regarding compactness and performance for [most operations](#disclaimer). The downside is that you have to provide ClassTag instances for almost every operation.
 
-## Specialization of operations
+### Specialization of operations
 
 Most operations are specialized for common types (currently Int, Long, Double), so the specialized instances of typeclasses such as [Order] can be used to avoid boxing. Note that even for types for which the collections are not specialized, the internal representation for primitives will still be efficient due to the use of primitive arrays.
 
-## Bulk operations
+### Bulk operations
 
 The scala collections in the standard library mostly implement collection/collection operations in terms of
 collection/element operations. The approach taken in this library is the opposite: focus on collection/collection
