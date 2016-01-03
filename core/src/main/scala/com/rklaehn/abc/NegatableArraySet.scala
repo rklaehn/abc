@@ -141,7 +141,7 @@ object NegatableArraySet extends NegatableArraySet1 {
     wrap(Array.empty[T], true)
 
   def singleton[@sp(ILD) T: ClassTag](e: T): NegatableArraySet[T] =
-    wrap(Array.singleton(e), false)
+    wrap(primitiveArray(e), false)
 
   def apply[@sp(ILD) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
     val t = new Array[T](elements.length)

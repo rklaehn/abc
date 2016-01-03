@@ -126,7 +126,7 @@ object ArraySetCollection {
     private[this] var reducer = Reducer[Array[T]](union)
 
     def +=(elem: T) = {
-      reducer.apply(Array.singleton(elem))
+      reducer.apply(primitiveArray(elem))
       this
     }
 

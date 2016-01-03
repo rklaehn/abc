@@ -13,9 +13,12 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
 
   def contains(elem: T)(implicit order: Order[T]) = self.apply(elem)
 
-  def +(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = self.union(ArraySet.singleton(elem))
+  def +(elem: T)(implicit order: Order[T]) = {
+    // println(Thread.currentThread().getStackTrace().apply(1).getClassName)
+    self.union(ArraySet.singleton(elem))
+  }
 
-  def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = self.diff(ArraySet.singleton(elem))
+  def -(elem: T)(implicit order: Order[T]) = self.diff(ArraySet.singleton(elem))
 
   def iterator = elements.iterator
 
@@ -31,13 +34,13 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
   def intersects(that: ArraySet[T])(implicit order: Order[T]): Boolean =
     SetUtils.intersects(this.elements, that.elements)
 
-  def union(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def union(that: ArraySet[T])(implicit order: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  def intersect(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def intersect(that: ArraySet[T])(implicit order: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
-  def diff(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def diff(that: ArraySet[T])(implicit order: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
 
   def filter(p: T => Boolean): ArraySet[T] =
@@ -93,8 +96,10 @@ object ArraySet extends ArraySet1 {
   def empty[@sp(ILD) T: ClassTag]: ArraySet[T] =
     new ArraySet[T](Array.empty[T])
 
-  def singleton[@sp(ILD) T: ClassTag](e: T): ArraySet[T] =
-    new ArraySet[T](Array.singleton(e))
+  def singleton[@sp(ILD) T](e: T): ArraySet[T] = {
+    // println(Thread.currentThread().getStackTrace().apply(1).getMethodName)
+    new ArraySet[T](primitiveArray(e))
+  }
 
   def apply[@sp(ILD) T: Order : ClassTag](elements: T*): ArraySet[T] = {
     val t = new Array[T](elements.length)

@@ -83,8 +83,8 @@ object ArraySeq extends ArraySeq1 {
   def empty[@sp T: ClassTag]: ArraySeq[T] =
     new ArraySeq(Array.empty[T])
 
-  def singleton[@sp T: ClassTag](e: T): ArraySeq[T] =
-    new ArraySeq[T](Array.singleton(e))
+  def singleton[@sp T](e: T): ArraySeq[T] =
+    new ArraySeq[T](primitiveArray(e))
 
   def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] = {
     val t = new Array[T](elements.length)

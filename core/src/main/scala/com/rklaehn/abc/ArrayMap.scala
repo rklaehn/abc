@@ -341,8 +341,8 @@ object ArrayMap extends ArrayMap1 {
   def empty[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag]: ArrayMap[K, V] =
     new ArrayMap(Array.empty[K], Array.empty[V])
 
-  def singleton[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag](k: K, v: V): ArrayMap[K, V] =
-    new ArrayMap[K, V](Array.singleton(k), Array.singleton(v))
+  def singleton[@sp(ILD) K, @sp(ILD) V](k: K, v: V): ArrayMap[K, V] =
+    new ArrayMap[K, V](primitiveArray(k), primitiveArray(v))
 
   def apply[@sp(ILD) K:Order:ClassTag, @sp(ILD) V:ClassTag](kvs: (K, V)*): ArrayMap[K, V] = {
     kvs.length match {
