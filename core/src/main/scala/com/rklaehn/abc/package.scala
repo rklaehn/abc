@@ -14,7 +14,7 @@ package object abc extends abc.abc1 {
 
   private[abc] val abort = new AbortControl
 
-  implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
+  private[abc] implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
     def singleton[@sp(ILD) T](value: T)(implicit classTag: ClassTag[T]) = {
       val result = classTag.newArray(1)
       result(0) = value
@@ -22,7 +22,7 @@ package object abc extends abc.abc1 {
     }
   }
 
-  implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {
+  private[abc] implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {
 
     def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
   }
