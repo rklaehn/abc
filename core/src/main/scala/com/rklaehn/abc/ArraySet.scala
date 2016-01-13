@@ -44,7 +44,7 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
     new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
   def filter(p: T => Boolean): ArraySet[T] =
-    new ArraySet[T](this.elements.filter(p))
+    new ArraySet[T](SetUtils.filter(elements, p))
 
   def isEmpty: Boolean = elements.isEmpty
 

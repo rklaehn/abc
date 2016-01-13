@@ -7,6 +7,21 @@ import algebra.Order
  */
 private object SetUtils {
 
+  def filter[@sp(ILD) T](a: Array[T], f: T => Boolean): Array[T] = {
+    val r = newArray(a.length, a)
+    var ri = 0
+    var i = 0
+    while (i < a.length) {
+      if (f(a(i))) {
+        r(ri) = a(i)
+        ri += 1
+      }
+      i += 1
+    }
+    if (ri == r.length) a
+    else r.resizeInPlace(ri)
+  }
+
   def union[@sp(ILD) T: Order](a: Array[T], b: Array[T]): Array[T] =
     new UnionMerge[T](a, b).result
 
