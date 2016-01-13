@@ -17,9 +17,20 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
     new TotalArrayMap[K, V](filtered.keys0, filtered.values0, default)
   }
 
+  def updated(k: K, v: V)(implicit K: Order[K]): ArrayMap[K, V] =
+    merge(ArrayMap.singleton0(k, keys0, v, values0))
+
+  def +(kv: (K, V))(implicit K: Order[K]): ArrayMap[K, V] =
+    updated(kv._1, kv._2)
+
+  def -(k: K)(implicit K: Order[K]): ArrayMap[K, V] =
+    exceptKeys(ArraySet.singleton0(k, keys0))
+
   def iterator = keys0.iterator zip values0.iterator
 
   def size: Int = keys0.length
+
+  def isEmpty: Boolean = keys0.length == 0
 
   def keys: ArraySet[K] = new ArraySet[K](keys0)
 
@@ -337,6 +348,9 @@ object ArrayMap extends ArrayMap1 {
       if(ri == ak.length) a
       else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
+
+  private def singleton0[@sp(ILD) K, @sp(ILD) V](k: K, kp: Array[K], v: V, vp: Array[V]): ArrayMap[K, V] =
+    new ArrayMap[K, V](Array.singleton(k, kp), Array.singleton(v, vp))
 
   def empty[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag]: ArrayMap[K, V] =
     new ArrayMap(Array.empty[K], Array.empty[V])

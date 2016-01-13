@@ -85,6 +85,34 @@ private[abc] object ArrayUtil {
     re
   }
 
+  def exists[@sp T](a: Array[T], p: T ⇒ Boolean): Boolean = {
+    var i = 0
+    while(i < a.length) {
+      if(p(a(i)))
+        return true
+      i += 1
+    }
+    false
+  }
+
+  def forall[@sp T](a: Array[T], p: T ⇒ Boolean): Boolean = {
+    var i = 0
+    while(i < a.length) {
+      if(!p(a(i)))
+        return false
+      i += 1
+    }
+    true
+  }
+
+  def foreach[@sp T](a: Array[T], f: T ⇒ Unit): Unit = {
+    var i = 0
+    while(i < a.length) {
+      f(a(i))
+      i += 1
+    }
+  }
+
   def filter[@sp T](a: Array[T], f: T => Boolean): Array[T] = {
     val r = newArray(a.length, a)
     var ri = 0

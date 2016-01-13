@@ -46,6 +46,15 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
   def filter(p: T => Boolean): ArraySet[T] =
     new ArraySet[T](ArrayUtil.filter(elements, p))
 
+  def exists(p: T => Boolean): Boolean =
+    ArrayUtil.exists(elements, p)
+
+  def forall(p: T => Boolean): Boolean =
+    ArrayUtil.forall(elements, p)
+
+  def foreach(f: T ⇒ Unit): Unit =
+    ArrayUtil.foreach(elements, f)
+
   def isEmpty: Boolean = elements.isEmpty
 
   override def equals(that: Any): Boolean = that match {
@@ -75,7 +84,7 @@ private[abc] trait ArraySet1 extends ArraySet0 {
 
 object ArraySet extends ArraySet1 {
 
-  private def singleton0[@sp(ILD) T](e: T, a: Array[T]): ArraySet[T] =
+  private[abc] def singleton0[@sp(ILD) T](e: T, a: Array[T]): ArraySet[T] =
     new ArraySet[T](Array.singleton(e, a))
 
   implicit val foldable: Foldable[ArraySet] = new Foldable[ArraySet] {

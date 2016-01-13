@@ -32,6 +32,15 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
       new ArraySeq[T](temp)
     }
 
+  def exists(p: T => Boolean): Boolean =
+    ArrayUtil.exists(elements, p)
+
+  def forall(p: T => Boolean): Boolean =
+    ArrayUtil.forall(elements, p)
+
+  def foreach(f: T ⇒ Unit): Unit =
+    ArrayUtil.foreach(elements, f)
+
   def map[@sp U: ClassTag](f: T => U): ArraySeq[U] =
     new ArraySeq[U](this.elements.map(f))
 
