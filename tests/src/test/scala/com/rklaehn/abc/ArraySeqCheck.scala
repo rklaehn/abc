@@ -18,4 +18,8 @@ object ArraySeqSampleCheck extends Properties("ArraySet") {
   property("flatMap") = forAll { as: ArraySeq[Int] ⇒
     as.flatMap(x ⇒ ArraySeq(x, x + 1)).length == as.length * 2
   }
+
+  property("filter") = forAll { (as: ArraySeq[Int], m: Int) ⇒
+    as.filter(_ < m).elements.corresponds(as.elements.filter(_ < m))(_ == _)
+  }
 }

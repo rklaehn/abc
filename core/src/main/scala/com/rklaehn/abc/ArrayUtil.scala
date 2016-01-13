@@ -114,18 +114,29 @@ private[abc] object ArrayUtil {
   }
 
   def filter[@sp T](a: Array[T], f: T => Boolean): Array[T] = {
-    val r = newArray(a.length, a)
-    var ri = 0
-    var i = 0
-    while (i < a.length) {
-      if (f(a(i))) {
+
+    @tailrec
+    def filter1(r: Array[T], ri: Int, i: Int): Array[T] = {
+      if(i == a.length) r.resizeInPlace(ri)
+      else if(!f(a(i))) filter1(r, ri, i + 1)
+      else {
         r(ri) = a(i)
-        ri += 1
+        filter1(r, ri + 1, i + 1)
       }
-      i += 1
     }
-    if (ri == r.length) a
-    else r.resizeInPlace(ri)
+
+    @tailrec
+    def filter0(i: Int): Array[T] = {
+      if(i == a.length) a
+      else if(f(a(i))) filter0(i + 1)
+      else {
+        val r = newArray(a.length - 1, a)
+        val ri = i
+        System.arraycopy(a, 0, r, 0, ri)
+        filter1(r, ri, i + 1)
+      }
+    }
+    filter0(0)
   }
 
   private[this] def sign(x: Int) =
