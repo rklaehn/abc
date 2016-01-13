@@ -85,6 +85,21 @@ private[abc] object ArrayUtil {
     re
   }
 
+  def filter[@sp T](a: Array[T], f: T => Boolean): Array[T] = {
+    val r = newArray(a.length, a)
+    var ri = 0
+    var i = 0
+    while (i < a.length) {
+      if (f(a(i))) {
+        r(ri) = a(i)
+        ri += 1
+      }
+      i += 1
+    }
+    if (ri == r.length) a
+    else r.resizeInPlace(ri)
+  }
+
   private[this] def sign(x: Int) =
     if(x > 0) 1
     else if(x < 0) -1

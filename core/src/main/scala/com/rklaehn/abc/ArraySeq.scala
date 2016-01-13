@@ -39,7 +39,7 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
     new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
 
   def filter(p: T => Boolean): ArraySeq[T] =
-    new ArraySeq[T](SetUtils.filter(elements, p))
+    new ArraySeq[T](ArrayUtil.filter(elements, p))
 
   override def equals(that: Any): Boolean = that match {
     case that: ArraySeq[T] => ArraySeq.eqv(Universal[T]).eqv(this, that)
