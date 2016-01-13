@@ -52,7 +52,7 @@ final class TotalArrayMap[@sp(ILD) K, @sp(ILD) V](
     new TotalArrayMap[K, W](keys1, values1, rd)
   }
 
-  private[abc] def mapValues0(f: V ⇒ V)(implicit wEq: Eq[V]): TotalArrayMap[K, V] = {
+  private[abc] def mapValues0(f: V ⇒ V)(implicit V: Eq[V]): TotalArrayMap[K, V] = {
     val rk = newArray[K](size, keys0)
     val rv = newArray[V](size, values0)
     val rd = f(default)

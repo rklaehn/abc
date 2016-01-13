@@ -6,9 +6,11 @@ import cats.Show
 import cats.syntax.show._
 
 class TotalArraySeq[@sp T] private[abc](private[abc] val elements: Array[T], val default: T) {
+
   def apply(index: Int): T =
     if(index >= 0 && index < elements.length) elements(index)
     else default
+
   def withoutDefault: ArraySeq[T] = new ArraySeq[T](elements)
 
   override def equals(that: Any): Boolean = that match {
