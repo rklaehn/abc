@@ -17,14 +17,6 @@ package object abc extends abc.abc1 {
   private[abc] def newArray[T](n: Int, prototype: Array[T]) : Array[T] =
     java.lang.reflect.Array.newInstance(prototype.getClass.getComponentType, n).asInstanceOf[Array[T]]
 
-  private[abc] def newArray[T](n: Int, a: Array[T], b: Array[T]) : Array[T] =
-    if(a.length > 0)
-      java.lang.reflect.Array.newInstance(a.getClass.getComponentType, n).asInstanceOf[Array[T]]
-    else if(b.length > 0)
-      java.lang.reflect.Array.newInstance(b.getClass.getComponentType, n).asInstanceOf[Array[T]]
-    else
-      java.lang.reflect.Array.newInstance(b.getClass.getComponentType, n).asInstanceOf[Array[T]]
-
   private[abc] implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
     def singleton[@sp(ILD) T: ClassTag](value: T) = {
       val result = new Array[T](1)

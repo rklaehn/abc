@@ -26,7 +26,7 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
     if (this.isEmpty) that
     else if (that.isEmpty) this
     else {
-      val temp = newArray(this.elements.length + that.elements.length, this.elements, that.elements)
+      val temp = newArray(this.elements.length + that.elements.length, this.elements)
       System.arraycopy(this.elements, 0, temp, 0, this.elements.length)
       System.arraycopy(that.elements, 0, temp, this.elements.length, that.elements.length)
       new ArraySeq[T](temp)

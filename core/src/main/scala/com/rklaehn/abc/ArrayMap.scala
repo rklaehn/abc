@@ -175,8 +175,8 @@ object ArrayMap extends ArrayMap1 {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rk = newArray(a.size + b.size, ak, bk)
-    val rv = newArray(a.size + b.size, av, bv)
+    val rk = newArray(a.size + b.size, ak)
+    val rv = newArray(a.size + b.size, av)
     var ri = 0
 
     def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
@@ -212,8 +212,8 @@ object ArrayMap extends ArrayMap1 {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rk = newArray(a.size + b.size, ak, bk)
-    val rv = newArray(a.size + b.size, av, bv)
+    val rk = newArray(a.size + b.size, ak)
+    val rv = newArray(a.size + b.size, av)
     var ri = 0
 
     def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))
@@ -249,8 +249,8 @@ object ArrayMap extends ArrayMap1 {
     @inline def bk = b.keys0
     @inline def bv = b.values0
 
-    val rk = newArray(a.size, ak, bk)
-    val rv = newArray(a.size, av, bv)
+    val rk = newArray(a.size, ak)
+    val rv = newArray(a.size, av)
     var ri = 0
 
     def compare(ai: Int, bi: Int) = Order.compare(ak(ai), bk(bi))

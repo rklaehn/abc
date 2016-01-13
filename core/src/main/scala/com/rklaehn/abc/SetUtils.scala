@@ -105,7 +105,7 @@ private object SetUtils {
 //  }
 
   final class UnionMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
-    val r = newArray(a.length + b.length, a, b)
+    val r = newArray(a.length + b.length, a)
     var ri: Int = 0
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {
@@ -156,7 +156,7 @@ private object SetUtils {
 
   final class XorMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     var ri: Int = 0
-    val r = newArray(a.length + b.length, a, b)
+    val r = newArray(a.length + b.length, a)
     def compare(ai: Int, bi: Int) = Order.compare(a(ai), b(bi))
     def collision(ai: Int, bi: Int): Unit = {}
     def fromA(a0: Int, a1: Int, bi: Int): Unit = {

@@ -68,7 +68,7 @@ private[abc] object ArrayUtil {
   }
 
   def combine[A](x: Array[A], x_d: A, y: Array[A], y_d: A)(f: (A, A) => A): Array[A] = {
-    val re = newArray(x.length max y.length, x, y)
+    val re = newArray(x.length max y.length, x)
     var i = 0
     while (i < x.length && i < y.length) {
       re(i) = f(x(i), y(i))
