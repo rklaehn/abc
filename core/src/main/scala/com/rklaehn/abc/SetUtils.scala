@@ -55,55 +55,6 @@ private object SetUtils {
     merge0(0, a.length, 0, b.length)
   }
 
-//  object UnionMerge2 {
-//    final val FromA = 0
-//    final val FromB = 1
-//  }
-//
-//  final class UnionMerge2[@sp(ILD) T](val a: Array[T], val b: Array[T])(implicit t:OrderedArrayTag[T]) extends BinaryMerge {
-//    import UnionMerge2._
-//    val r = t.newArray(a.length + b.length)
-//    var ri: Int = 0
-//    var mode: Int = -1
-//    var start: Int = 0
-//    var end: Int = 0
-//
-//    def exec(): Unit = {
-//      mode match {
-//        case FromA ⇒
-//          val size = end - start
-//          System.arraycopy(a, start, r, ri, size)
-//          ri += size
-//        case FromB ⇒
-//          val size = end - start
-//          System.arraycopy(b, start, r, ri, size)
-//          ri += size
-//        case _ ⇒
-//      }
-//    }
-//
-//    @inline
-//    private[this] final def op(mode: Int, start:Int, end: Int): Unit = {
-//      if(this.mode == mode)
-//        this.end = end
-//      else {
-//        exec()
-//        this.mode = mode
-//        this.start = start
-//        this.end = end
-//      }
-//    }
-//
-//    def binarySearchB(ai: Int, b0: Int, b1: Int) = t.binarySearch(b, b0, b1, a(ai))
-//    def compare(ai: Int, bi: Int): Int = t.order.compare(a(ai), b(bi))
-//    def collision(ai: Int, bi: Int): Unit = op(FromA, ai, ai + 1)
-//    def fromA(a0: Int, a1: Int, bi: Int): Unit = op(FromA, a0, a1)
-//    def fromB(ai: Int, b0: Int, b1: Int): Unit = op(FromB, b0, b1)
-//    def result: Array[T] = t.resizeInPlace(r, ri)
-//    merge0(0, a.length, 0, b.length)
-//    exec()
-//  }
-
   final class UnionMerge[@sp(ILD) T: Order](val a: Array[T], val b: Array[T]) extends BinaryMerge {
     val r = newArray(a.length + b.length, a)
     var ri: Int = 0

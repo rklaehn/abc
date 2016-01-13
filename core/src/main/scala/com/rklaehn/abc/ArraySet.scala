@@ -11,40 +11,40 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
 
   def size: Int = elements.length
 
-  def contains(elem: T)(implicit order: Order[T]) = self.apply(elem)
+  def contains(elem: T)(implicit T: Order[T]) = self.apply(elem)
 
-  def +(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = self.union(ArraySet.singleton(elem))
+  def +(elem: T)(implicit T: Order[T]) = self.union(ArraySet.singleton0(elem, elements))
 
-  def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = self.diff(ArraySet.singleton(elem))
+  def -(elem: T)(implicit T: Order[T]) = self.diff(ArraySet.singleton0(elem, elements))
 
   def iterator = elements.iterator
 
   def asArraySeq: ArraySeq[T] =
     new ArraySeq[T](elements)
 
-  def apply(e: T)(implicit order: Order[T]): Boolean =
+  def apply(e: T)(implicit T: Order[T]): Boolean =
     Searching.search(elements, 0, elements.length, e) >= 0
 
-  def subsetOf(that: ArraySet[T])(implicit order: Order[T]): Boolean =
+  def subsetOf(that: ArraySet[T])(implicit T: Order[T]): Boolean =
     SetUtils.subsetOf(this.elements, that.elements)
 
-  def intersects(that: ArraySet[T])(implicit order: Order[T]): Boolean =
+  def intersects(that: ArraySet[T])(implicit T: Order[T]): Boolean =
     SetUtils.intersects(this.elements, that.elements)
 
-  def union(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def union(that: ArraySet[T])(implicit T: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.union(this.elements, that.elements))
 
-  def intersect(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def intersect(that: ArraySet[T])(implicit T: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.intersection(this.elements, that.elements))
 
-  def diff(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
+  def diff(that: ArraySet[T])(implicit T: Order[T]): ArraySet[T] =
     new ArraySet[T](SetUtils.diff(this.elements, that.elements))
+
+  def xor(that: ArraySet[T])(implicit T: Order[T]): ArraySet[T] =
+    new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
   def filter(p: T => Boolean): ArraySet[T] =
     new ArraySet[T](this.elements.filter(p))
-
-  def xor(that: ArraySet[T])(implicit order: Order[T], classTag: ClassTag[T]): ArraySet[T] =
-    new ArraySet[T](SetUtils.xor(this.elements, that.elements))
 
   def isEmpty: Boolean = elements.isEmpty
 
@@ -74,6 +74,9 @@ private[abc] trait ArraySet1 extends ArraySet0 {
 }
 
 object ArraySet extends ArraySet1 {
+
+  private def singleton0[@sp(ILD) T](e: T, a: Array[T]): ArraySet[T] =
+    new ArraySet[T](Array.singleton(e, a))
 
   implicit val foldable: Foldable[ArraySet] = new Foldable[ArraySet] {
     def foldLeft[A, B](fa: ArraySet[A], b: B)(f: (B, A) ⇒ B): B = fa.elements.foldLeft[B](b)(f)

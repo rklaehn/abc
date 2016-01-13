@@ -23,6 +23,12 @@ package object abc extends abc.abc1 {
       result(0) = value
       result
     }
+
+    def singleton[@sp(ILD) T](value: T, prototype: Array[T]) = {
+      val result = newArray(1, prototype)
+      result(0) = value
+      result
+    }
   }
 
   private[abc] implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {

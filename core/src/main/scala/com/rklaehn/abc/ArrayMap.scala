@@ -25,27 +25,27 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
 
   def values: ArraySeq[V] = new ArraySeq[V](values0)
 
-  private[abc] def apply0(k: K)(implicit kOrder: Order[K]): V = {
+  private[abc] def apply0(k: K)(implicit K: Order[K]): V = {
     val i = Searching.search(keys0, 0, keys0.length, k)
     if (i >= 0) values0(i)
     else throw new NoSuchElementException
   }
 
-  def get(k: K)(implicit kOrder: Order[K]): Option[V] = {
+  def get(k: K)(implicit K: Order[K]): Option[V] = {
     val i = Searching.search(keys0, 0, keys0.length, k)
     if (i < 0) None else Some(values0(i))
   }
 
-  def merge(that: ArrayMap[K, V])(implicit kOrder: Order[K]): ArrayMap[K, V] =
+  def merge(that: ArrayMap[K, V])(implicit K: Order[K]): ArrayMap[K, V] =
     new Merge[K, V](this, that).result
 
-  def unionWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit kOrder: Order[K]): ArrayMap[K, V] =
+  def unionWith(that: ArrayMap[K, V], f: (V, V) ⇒ V)(implicit K: Order[K]): ArrayMap[K, V] =
     new UnionWith[K, V](this, that, f).result
 
-  def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V])(implicit kOrder: Order[K]): ArrayMap[K, V] =
+  def except(that: ArrayMap[K, V], f: (V, V) ⇒ Option[V])(implicit K: Order[K]): ArrayMap[K, V] =
     new Except[K, V](this, that, f).result
 
-  def filterKeys(f: K ⇒ Boolean)(implicit kOrder: Order[K]): ArrayMap[K, V] = {
+  def filterKeys(f: K ⇒ Boolean)(implicit K: Order[K]): ArrayMap[K, V] = {
     val rk = newArray(keys0.length, keys0)
     val rv = newArray(values0.length, values0)
     var ri = 0
@@ -62,7 +62,7 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def filterValues(f: V ⇒ Boolean)(implicit kOrder: Order[K]): ArrayMap[K, V] = {
+  def filterValues(f: V ⇒ Boolean)(implicit K: Order[K]): ArrayMap[K, V] = {
     val rk = newArray[K](keys0.length, keys0)
     val rv = newArray[V](values0.length, values0)
     var ri = 0
@@ -79,7 +79,7 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def filter(f: ((K, V)) ⇒ Boolean)(implicit kOrder: Order[K]): ArrayMap[K, V] = {
+  def filter(f: ((K, V)) ⇒ Boolean)(implicit K: Order[K]): ArrayMap[K, V] = {
     val rk = newArray(keys0.length, keys0)
     val rv = newArray(values0.length, values0)
     var ri = 0
@@ -96,10 +96,10 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
     else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def justKeys(keys: ArraySet[K])(implicit kOrder: Order[K]): ArrayMap[K, V] =
+  def justKeys(keys: ArraySet[K])(implicit K: Order[K]): ArrayMap[K, V] =
     new JustKeys[K, V](this, keys).result
 
-  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K]): ArrayMap[K, V] =
+  def exceptKeys(keys: ArraySet[K])(implicit K: Order[K]): ArrayMap[K, V] =
     new ExceptKeys[K, V](this, keys).result
 
   def mapValues[@sp(ILD) V2: ClassTag](f: V => V2): ArrayMap[K, V2] =
