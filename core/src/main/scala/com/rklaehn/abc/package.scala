@@ -14,9 +14,12 @@ package object abc extends abc.abc1 {
 
   private[abc] val abort = new AbortControl
 
+  private[abc] def newArray[T](n: Int, prototype: Array[T]) : Array[T] =
+    java.lang.reflect.Array.newInstance(prototype.getClass.getComponentType, n).asInstanceOf[Array[T]]
+
   private[abc] implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
-    def singleton[@sp(ILD) T](value: T)(implicit classTag: ClassTag[T]) = {
-      val result = classTag.newArray(1)
+    def singleton[@sp(ILD) T: ClassTag](value: T) = {
+      val result = new Array[T](1)
       result(0) = value
       result
     }
@@ -27,7 +30,7 @@ package object abc extends abc.abc1 {
     def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
   }
 
-  private[abc] def sortAndRemoveDuplicatesInPlace[@sp T: Order: ClassTag](a: Array[T]): Array[T] = {
+  private[abc] def sortAndRemoveDuplicatesInPlace[@sp T: Order](a: Array[T]): Array[T] = {
     if(a.length <= 1)
       a
     else {
@@ -48,11 +51,11 @@ package object abc extends abc.abc1 {
 
   implicit private[abc] class ArrayOps[T](private val underlying: Array[T]) extends AnyVal {
 
-    def resizeInPlace(n: Int)(implicit c: ClassTag[T]): Array[T] =
+    def resizeInPlace(n: Int): Array[T] =
       if (underlying.length == n)
         underlying
       else {
-        val r = c.newArray(n)
+        val r = newArray(n, underlying)
         System.arraycopy(underlying, 0, r, 0, n min underlying.length)
         r
       }
