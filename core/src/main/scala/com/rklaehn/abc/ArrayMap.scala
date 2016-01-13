@@ -12,7 +12,7 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
   import ArrayMap._
 
   def withDefault(default: V)(implicit K: Order[K], V: Eq[V]): TotalArrayMap[K, V] = {
-    val keep = (x: V) ⇒ vEq.neqv(x, default)
+    val keep = (x: V) ⇒ V.neqv(x, default)
     val filtered = self.filterValues(keep)
     new TotalArrayMap[K, V](filtered.keys0, filtered.values0, default)
   }
