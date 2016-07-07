@@ -1,0 +1,17 @@
+matrix:
+  SCALA_VERSION:
+    - 2.10.6
+    - 2.11.8
+  TEST_SUITE:
+    - test it:test
+
+build:
+  image: chipsenkbeil/scala-debugger:latest
+  pull: true
+  environment:
+    - CACHE_DIR="/drone"
+    - SCALATEST_SPAN_SCALE_FACTOR=10
+  commands:
+    - host `curl -s http://httpbin.org/ip | jq -r '.origin'` || true
+    - javac -version
+    - /usr/bin/sbt ++$SCALA_VERSION $TEST_SUITE
