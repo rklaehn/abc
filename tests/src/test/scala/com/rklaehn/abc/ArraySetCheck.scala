@@ -3,7 +3,7 @@ package com.rklaehn.abc
 import algebra.Eq
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
-import algebra.std.all._
+import cats.kernel.instances.all._
 import Instances._
 
 object ArraySetSampleCheck extends Properties("ArraySet") {

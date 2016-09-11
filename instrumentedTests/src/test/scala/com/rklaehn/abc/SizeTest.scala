@@ -1,7 +1,7 @@
 package com.rklaehn.abc
 
 import org.github.jamm.MemoryMeter
-import algebra.std.all._
+ import cats.kernel.instances.all._
 import org.scalatest.FunSuite
 
 class SizeTest extends FunSuite {

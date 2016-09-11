@@ -55,7 +55,7 @@ final class ArraySetCollection[T: Order : Hash : ClassTag](val underlying: Array
 
   import ArraySetCollection.wrap
 
-  implicit def ordering = Order.ordering(Order[T])
+  implicit def ordering = Order.catsKernelOrderingForOrder(Order[T])
 
   def +(elem: T) = wrap(underlying + elem)
 
@@ -145,7 +145,7 @@ class ArrayMapCollection[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[
 
   import ArrayMapCollection._
 
-  implicit def ordering = Order.ordering[K]
+  implicit def ordering = Order.catsKernelOrderingForOrder[K]
 
   override def newBuilder: mutable.Builder[(K, V), ArrayMapCollection[K, V]] =
     new Builder[K, V].mapResult(x ⇒ wrap(x))

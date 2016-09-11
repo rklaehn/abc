@@ -1,7 +1,7 @@
 package com.rklaehn.abc
 
 import org.github.jamm.MemoryMeter
-import algebra.std.all._
+import cats.kernel.instances.all._
 import scala.collection.immutable.{SortedSet, HashSet}
 
 object CreateSizeList extends App {

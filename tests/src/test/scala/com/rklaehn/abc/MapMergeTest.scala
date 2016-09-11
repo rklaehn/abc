@@ -2,7 +2,7 @@ package com.rklaehn.abc
 
 import algebra.Order
 
-import algebra.std.all._
+ import cats.kernel.instances.all._
 import Instances._
 
 object MapMergeTest extends App {

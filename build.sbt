@@ -2,16 +2,15 @@ import ReleaseTransformations._
 
 lazy val commonSettings = Seq(
   organization := "com.rklaehn",
-  scalaVersion := "2.11.7",
-  crossScalaVersions := Seq("2.10.5", "2.11.7"),
+  scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.10.6", "2.11.8"),
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "com.rklaehn" %%% "sonicreducer" % "0.3.0",
-    "org.spire-math" %%% "algebra" % "0.3.1",
-    "org.spire-math" %%% "cats" % "0.3.0",
-    "org.scalatest" %%% "scalatest" % "3.0.0-M7" % "test",
-    "org.spire-math" %%% "algebra-std" % "0.3.1" % "test",
-    "org.spire-math" %%% "algebra-laws" % "0.3.1" % "test"
+    "org.typelevel" %%% "algebra" % "0.5.1",
+    "org.typelevel" %%% "cats" % "0.7.2",
+    "org.scalatest" %%% "scalatest" % "3.0.0-M8" % "test",
+    "org.typelevel" %%% "algebra-laws" % "0.5.1" % "test"
   ),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -135,7 +134,7 @@ lazy val instrumentedTestSettings = {
   }
   Seq(
     javaOptions <+= (dependencyClasspath in Test).map(makeAgentOptions),
-      libraryDependencies += "com.github.jbellis" % "jamm" % "0.3.0",
+      libraryDependencies += "com.github.jbellis" % "jamm" % "0.3.1",
       fork := true
     )
 }

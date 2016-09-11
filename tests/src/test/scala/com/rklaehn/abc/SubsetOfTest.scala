@@ -1,7 +1,7 @@
 package com.rklaehn.abc
 
 import org.scalatest.FunSuite
-import algebra.std.all._
+import cats.kernel.instances.all._
 
 class SubsetOfTest extends FunSuite {
 

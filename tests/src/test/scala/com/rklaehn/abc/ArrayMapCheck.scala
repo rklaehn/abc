@@ -3,7 +3,7 @@ package com.rklaehn.abc
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 import algebra.Eq
-import algebra.std.all._
+ import cats.kernel.instances.all._
 import arb._
 import Instances._
 
