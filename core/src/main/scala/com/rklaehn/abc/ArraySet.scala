@@ -5,6 +5,8 @@ import algebra.{PartialOrder, Order, Eq}
 import cats.{Eval, Foldable, Show}
 import cats.syntax.show._
 
+import cats.kernel.instances.MapInstances
+
 final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
   def asNegatable: NegatableArraySet[T] = new NegatableArraySet[T](elements, false)
