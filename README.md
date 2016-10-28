@@ -190,29 +190,29 @@ Read performance as well as creation performance will be *significantly* higher 
 
 Unfortunately, [algebra] currently does not contain a typeclass for hashing. The hashing typeclass in the scala library does not follow current conventions for typeclasses. Therefore, `Hash[T]` is currently defined [internally](https://github.com/rklaehn/abc/blob/master/core/src/main/scala/com/rklaehn/abc/Hash.scala).
 
-[algebra]: https://github.com/non/algebra
-[Eq]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Eq.scala
-[PartialOrder]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/PartialOrder.scala
-[Order]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Order.scala
+[algebra]: https://github.com/typelevel/algebra
+[Eq]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/Eq.scala
+[PartialOrder]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/PartialOrder.scala
+[Order]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/Order.scala
 
-[Semigroup]: https://non.github.io/cats//tut/semigroup.html
-[Monoid]: https://non.github.io/cats//tut/monoid.html
-[Group]: https://github.com/non/algebra/blob/master/core/src/main/scala/algebra/Group.scala
+[Semigroup]: http://typelevel.org/cats/tut/semigroup.html
+[Monoid]: http://typelevel.org/cats/tut/monoid.html
+[Group]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/Group.scala
 
-[AdditiveSemigroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
-[AdditiveMonoid]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
-[AdditiveGroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Additive.scala
-[MultiplicativeSemigroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Multiplicative.scala
-[MultiplicativeMonoid]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Multiplicative.scala
-[MultiplicativeGroup]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Multiplicative.scala
-[Semiring]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Semiring.scala
-[Rig]: https://github.com/non/algebra/blob/master/ring/src/main/scala/algebra/ring/Rig.scala
+[AdditiveSemigroup]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Additive.scala
+[AdditiveMonoid]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Additive.scala
+[AdditiveGroup]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Additive.scala
+[MultiplicativeSemigroup]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Multiplicative.scala
+[MultiplicativeMonoid]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Multiplicative.scala
+[MultiplicativeGroup]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Multiplicative.scala
+[Semiring]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Semiring.scala
+[Rig]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Rig.scala
 
-[Bool]: https://github.com/non/algebra/blob/master/lattice/src/main/scala/algebra/lattice/Bool.scala
+[Bool]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/lattice/Bool.scala
 
-[cats]: https://github.com/non/cats
-[Show]: https://github.com/non/cats/blob/master/core/src/main/scala/cats/Show.scala
-[Foldable]: https://github.com/non/cats/blob/master/core/src/main/scala/cats/Foldable.scala
+[cats]: http://typelevel.org/cats/
+[Show]: https://github.com/typelevel/cats/blob/master/core/src/main/scala/cats/Show.scala
+[Foldable]: https://github.com/typelevel/cats/blob/master/core/src/main/scala/cats/Foldable.scala
 
 [Hash]: #hash
 
@@ -223,4 +223,4 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [TotalArrayMap]: #TotalArrayMap
 [NegatableArraySet]: #NegatableArraySet
 
-[typeclasses]: https://non.github.io/cats//typeclasses.html
+[typeclasses]: http://typelevel.org/cats/typeclasses.html
