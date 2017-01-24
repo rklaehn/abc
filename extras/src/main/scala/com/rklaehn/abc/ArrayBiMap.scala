@@ -2,7 +2,6 @@ package com.rklaehn.abc
 
 import algebra.{Eq, Order}
 import cats.Show
-import cats.implicits._
 
 final class ArrayBiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   val kv: ArrayMap[K, V],
