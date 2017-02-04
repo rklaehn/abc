@@ -2,15 +2,15 @@ import ReleaseTransformations._
 
 lazy val commonSettings = Seq(
   organization := "com.rklaehn",
-  scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8"),
+  scalaVersion := "2.12.1",
+  crossScalaVersions := Seq("2.11.8", "2.12.1"),
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-    "com.rklaehn" %%% "sonicreducer" % "0.3.0",
-    "org.typelevel" %%% "algebra" % "0.5.1",
-    "org.typelevel" %%% "cats" % "0.7.2",
-    "org.scalatest" %%% "scalatest" % "3.0.0-M8" % "test",
-    "org.typelevel" %%% "algebra-laws" % "0.5.1" % "test"
+    "com.rklaehn" %%% "sonicreducer" % "0.5.0",
+    "org.typelevel" %%% "algebra" % "0.7.0",
+    "org.typelevel" %%% "cats" % "0.9.0",
+    "org.scalatest" %%% "scalatest" % "3.0.1" % "test",
+    "org.typelevel" %%% "algebra-laws" % "0.7.0" % "test"
   ),
   scalacOptions ++= Seq(
     "-deprecation",
