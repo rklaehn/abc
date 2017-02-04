@@ -13,21 +13,21 @@ final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   def entries: Iterator[(K, V)] =
     map.iterator.flatMap { case (k, vs) ⇒ vs.iterator.map(v ⇒ k → v) }
 
-  def justKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] =
+  def justKeys(keys: ArraySet[K])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.justKeys(keys))
 
-  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] =
+  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.exceptKeys(keys))
 
-  def filterKeys(p: K ⇒ Boolean)(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] =
+  def filterKeys(p: K ⇒ Boolean)(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](map.filterKeys(p))
 
-  def merge(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] = {
+  def merge(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[K, V] = {
     def mergeElements(a: ArraySet[V], b: ArraySet[V]): ArraySet[V] = a.union(b)
     new ArrayMultiMap[K, V](map.unionWith(that.map, mergeElements))
   }
 
-  def inverse(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[V, K] = {
+  def inverse(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[V, K] = {
     val swappedPairs: Iterator[(V, K)] = for {
       (k, vs) ← map.iterator
       v ← vs.iterator
@@ -35,7 +35,7 @@ final class ArrayMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
     ArrayMultiMap.fromEntries(swappedPairs.toArray: _*)
   }
 
-  def except(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayMultiMap[K, V] = {
+  def except(that: ArrayMultiMap[K, V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayMultiMap[K, V] = {
     val map1 = map.except(that.map, (x,y) ⇒ {
       val r = x diff y
       if(r.isEmpty) Option.empty[ArraySet[V]]
@@ -72,14 +72,14 @@ object ArrayMultiMap extends ArrayMultiMap0 {
 
   implicit def hash[K: Hash, V: Hash]: Hash[ArrayMultiMap[K, V]] = Hash.by(_.map)
 
-  def empty[@sp(ILD) K:  ClassTag, @sp(ILD) V: ClassTag]: ArrayMultiMap[K, V] =
+  def empty[@sp(ILD) K, @sp(ILD) V]: ArrayMultiMap[K, V] =
     new ArrayMultiMap[K, V](ArrayMap.empty[K, ArraySet[V]])
 
-  def singleton[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag](k: K, v: ArraySet[V]) = {
+  def singleton[@sp(ILD) K, @sp(ILD) V](k: K, v: ArraySet[V]) = {
     new ArrayMultiMap[K, V](ArrayMap.singleton(k, v))
   }
 
-  def apply[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kvs: (K, ArraySet[V])*) = {
+  def apply[@sp(ILD) K: Order, @sp(ILD) V: Order](kvs: (K, ArraySet[V])*) = {
     val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       if(!v.isEmpty)
@@ -87,7 +87,7 @@ object ArrayMultiMap extends ArrayMultiMap0 {
     reducer.resultOrElse(empty[K, V])
   }
 
-  def fromEntries[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kvs: (K, V)*) = {
+  def fromEntries[@sp(ILD) K: Order, @sp(ILD) V: Order](kvs: (K, V)*) = {
     val reducer = Reducer[ArrayMultiMap[K, V]](_ merge _)
     for ((k, v) <- kvs)
       reducer(singleton(k, ArraySet.singleton(v)))

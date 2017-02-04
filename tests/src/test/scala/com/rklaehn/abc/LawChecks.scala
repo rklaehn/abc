@@ -3,6 +3,8 @@ package com.rklaehn.abc
 import algebra.ring._
 import algebra._
 import algebra.laws._
+
+import scala.reflect.ClassTag
 // import algebra.instances.all._
 // import cats.instances.all._
 import algebra.instances.all._

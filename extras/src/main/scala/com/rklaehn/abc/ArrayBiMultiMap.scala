@@ -8,7 +8,7 @@ final class ArrayBiMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
 
   def swap: ArrayBiMultiMap[V, K] = new ArrayBiMultiMap[V, K](vk, kv)
 
-  def merge(that: ArrayBiMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] =
+  def merge(that: ArrayBiMultiMap[K, V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMultiMap[K, V] =
     new ArrayBiMultiMap(
       kv.merge(that.kv),
       vk.merge(that.vk))
@@ -17,16 +17,16 @@ final class ArrayBiMultiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
   //
   //  def -(k: K) = removeKeys(ArraySet(k)(vk.f.vSetFamily))
 
-  def except(that: ArrayBiMultiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] = {
+  def except(that: ArrayBiMultiMap[K, V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMultiMap[K, V] = {
     val kv1 = kv.except(that.kv)
     ArrayBiMultiMap.fromMultiMap(kv1)
   }
 
-  def exceptValues(values: ArraySet[V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] = {
+  def exceptValues(values: ArraySet[V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMultiMap[K, V] = {
     swap.exceptKeys(values).swap
   }
 
-  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMultiMap[K, V] = {
+  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMultiMap[K, V] = {
     val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
     ArrayBiMultiMap.fromMultiMap(kv1)
@@ -42,18 +42,18 @@ object ArrayBiMultiMap {
 
   implicit def eqv[K: Eq, V: Eq]: Eq[ArrayBiMultiMap[K, V]] = Eq.by(_.kv)
 
-  def fromMultiMap[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kv: ArrayMultiMap[K, V]) =
+  def fromMultiMap[@sp(ILD) K: Order, @sp(ILD) V: Order](kv: ArrayMultiMap[K, V]) =
     new ArrayBiMultiMap[K,V](kv, kv.inverse)
 
-  def empty[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag] =
+  def empty[@sp(ILD) K: Order, @sp(ILD) V: Order] =
     new ArrayBiMultiMap[K, V](ArrayMultiMap.empty[K, V], ArrayMultiMap.empty[V, K])
 
-  def singleton[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](k: K, v: V) =
+  def singleton[@sp(ILD) K: Order, @sp(ILD) V: Order](k: K, v: V) =
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.singleton[K, V](k, ArraySet.singleton(v)),
       ArrayMultiMap.singleton[V, K](v, ArraySet.singleton(k)))
 
-  def apply[@sp(ILD) K: Order: ClassTag, @sp(ILD) V: Order: ClassTag](kvs: (K, V)*) = {
+  def apply[@sp(ILD) K: Order, @sp(ILD) V: Order](kvs: (K, V)*) = {
     new ArrayBiMultiMap[K, V](
       ArrayMultiMap.fromEntries(kvs: _*),
       ArrayMultiMap.fromEntries(kvs.map(_.swap): _*))

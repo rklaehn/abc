@@ -10,12 +10,12 @@ final class ArrayBiMap[@sp(ILD) K, @sp(ILD) V] private[abc] (
 
   def swap: ArrayBiMap[V, K] = new ArrayBiMap[V, K](vk, kv)
 
-  def merge(that: ArrayBiMap[K, V])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] =
+  def merge(that: ArrayBiMap[K, V])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMap[K, V] =
     new ArrayBiMap(
       kv.merge(that.kv),
       vk.merge(that.vk))
 
-  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] = {
+  def exceptKeys(keys: ArraySet[K])(implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMap[K, V] = {
     val removedKeys = keys intersect kv.keys
     val kv1 = kv.exceptKeys(removedKeys)
     val values = removedKeys.elements.map(kv.apply0)
@@ -41,17 +41,17 @@ object ArrayBiMap {
 
   implicit def show[K: Show, V: Show]: Show[ArrayBiMap[K, V]] = Show.show(_.kv.show)
 
-  def empty[@sp(ILD) K:ClassTag, @sp(ILD) V:ClassTag]: ArrayBiMap[K, V] =
+  def empty[@sp(ILD) K, @sp(ILD) V]: ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](ArrayMap.empty[K,V], ArrayMap.empty[V, K])
 
   def singleton[@sp(ILD) K, @sp(ILD) V](k: K, v: V)(
-    implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] =
+    implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMap[K, V] =
     new ArrayBiMap[K, V](
       ArrayMap.singleton[K, V](k, v),
       ArrayMap.singleton[V, K](v, k))
 
   def apply[@sp(ILD) K, @sp(ILD) V](kvs: (K, V)*)(
-    implicit kOrder: Order[K], kClassTag: ClassTag[K], vOrder: Order[V], vClassTag: ClassTag[V]): ArrayBiMap[K, V] = {
+    implicit kOrder: Order[K], vOrder: Order[V]): ArrayBiMap[K, V] = {
     new ArrayBiMap[K, V](
       ArrayMap(kvs: _*),
       ArrayMap(kvs.map(_.swap): _*))

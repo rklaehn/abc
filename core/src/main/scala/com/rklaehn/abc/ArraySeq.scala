@@ -5,7 +5,7 @@ import cats._
 import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
 
-final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
+final class ArraySeq[T] private[abc] (private[abc] val elements: Array[T]) {
 
   def length = elements.length
 
@@ -32,11 +32,14 @@ final class ArraySeq[@sp T] private[abc] (private[abc] val elements: Array[T]) {
       new ArraySeq[T](temp)
     }
 
-  def map[@sp U: ClassTag](f: T => U): ArraySeq[U] =
-    new ArraySeq[U](this.elements.map(f))
+  def map[U](f: T => U): ArraySeq[U] = {
+    val builder = UnboxedArrayBuilder[U](this.elements.length)
+    elements.foreach(x => builder.add(f(x)))
+    new ArraySeq[U](builder.result)
+  }
 
-  def flatMap[@sp U: ClassTag](f: T => ArraySeq[U]): ArraySeq[U] =
-    new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
+  def flatMap[U](f: T => ArraySeq[U]): ArraySeq[U] = ???
+    //new ArraySeq[U](this.elements.flatMap(x ⇒ f(x).elements))
 
   def filter(p: T => Boolean): ArraySeq[T] =
     new ArraySeq[T](ArrayUtil.filter(elements, p))
@@ -74,22 +77,21 @@ object ArraySeq extends ArraySeq1 {
 
   implicit def hash[A: Hash]: Hash[ArraySeq[A]] = Hash.by(_.elements)
 
-  implicit def monoid[A: ClassTag]: Monoid[ArraySeq[A]] = new Monoid[ArraySeq[A]] {
+  implicit def monoid[A]: Monoid[ArraySeq[A]] = new Monoid[ArraySeq[A]] {
     override def empty: ArraySeq[A] = ArraySeq.empty[A]
     override def combine(x: ArraySeq[A], y: ArraySeq[A]): ArraySeq[A] = x concat y
     override def combineAll(as: TraversableOnce[ArraySeq[A]]) = Reducer.reduce(as)(combine).getOrElse(empty)
   }
 
-  def empty[@sp T: ClassTag]: ArraySeq[T] =
-    new ArraySeq(Array.empty[T])
+  def empty[T]: ArraySeq[T] =
+    new ArraySeq(ArrayFactory.empty[T])
 
-  def singleton[@sp T: ClassTag](e: T): ArraySeq[T] =
-    new ArraySeq[T](Array.singleton(e))
+  def singleton[T](e: T): ArraySeq[T] =
+    new ArraySeq[T](ArrayFactory.singleton(e))
 
-  def apply[@sp T: ClassTag](elements: T*): ArraySeq[T] = {
-    val t = new Array[T](elements.length)
-    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
-    elements.copyToArray(t)
-    new ArraySeq[T](t)
+  def apply[T](elements: T*): ArraySeq[T] = {
+    val b = UnboxedArrayBuilder[T](elements.length)
+    elements.foreach(b.add)
+    new ArraySeq[T](b.result)
   }
 }

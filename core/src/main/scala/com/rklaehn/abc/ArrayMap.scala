@@ -6,7 +6,7 @@ import cats.{Eval, Foldable, Show}
 import cats.syntax.show._
 import com.rklaehn.sonicreducer.Reducer
 
-final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
+final class ArrayMap[K, V](
   private[abc] val keys0: Array[K],
   private[abc] val values0: Array[V]) { self ⇒
   import ArrayMap._
@@ -102,8 +102,8 @@ final class ArrayMap[@sp(ILD) K, @sp(ILD) V](
   def exceptKeys(keys: ArraySet[K])(implicit K: Order[K]): ArrayMap[K, V] =
     new ExceptKeys[K, V](this, keys).result
 
-  def mapValues[@sp(ILD) V2: ClassTag](f: V => V2): ArrayMap[K, V2] =
-    new ArrayMap(keys0, values0.map(f))
+  def mapValues[@sp(ILD) V2](f: V => V2): ArrayMap[K, V2] = ???
+    //new ArrayMap(keys0, values0.map(f))
 
   override def equals(that: Any): Boolean = that match {
     case that: ArrayMap[K, V] => ArrayMap.eqv(Universal[K], Universal[V]).eqv(this, that)
@@ -121,21 +121,21 @@ private[abc] trait ArrayMap1 {
     def eqv(x: ArrayMap[K, V], y: ArrayMap[K, V]) = Eq[Array[K]].eqv(x.keys0, y.keys0) && Eq[Array[V]].eqv(x.values0, y.values0)
   }
 
-  implicit def monoid[K: ClassTag : Order, V: ClassTag: Semigroup]: Monoid[ArrayMap[K, V]] =
+  implicit def monoid[K : Order, V: Semigroup]: Monoid[ArrayMap[K, V]] =
     new MapMonoid[K, V]
 
-  implicit def additiveMonoid[K: ClassTag: Order, V: ClassTag: AdditiveSemigroup]: AdditiveMonoid[ArrayMap[K, V]] =
+  implicit def additiveMonoid[K: Order, V: AdditiveSemigroup]: AdditiveMonoid[ArrayMap[K, V]] =
     new MapAdditiveMonoid[K, V]
 }
 
-private class MapMonoid[K: ClassTag : Order, V: ClassTag: Semigroup] extends Monoid[ArrayMap[K, V]] {
+private class MapMonoid[K : Order, V: Semigroup] extends Monoid[ArrayMap[K, V]] {
   override def empty: ArrayMap[K, V] = ArrayMap.empty[K, V]
 
   override def combine(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] =
     x.unionWith(y, (x, y) ⇒ Semigroup.combine(x, y))
 }
 
-private final class MapAdditiveMonoid[K: ClassTag : Order, V: ClassTag: AdditiveSemigroup] extends AdditiveMonoid[ArrayMap[K, V]] {
+private final class MapAdditiveMonoid[K : Order, V: AdditiveSemigroup] extends AdditiveMonoid[ArrayMap[K, V]] {
   override def zero: ArrayMap[K, V] = ArrayMap.empty[K, V]
 
   override def plus(x: ArrayMap[K, V], y: ArrayMap[K, V]): ArrayMap[K, V] =
@@ -338,13 +338,13 @@ object ArrayMap extends ArrayMap1 {
       else new ArrayMap[K, V](rk.resizeInPlace(ri), rv.resizeInPlace(ri))
   }
 
-  def empty[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag]: ArrayMap[K, V] =
-    new ArrayMap(Array.empty[K], Array.empty[V])
+  def empty[K, V]: ArrayMap[K, V] =
+    new ArrayMap(ArrayFactory.empty[K], ArrayFactory.empty[V])
 
-  def singleton[@sp(ILD) K: ClassTag, @sp(ILD) V: ClassTag](k: K, v: V): ArrayMap[K, V] =
-    new ArrayMap[K, V](Array.singleton(k), Array.singleton(v))
+  def singleton[K, V](k: K, v: V): ArrayMap[K, V] =
+    new ArrayMap[K, V](ArrayFactory.singleton(k), ArrayFactory.singleton(v))
 
-  def apply[@sp(ILD) K:Order:ClassTag, @sp(ILD) V:ClassTag](kvs: (K, V)*): ArrayMap[K, V] = {
+  def apply[K:Order, V](kvs: (K, V)*): ArrayMap[K, V] = {
     kvs.length match {
       case 0 ⇒ empty
       case 1 ⇒ singleton(kvs.head._1, kvs.head._2)

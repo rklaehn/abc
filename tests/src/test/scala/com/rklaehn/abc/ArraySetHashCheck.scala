@@ -6,9 +6,11 @@ import org.scalacheck.Arbitrary
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
 
+import scala.reflect.ClassTag
+
 class ArraySetHashCheck extends FunSuite with Checkers with Helpers {
 
-  def checkHashing[T: Order: Hash: ClassTag: Arbitrary](): Unit = {
+  def checkHashing[T: ClassTag: Order: Hash: Arbitrary](): Unit = {
     val name = typeName[T]
     test(s"hashConsistency $name") {
       check { xs: Vector[T] ⇒

@@ -7,25 +7,26 @@ import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.collection.mutable.ArrayBuffer
+import scala.reflect.ClassTag
 
 // $COVERAGE-OFF$
 object ScalaCollectionConverters {
 
-  implicit class ArraySeqInterop[@sp T](value: ArraySeq[T]) {
-    def asCollection(implicit eq: Eq[T], hash: Hash[T], classTag: ClassTag[T]): ArraySeqCollection[T] = new ArraySeqCollection[T](value)
+  implicit class ArraySeqInterop[@sp T: ClassTag](value: ArraySeq[T]) {
+    def asCollection(implicit eq: Eq[T], hash: Hash[T]): ArraySeqCollection[T] = new ArraySeqCollection[T](value)
   }
 
   implicit class ArraySetInterop[@sp T](value: ArraySet[T]) {
-    def asCollection(implicit order: Order[T], classTag: ClassTag[T], hash: Hash[T]): ArraySetCollection[T] = ArraySetCollection.wrap(value)
+    def asCollection(implicit order: Order[T], hash: Hash[T]): ArraySetCollection[T] = ArraySetCollection.wrap(value)
   }
 
-  implicit class ArrayMapInterop[@sp K: Order : Hash : ClassTag, @sp V: Hash : ClassTag](value: ArrayMap[K, V]) {
+  implicit class ArrayMapInterop[@sp K: Order : Hash, @sp V: Hash](value: ArrayMap[K, V]) {
     def asCollection: ArrayMapCollection[K, V] = ArrayMapCollection.wrap(value)
   }
 
 }
 
-final class ArraySeqCollection[T: Hash : ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, ArraySeqCollection[T]] {
+final class ArraySeqCollection[T: Hash: ClassTag](val underlying: ArraySeq[T]) extends IndexedSeq[T] with IndexedSeqOptimized[T, ArraySeqCollection[T]] {
 
   override protected[this] def newBuilder: mutable.Builder[T, ArraySeqCollection[T]] =
     new ArrayBuffer[T].mapResult(x ⇒ new ArraySeqCollection(new ArraySeq(x.toArray)))
@@ -44,14 +45,14 @@ final class ArraySeqCollection[T: Hash : ClassTag](val underlying: ArraySeq[T]) 
 
 object ArraySeqCollection {
 
-  implicit def cbf[T, U: Eq : Hash : ClassTag]: CanBuildFrom[ArraySeqCollection[T], U, ArraySeqCollection[U]] = new CanBuildFrom[ArraySeqCollection[T], U, ArraySeqCollection[U]] {
+  implicit def cbf[T, U: Eq : Hash: ClassTag]: CanBuildFrom[ArraySeqCollection[T], U, ArraySeqCollection[U]] = new CanBuildFrom[ArraySeqCollection[T], U, ArraySeqCollection[U]] {
     def apply(from: ArraySeqCollection[T]) = apply()
 
     def apply() = new ArrayBuffer[U].mapResult(x ⇒ new ArraySeqCollection(new ArraySeq[U](x.toArray)))
   }
 }
 
-final class ArraySetCollection[T: Order : Hash : ClassTag](val underlying: ArraySet[T]) extends SortedSet[T] with SortedSetLike[T, ArraySetCollection[T]] {
+final class ArraySetCollection[T: Order : Hash](val underlying: ArraySet[T]) extends SortedSet[T] with SortedSetLike[T, ArraySetCollection[T]] {
 
   import ArraySetCollection.wrap
 
@@ -109,15 +110,15 @@ final class ArraySetCollection[T: Order : Hash : ClassTag](val underlying: Array
 
 object ArraySetCollection {
 
-  private[abc] def wrap[U: Order : ClassTag : Hash](underlying: ArraySet[U]) = new ArraySetCollection[U](underlying)
+  private[abc] def wrap[U: Order : Hash](underlying: ArraySet[U]) = new ArraySetCollection[U](underlying)
 
-  implicit def cbf[CC, U: Order : ClassTag : Hash]: CanBuildFrom[CC, U, ArraySetCollection[U]] = new CanBuildFrom[CC, U, ArraySetCollection[U]] {
+  implicit def cbf[CC, U: Order : Hash]: CanBuildFrom[CC, U, ArraySetCollection[U]] = new CanBuildFrom[CC, U, ArraySetCollection[U]] {
     def apply(from: CC) = apply()
 
     def apply(): mutable.Builder[U, ArraySetCollection[U]] = new ArraySetBuilder[U].mapResult(x ⇒ wrap(x))
   }
 
-  private[this] class ArraySetBuilder[T](implicit order: Order[T], classTag: ClassTag[T]) extends scala.collection.mutable.Builder[T, ArraySet[T]] {
+  private[this] class ArraySetBuilder[T](implicit order: Order[T]) extends scala.collection.mutable.Builder[T, ArraySet[T]] {
 
     private[this] def union(a: Array[T], b: Array[T]) = {
       SetUtils.union(a, b)
@@ -126,7 +127,7 @@ object ArraySetCollection {
     private[this] var reducer = Reducer[Array[T]](union)
 
     def +=(elem: T) = {
-      reducer.apply(Array.singleton(elem))
+      reducer.apply(ArrayFactory.singleton(elem))
       this
     }
 
@@ -135,13 +136,13 @@ object ArraySetCollection {
     }
 
     def result() = {
-      new ArraySet(reducer.resultOrElse(Array.empty))
+      new ArraySet(reducer.resultOrElse(ArrayFactory.empty[T]))
     }
   }
 
 }
 
-class ArrayMapCollection[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[K, V]) extends SortedMap[K, V] with SortedMapLike[K, V, ArrayMapCollection[K, V]] {
+class ArrayMapCollection[K: Order, V](underlying: ArrayMap[K, V]) extends SortedMap[K, V] with SortedMapLike[K, V, ArrayMapCollection[K, V]] {
 
   import ArrayMapCollection._
 
@@ -183,16 +184,16 @@ class ArrayMapCollection[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[
 
 object ArrayMapCollection {
 
-  implicit def cbf[CC, K: Order : ClassTag, V: ClassTag]: CanBuildFrom[CC, (K, V), ArrayMapCollection[K, V]] = new CanBuildFrom[CC, (K, V), ArrayMapCollection[K, V]] {
+  implicit def cbf[CC, K: Order, V]: CanBuildFrom[CC, (K, V), ArrayMapCollection[K, V]] = new CanBuildFrom[CC, (K, V), ArrayMapCollection[K, V]] {
     def apply(from: CC) = apply()
 
     def apply() = new ArrayBuffer[(K, V)].mapResult(x ⇒ ArrayMapCollection.wrap(ArrayMap(x: _*)))
   }
 
-  private[abc] def wrap[K: Order : ClassTag, V: ClassTag](underlying: ArrayMap[K, V]): ArrayMapCollection[K, V] =
+  private[abc] def wrap[K: Order, V](underlying: ArrayMap[K, V]): ArrayMapCollection[K, V] =
     new ArrayMapCollection[K, V](underlying)
 
-  private class Builder[@specialized(Int, Long, Double) K: Order : ClassTag, @specialized(Int, Long, Double) V: ClassTag] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
+  private class Builder[@specialized(Int, Long, Double) K: Order, @specialized(Int, Long, Double) V] extends scala.collection.mutable.Builder[(K, V), ArrayMap[K, V]] {
 
     private[this] var reducer = Reducer[ArrayMap[K, V]](_ merge _)
 

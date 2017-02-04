@@ -5,7 +5,7 @@ import algebra.lattice.Bool
 import cats.Show
 import cats.implicits._
 
-final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val elements0: Array[T], private[abc] val negated: Boolean) {
+final class NegatableArraySet[T] private[abc] (private[abc] val elements0: Array[T], private[abc] val negated: Boolean) {
   lhs ⇒
   import NegatableArraySet._
 
@@ -17,9 +17,9 @@ final class NegatableArraySet[@sp(ILD) T] private[abc] (private[abc] val element
 
   def apply(elem: T)(implicit order: Order[T]) = negated ^ (Searching.search(elements0, 0, elements0.length, elem) >= 0)
 
-  def +(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.union(singleton(elem))
+  def +(elem: T)(implicit order: Order[T]) = lhs.union(singleton(elem))
 
-  def -(elem: T)(implicit order: Order[T], classTag: ClassTag[T]) = lhs.diff(singleton(elem))
+  def -(elem: T)(implicit order: Order[T]) = lhs.diff(singleton(elem))
 
   def subsetOf(rhs: NegatableArraySet[T])(implicit order: Order[T]): Boolean =
     (lhs.negated, rhs.negated) match {
@@ -120,7 +120,7 @@ object NegatableArraySet extends NegatableArraySet1 {
     def hash(a: NegatableArraySet[T]): Int = (Hash.hash(a.negated), ArrayUtil.hash(a.elements0)).##
   }
 
-  implicit def bool[T : Order: ClassTag]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
+  implicit def bool[T : Order]: Bool[NegatableArraySet[T]] = new Bool[NegatableArraySet[T]] {
     def complement(a: NegatableArraySet[T]) = a.negate
     def or(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a union b
     def and(a: NegatableArraySet[T], b: NegatableArraySet[T]) = a intersect b
@@ -131,22 +131,21 @@ object NegatableArraySet extends NegatableArraySet1 {
 
   private[abc] def wrap[T](elements: Array[T], negated: Boolean) = new NegatableArraySet[T](elements, negated)
 
-  def fromBoolean[@sp(ILD) T: ClassTag](value: Boolean): NegatableArraySet[T] =
+  def fromBoolean[T](value: Boolean): NegatableArraySet[T] =
     if(value) all else empty
 
-  def empty[@sp(ILD) T: ClassTag]: NegatableArraySet[T] =
-    wrap(Array.empty[T], false)
+  def empty[T]: NegatableArraySet[T] =
+    wrap(ArrayFactory.empty[T], false)
 
-  def all[@sp(ILD) T: ClassTag]: NegatableArraySet[T] =
-    wrap(Array.empty[T], true)
+  def all[T]: NegatableArraySet[T] =
+    wrap(ArrayFactory.empty[T], true)
 
-  def singleton[@sp(ILD) T: ClassTag](e: T): NegatableArraySet[T] =
-    wrap(Array.singleton(e), false)
+  def singleton[T](e: T): NegatableArraySet[T] =
+    wrap(ArrayFactory.singleton(e), false)
 
-  def apply[@sp(ILD) T: Order: ClassTag](elements: T*): NegatableArraySet[T] = {
-    val t = new Array[T](elements.length)
-    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
-    elements.copyToArray(t)
-    new NegatableArraySet[T](sortAndRemoveDuplicatesInPlace(t), false)
+  def apply[T: Order](elements: T*): NegatableArraySet[T] = {
+    val b = UnboxedArrayBuilder[T](elements.length)
+    elements.foreach(b.add)
+    new NegatableArraySet[T](sortAndRemoveDuplicatesInPlace(b.result), false)
   }
 }

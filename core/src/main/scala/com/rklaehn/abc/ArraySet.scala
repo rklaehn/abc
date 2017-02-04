@@ -7,7 +7,7 @@ import cats.syntax.show._
 
 import cats.kernel.instances.MapInstances
 
-final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
+final class ArraySet[T] private[abc] (private[abc] val elements: Array[T]) { self ⇒
 
   def asNegatable: NegatableArraySet[T] = new NegatableArraySet[T](elements, false)
 
@@ -15,9 +15,9 @@ final class ArraySet[@sp(ILD) T] private[abc] (private[abc] val elements: Array[
 
   def contains(elem: T)(implicit T: Order[T]) = self.apply(elem)
 
-  def +(elem: T)(implicit T: Order[T]) = self.union(ArraySet.singleton0(elem, elements))
+  def +(elem: T)(implicit T: Order[T]) = self.union(ArraySet.singleton0(elem))
 
-  def -(elem: T)(implicit T: Order[T]) = self.diff(ArraySet.singleton0(elem, elements))
+  def -(elem: T)(implicit T: Order[T]) = self.diff(ArraySet.singleton0(elem))
 
   def iterator = elements.iterator
 
@@ -77,8 +77,8 @@ private[abc] trait ArraySet1 extends ArraySet0 {
 
 object ArraySet extends ArraySet1 {
 
-  private def singleton0[@sp(ILD) T](e: T, a: Array[T]): ArraySet[T] =
-    new ArraySet[T](Array.singleton(e, a))
+  private def singleton0[T](e: T): ArraySet[T] =
+    new ArraySet[T](ArrayFactory.singleton(e))
 
   implicit val foldable: Foldable[ArraySet] = new Foldable[ArraySet] {
     def foldLeft[A, B](fa: ArraySet[A], b: B)(f: (B, A) ⇒ B): B = fa.elements.foldLeft[B](b)(f)
@@ -89,22 +89,21 @@ object ArraySet extends ArraySet1 {
 
   implicit def hash[A: Hash]: Hash[ArraySet[A]] = Hash.by(_.elements)
 
-  implicit def semiring[A: Order: ClassTag]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
+  implicit def semiring[A: Order]: Semiring[ArraySet[A]] = new Semiring[ArraySet[A]] {
     def zero = ArraySet.empty[A]
     def times(x: ArraySet[A], y: ArraySet[A]) = x intersect y
     def plus(x: ArraySet[A], y: ArraySet[A]) = x union y
   }
 
-  def empty[@sp(ILD) T: ClassTag]: ArraySet[T] =
-    new ArraySet[T](Array.empty[T])
+  def empty[T]: ArraySet[T] =
+    new ArraySet[T](ArrayFactory.empty[T])
 
-  def singleton[@sp(ILD) T: ClassTag](e: T): ArraySet[T] =
-    new ArraySet[T](Array.singleton(e))
+  def singleton[T](e: T): ArraySet[T] =
+    new ArraySet[T](ArrayFactory.singleton(e))
 
-  def apply[@sp(ILD) T: Order : ClassTag](elements: T*): ArraySet[T] = {
-    val t = new Array[T](elements.length)
-    // we must not use toArray, because somebody might have passed an array, and toArray would return that array (*not* a copy!)
-    elements.copyToArray(t)
-    new ArraySet[T](sortAndRemoveDuplicatesInPlace(t))
+  def apply[T: Order](elements: T*): ArraySet[T] = {
+    val b = UnboxedArrayBuilder[T](elements.length)
+    elements.foreach(b.add)
+    new ArraySet[T](sortAndRemoveDuplicatesInPlace(b.result))
   }
 }

@@ -5,9 +5,7 @@ import algebra.{Order, Eq}
 package object abc extends abc.abc1 {
 
   private[abc] type sp = scala.specialized
-  private[abc] type ClassTag[A] = scala.reflect.ClassTag[A]
   private[abc] type tailrec     = scala.annotation.tailrec
-  private[abc] val ClassTag = scala.reflect.ClassTag
   private[abc] val ILD = new Specializable.Group(Long, Int, Double)
 
   private[abc] final class AbortControl extends scala.util.control.ControlThrowable
@@ -16,25 +14,6 @@ package object abc extends abc.abc1 {
 
   private[abc] def newArray[T](n: Int, prototype: Array[T]) : Array[T] =
     java.lang.reflect.Array.newInstance(prototype.getClass.getComponentType, n).asInstanceOf[Array[T]]
-
-  private[abc] implicit class ArrayCompanionOps(private val a: Array.type) extends AnyVal {
-    def singleton[@sp(ILD) T: ClassTag](value: T) = {
-      val result = new Array[T](1)
-      result(0) = value
-      result
-    }
-
-    def singleton[@sp(ILD) T](value: T, prototype: Array[T]) = {
-      val result = newArray(1, prototype)
-      result(0) = value
-      result
-    }
-  }
-
-  private[abc] implicit class ClassTagCompanionOps(private val c: ClassTag.type) extends AnyVal {
-
-    def apply[T](implicit ev: ClassTag[T]): ClassTag[T] = ev
-  }
 
   private[abc] def sortAndRemoveDuplicatesInPlace[@sp T: Order](a: Array[T]): Array[T] = {
     if(a.length <= 1)

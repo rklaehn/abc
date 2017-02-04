@@ -6,14 +6,14 @@ import org.scalacheck.Arbitrary._
 
 object arb {
 
-  implicit def arbArraySeq[T: Arbitrary: ClassTag] = Arbitrary {
+  implicit def arbArraySeq[T: Arbitrary] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[T]]
     } yield
       ArraySeq(xs: _*)
   }
 
-  implicit def arbTotalArraySeq[K: Arbitrary: Eq: ClassTag] = Arbitrary {
+  implicit def arbTotalArraySeq[K: Arbitrary: Eq] = Arbitrary {
     for {
       m ← arbitrary[ArraySeq[K]]
       default ← arbitrary[K]
@@ -21,14 +21,14 @@ object arb {
       m.withDefault(default)
   }
 
-  implicit def arbArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
+  implicit def arbArraySet[T: Arbitrary: Order] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[T]]
     } yield
       ArraySet(xs: _*)
   }
 
-  implicit def arbNegatableArraySet[T: Arbitrary: Order: ClassTag] = Arbitrary {
+  implicit def arbNegatableArraySet[T: Arbitrary: Order] = Arbitrary {
     for {
       xs ← arbitrary[Vector[T]]
       n ← arbitrary[Boolean]
@@ -36,14 +36,14 @@ object arb {
       NegatableArraySet(xs :_*) xor NegatableArraySet.fromBoolean(n)
   }
 
-  implicit def arbArrayMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag] = Arbitrary {
+  implicit def arbArrayMap[K: Arbitrary: Order, V: Arbitrary] = Arbitrary {
     for {
       xs ← arbitrary[IndexedSeq[(K, V)]]
     } yield
       ArrayMap(xs: _*)
   }
 
-  implicit def arbTotalArrayMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: ClassTag: Eq] = Arbitrary {
+  implicit def arbTotalArrayMap[K: Arbitrary: Order, V: Arbitrary: Eq] = Arbitrary {
     for {
       m ← arbitrary[ArrayMap[K, V]]
       default ← arbitrary[V]
