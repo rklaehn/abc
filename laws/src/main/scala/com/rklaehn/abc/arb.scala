@@ -50,6 +50,7 @@ object arb {
     } yield
       m.withDefault(default)
   }
+
 //
 //  implicit def arbArrayMultiMap[K: Arbitrary: Order: ClassTag, V: Arbitrary: Order: ClassTag] = Arbitrary {
 //    for {
@@ -58,3 +59,4 @@ object arb {
 //      ArrayMultiMap(xs: _*)
 //  }
 }
+
