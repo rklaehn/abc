@@ -1,19 +1,18 @@
 package com.rklaehn.abc
 
-import algebra.ring._
 import algebra._
-import algebra.laws._
-// import algebra.instances.all._
-// import cats.instances.all._
+import algebra.ring._
+import cats.kernel.laws.{GroupLaws, OrderLaws}
+import algebra.laws.RingLaws
 import algebra.instances.all._
-// import algebra.std.Rat
 import cats.laws.discipline.FoldableTests
-import org.scalacheck.{Gen, Arbitrary}
+import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
 import org.typelevel.discipline.Predicate
 import org.typelevel.discipline.scalatest.Discipline
 import arb._
+import cogen._
 
 trait Helpers {
 
@@ -44,13 +43,13 @@ class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
     !AdditiveMonoid.isZero(x.default) && !x.values.elements.exists(e ⇒ AdditiveMonoid.isZero(e))
   }
 
-  def checkEqLaws[K: Order: ClassTag: Arbitrary, V: Eq: ClassTag: Arbitrary](): Unit = {
+  def checkEqLaws[K: Order: ClassTag: Arbitrary: Cogen, V: Eq: ClassTag: Arbitrary: Cogen](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
     checkAll(s"OrderLaws[TotalArrayMap[$keyName,$valueName]].eqv", OrderLaws[TotalArrayMap[K, V]].eqv)
   }
 
-  def checkOrderLaws[K: Order: ClassTag: Arbitrary, V: Eq: Order: ClassTag: Arbitrary](): Unit = {
+  def checkOrderLaws[K: Order: ClassTag: Arbitrary: Cogen, V: Eq: Order: ClassTag: Arbitrary: Cogen](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
     checkAll(s"OrderLaws[TotalArrayMap[$keyName,$valueName]].order", OrderLaws[TotalArrayMap[K, V]].order)
@@ -71,13 +70,13 @@ class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
   def checkAdditiveMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveMonoid: ClassTag: Arbitrary](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
-    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[TotalArrayMap[K, V]].additiveMonoid)
+    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", RingLaws[TotalArrayMap[K, V]].additiveMonoid)
   }
 
   def checkAdditiveGroupLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveGroup: ClassTag: Arbitrary](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
-    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[TotalArrayMap[K, V]].additiveGroup)
+    checkAll(s"GroupLaws[TotalArrayMap[$keyName,$valueName]].additiveMonoid", RingLaws[TotalArrayMap[K, V]].additiveGroup)
   }
 
   def checkMultiplicativeMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveMonoid: MultiplicativeMonoid: ClassTag: Arbitrary](): Unit = {
@@ -158,7 +157,7 @@ class TotalArrayMapLawCheck extends FunSuite with Discipline with Helpers {
 
 class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
 
-  def checkEqLaws[K: Order: ClassTag: Arbitrary, V: Eq: ClassTag: Arbitrary](): Unit = {
+  def checkEqLaws[K: Order: ClassTag: Arbitrary: Cogen, V: Eq: ClassTag: Arbitrary: Cogen](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
     checkAll(s"OrderLaws[ArrayMap[$keyName,$valueName]].eqv", OrderLaws[ArrayMap[K, V]].eqv)
@@ -173,7 +172,7 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
   def checkAdditiveMonoidLaws[K: Order: ClassTag: Arbitrary, V: Eq: AdditiveSemigroup: ClassTag: Arbitrary](): Unit = {
     val keyName = typeName[K]
     val valueName = typeName[V]
-    checkAll(s"GroupLaws[ArrayMap[$keyName,$valueName]].additiveMonoid", GroupLaws[ArrayMap[K, V]].additiveMonoid)
+    checkAll(s"GroupLaws[ArrayMap[$keyName,$valueName]].additiveMonoid", RingLaws[ArrayMap[K, V]].additiveMonoid)
   }
   checkEqLaws[Byte, Byte]()
   checkEqLaws[Short, Short]()
@@ -208,7 +207,7 @@ class ArrayMapLawCheck extends FunSuite with Discipline with Helpers {
 
 class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {
 
-  def checkLaws[T: Order: ClassTag: Arbitrary](): Unit = {
+  def checkLaws[T: Order: Cogen: ClassTag: Arbitrary](): Unit = {
     val name = typeName[T]
     checkAll(s"OrderLaws[ArraySeq[$name]].eqv", OrderLaws[ArraySeq[T]].eqv)
     checkAll(s"OrderLaws[ArraySeq[$name]].order", OrderLaws[ArraySeq[T]].order)
@@ -230,7 +229,7 @@ class ArraySeqLawCheck extends FunSuite with Discipline with Helpers {
 
 class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
 
-  def checkOrderLaws[T: Order: ClassTag: Arbitrary](): Unit = {
+  def checkOrderLaws[T: Order: ClassTag: Arbitrary: Cogen](): Unit = {
     val name = typeName[T]
     checkAll(s"OrderLaws[TotalArraySeq[$name]].eqv", OrderLaws[TotalArraySeq[T]].eqv)
     checkAll(s"OrderLaws[TotalArraySeq[$name]].order", OrderLaws[TotalArraySeq[T]].order)
@@ -239,9 +238,9 @@ class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
     val name = typeName[T]
     checkAll(s"GroupLaws[TotalArraySeq[$name]].semigroup", GroupLaws[TotalArraySeq[T]].semigroup)
   }
-  def checkAdditiveSemigroupLaws[T: AdditiveSemigroup: Eq: Arbitrary: ClassTag](): Unit = {
+  def checkAdditiveSemigroupLaws[T: AdditiveMonoid: Eq: Arbitrary: ClassTag](): Unit = {
     val name = typeName[T]
-    checkAll(s"GroupLaws[TotalArraySeq[$name].additiveSemigroup", GroupLaws[TotalArraySeq[T]].additiveSemigroup)
+    checkAll(s"RingLaws[TotalArraySeq[$name].additiveSemigroup", RingLaws[TotalArraySeq[T]].additiveSemigroup)
   }
   def checkMonoidLaws[T: Monoid: Eq: ClassTag: Arbitrary](): Unit = {
     val name = typeName[T]
@@ -249,7 +248,7 @@ class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
   }
   def checkAdditiveMonoidLaws[T: AdditiveMonoid: Eq: Arbitrary: ClassTag](): Unit = {
     val name = typeName[T]
-    checkAll(s"GroupLaws[TotalArraySeq[$name].additiveMonoid", GroupLaws[TotalArraySeq[T]].additiveMonoid)
+    checkAll(s"RingLaws[TotalArraySeq[$name].additiveMonoid", RingLaws[TotalArraySeq[T]].additiveMonoid)
   }
   def checkGroupLaws[T: Group: Eq: ClassTag: Arbitrary](): Unit = {
     val name = typeName[T]
@@ -257,7 +256,7 @@ class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
   }
   def checkAdditiveGroupLaws[T: AdditiveGroup: Eq: Arbitrary: ClassTag](): Unit = {
     val name = typeName[T]
-    checkAll(s"GroupLaws[TotalArraySeq[$name].additiveGroup", GroupLaws[TotalArraySeq[T]].additiveGroup)
+    checkAll(s"RingLaws[TotalArraySeq[$name].additiveGroup", RingLaws[TotalArraySeq[T]].additiveGroup)
   }
   def checkSemiringLaws[T: Semiring: Eq: Arbitrary: ClassTag](): Unit = {
     val name = typeName[T]
@@ -314,7 +313,7 @@ class TotalArraySeqLawCheck extends FunSuite with Discipline with Helpers {
 
 class ArraySetLawCheck extends FunSuite with Discipline with Helpers {
 
-  def checkLaws[T: Order: ClassTag: Arbitrary](): Unit = {
+  def checkLaws[T: Order: ClassTag: Arbitrary: Cogen](): Unit = {
     val name = typeName[T]
     checkAll(s"OrderLaws[ArraySet[$name]].partialOrder", OrderLaws[ArraySet[T]].partialOrder)
     checkAll(s"RingLaws[ArraySet[$name]].semiring", RingLaws[ArraySet[T]].semiring)

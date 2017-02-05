@@ -4,9 +4,11 @@ import org.scalacheck.Properties
 import org.scalacheck.Prop._
 import algebra.lattice.Bool
 import algebra.laws._
- import cats.kernel.instances.all._
+import cats.kernel.instances.all._
+import cats.kernel.laws.OrderLaws
 import Instances._
 import arb._
+import cogen._
 import org.scalatest.FunSuite
 import org.typelevel.discipline.scalatest.Discipline
 
