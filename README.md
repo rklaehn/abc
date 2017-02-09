@@ -195,8 +195,8 @@ Unfortunately, [algebra] currently does not contain a typeclass for hashing. The
 [PartialOrder]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/PartialOrder.scala
 [Order]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/Order.scala
 
-[Semigroup]: http://typelevel.org/cats/tut/semigroup.html
-[Monoid]: http://typelevel.org/cats/tut/monoid.html
+[Semigroup]: http://typelevel.org/cats/typeclasses/semigroup.html
+[Monoid]: http://typelevel.org/cats/typeclasses/monoid.html
 [Group]: https://github.com/typelevel/cats/blob/master/kernel/src/main/scala/cats/kernel/Group.scala
 
 [AdditiveSemigroup]: https://github.com/typelevel/algebra/blob/master/core/src/main/scala/algebra/ring/Additive.scala
