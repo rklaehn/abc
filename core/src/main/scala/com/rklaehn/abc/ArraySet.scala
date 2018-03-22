@@ -82,7 +82,7 @@ object ArraySet extends ArraySet1 {
 
   implicit val foldable: Foldable[ArraySet] = new Foldable[ArraySet] {
     def foldLeft[A, B](fa: ArraySet[A], b: B)(f: (B, A) ⇒ B): B = fa.elements.foldLeft[B](b)(f)
-    def foldRight[A, B](fa: ArraySet[A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) = Foldable.iterateRight(fa.elements.iterator, lb)(f)
+    def foldRight[A, B](fa: ArraySet[A], lb: Eval[B])(f: (A, Eval[B]) ⇒ Eval[B]) = Foldable.iterateRight(fa.elements, lb)(f)
   }
 
   implicit def show[A: Show]: Show[ArraySet[A]] = Show.show(_.elements.map(_.show).mkString("ArraySet(", ",", ")"))
